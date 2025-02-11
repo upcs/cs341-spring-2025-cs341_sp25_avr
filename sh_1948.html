@@ -4,16 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UP Tour Camera page</title>
-    <link rel="stylesheet" href="building_c.css">
+    <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"/> 
 </script>
 
 </head>
 
-<body>
+<body id = "body2">
     <div id="phone-container">
-        <button id="menu-button"><i class="fa fa-bars"></i> Menu </button>
+        <div class = "dropdown">
+        <button id = "menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
+
+    <div id="myDropdown" class="dropdown-content">
+    <button class="link" id= "home-toggle">Home</button>
+    <button class="link" id= "map-toggle">Map</button>
+</div>
+
+</div>
+
 
         <div class="building-photo">
            
@@ -21,28 +30,40 @@
         </div>
 
         <h1>Engineering Hall</h1>
-        <h3> 1948 </h3>
+        <h3 = "h32"> 1948 </h3>
 
         <p>The Engineering building was opened in 1949. It was designed and the construction was supervised by<span id="dots">...</span><span id="toggle-text"> the architectural firm of Jacobberger, Stanton & Zeller. The building was built by the Ross B. Hammond Co. of Portland, Oregon.</span></P>
 
        <button class="link" id="read-button">Read more</button>
            
-        <button id = "past-button"><i class="fa fa-step-backward"></i> Past </button>
+        <button id = "past-button" style = "color:gray"><i class="fa fa-step-backward"></i> Past </button>
         <button id = "future-button"> Future <i class="fa fa-step-forward"></i></button>
         
-   <script>
-    $(document).ready(function(){ 
+   <script> 
 
-    document.getElementById("menu-button").onclick = function () {
-    window.location.href = "home_h.html";
+    $(document).ready(function(){
+    $("#menu-button").click(function(){
+    $("#myDropdown").toggle();
+}); 
+   document.getElementById("home-toggle").onclick = function () {
+   window.location.href = "index.html";
    }; 
+  
+   document.getElementById("map-toggle").onclick = function () {
+   window.location.href = "map_h.html";
+   }; 
+
 
     document.getElementById("future-button").onclick = function () {
     window.location.href = "sh_1969.html";
 };        
   
      $("#read-button").click(function(){
-     $("#read-button").text('Read less');
+      if ($(this).text() == "Read more")
+       $(this).text("Read less")
+      else
+       $(this).text("Read more");
+
      $("#dots").toggle();
      $("#toggle-text").toggle();
  });
