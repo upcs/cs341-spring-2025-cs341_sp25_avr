@@ -12,7 +12,15 @@
 
 <body>
     <div id="phone-container">
-        <button id ="menu-button"><i class="fa fa-bars"></i> Menu </button>
+        <div class = "dropdown">
+        <button id = "menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
+
+    <div id="myDropdown" class="dropdown-content">
+    <button class="link" id= "home-toggle">Home</button>
+    <button class="link" id= "map-toggle">Map</button>
+</div>
+</div>
+
 
         <div class="building-photo">
            
@@ -22,7 +30,7 @@
         <h1 id= "multnomah-header">Multnomah School of Engineering</h1>
         <h3> 1969 </h3>
 
-        <p>June 1949 marked the sixty-fifth anniversary of the dedication of the Engineering Building. The<span id="dots">...</span><span id="toggle-text"> 45,000 square foot, three-story building for Engineering and Physics was furnished with equipment purchased through war surplus, acquired by donations, or built-to-spec by faculty</span></P>
+        <p>June 1969 marked the sixty-fifth anniversary of the dedication of the Engineering Building. The<span id="dots">...</span><span id="toggle-text"> 45,000 square foot, three-story building for Engineering and Physics was furnished with equipment purchased through war surplus, acquired by donations, or built-to-spec by faculty</span></P>
 
         <button class="link" id="read-button">Read more</button>
            
@@ -31,10 +39,19 @@
         
     <script>
     $(document).ready(function(){
-    
-    document.getElementById("menu-button").onclick = function () {
-    window.location.href = "home_h.html";
+
+ $("#menu-button").click(function(){
+    $("#myDropdown").toggle();
+}); 
+
+   document.getElementById("home-toggle").onclick = function () {
+   window.location.href = "index.html";
    }; 
+  
+   document.getElementById("map-toggle").onclick = function () {
+   window.location.href = "map_h.html";
+   }; 
+
 
     document.getElementById("past-button").onclick = function () {
     window.location.href = "sh_1948.html";
@@ -45,7 +62,13 @@
 };        
   
      $("#read-button").click(function(){
-     $("#read-button").text('Read less');
+      var text = $(this).text();
+
+     if (text === 'Read more') {
+            $(this).text('Read less');
+        } else {
+            $(this).text('Read more');
+        }
      $("#dots").toggle();
      $("#toggle-text").toggle();
  });

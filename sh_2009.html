@@ -12,7 +12,14 @@
 
 <body>
     <div id="phone-container">
-        <button id = "menu-button"><i class="fa fa-bars"></i> Menu </button>
+        	<div class = "dropdown">
+        <button id = "menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
+
+    <div id="myDropdown" class="dropdown-content">
+    <button class="link" id= "home-toggle">Home</button>
+    <button class="link" id= "map-toggle">Map</button>
+</div>
+</div>
 
         <div class="building-photo">
            
@@ -27,14 +34,22 @@
         
 <button class="link" id="read-button">Read more</button>
 
-           
         <button id = "past-button"><i class="fa fa-step-backward"></i> Past </button>
-        <button id = "future-button"> Future <i class="fa fa-step-forward"></i></button>
+        <button id = "future-button" style= color:gray;> Future <i class="fa fa-step-forward"></i></button>
         
  <script>
 $(document).ready(function(){
-    document.getElementById("menu-button").onclick = function () {
-    window.location.href = "home_h.html";
+    $("#menu-button").click(function(){
+    $("#myDropdown").toggle();
+}); 
+
+
+   document.getElementById("home-toggle").onclick = function () {
+   window.location.href = "index.html";
+   }; 
+  
+   document.getElementById("map-toggle").onclick = function () {
+   window.location.href = "map_h.html";
    }; 
 
     document.getElementById("past-button").onclick = function () {
@@ -42,7 +57,13 @@ $(document).ready(function(){
    }; 
 
      $("#read-button").click(function(){
-     $("#read-button").text('Read less');
+      var text = $(this).text();
+
+     if (text === 'Read more') {
+            $(this).text('Read less');
+        } else {
+            $(this).text('Read more');
+        }
      $("#dots").toggle();
      $("#toggle-text").toggle();
      });
