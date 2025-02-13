@@ -1,0 +1,134 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: white;
+}
+
+.welcome-pop-up {
+    visibility: hidden;
+    width: 250px;
+    text-align: center;
+    animation: pulse 1s infinite;
+    color: white;
+    background-color: #1E1656;
+    padding: 10px 20px 10px 20px;
+    border-radius: 20px;
+    font-size: 24px;
+    -moz-animation: bounce 2s infinite;
+    -webkit-animation: bounce 2s infinite;
+    animation: bounce 2s infinite;
+    cursor: pointer;
+}
+
+.welcome-pop-up:hover {
+    opacity: 0.8;
+}
+
+
+
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        -moz-transform: translateY(0);
+        -ms-transform: translateY(0);
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+    }
+    40% {
+        -moz-transform: translateY(-10px);
+        -ms-transform: translateY(-10px);
+        -webkit-transform: translateY(-10px);
+        transform: translateY(-10px);
+    }
+    60% {
+        -moz-transform: translateY(-5px);
+        -ms-transform: translateY(-5px);
+        -webkit-transform: translateY(-5px);
+        transform: translateY(-5px);
+    }
+}
+
+.loading-message {
+    visibility: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+
+.loader {
+    display: flex;
+    width: 60px;
+    aspect-ratio: 4;
+    background: radial-gradient(circle closest-side,#000 90%,#0000) 0/calc(100%/3) 100% space;
+    clip-path: inset(0 100% 0 0);
+    animation: l1 1s steps(4) infinite;
+  }
+@keyframes l1 {to{clip-path: inset(0 -34% 0 0)}}
+
+
+
+#map {
+    margin-top: 20px;
+    border: solid black 2px;
+}
+
+#phone-container{
+    display: flex;
+    width: 393px;
+    height: 852px;
+    border: 10px solid;
+    border-radius: 24px;
+    align-items: center;
+    flex-direction: column;
+    background-color: white;
+}
+
+.default-message {
+    display: flex;
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    color: #1E1656;
+}
+
+
+.popup-container {
+    width: 350px;
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    
+}
+
+h1 {
+    font-family: sans-serif;
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    color: #1E1656;
+    filter: drop-shadow(1px 1px 1px #1E1656);
+}
+button {
+    width: 350px;
+    margin-top: 12px;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 20px;
+    border: solid 3px#ffffff;
+    color: white;
+    background-color: #1E1656;
+    padding: 15px 40px 15px 40px;
+    
+}
