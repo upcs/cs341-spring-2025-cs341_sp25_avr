@@ -142,6 +142,7 @@ button:hover {
 .dropdown button:hover {background-color: #ddd;}
 
 .show {display: block;}
-</style>
-</head>
-<body style="background-color:white;">
+
+.creditText {
+  margin-bottom: 20px;
+ }
