@@ -1,7 +1,6 @@
-
-#AVR 125th UP Anniversary
+125th UP Anniversary Time Machine
 The Campus History Web Application is an interactive web-based tool designed to showcase the University of Portland’s rich history. 
-As part of the university’s 125th-anniversary celebration, this application provides users with historical images, facts, and 
+As part of the University’s 125th-anniversary celebration, this application provides users with historical images, facts, and 
 stories about key campus locations. Using geolocation, users can receive contextual pop-ups as they explore the campus, 
 offering an immersive journey through time.
 
@@ -11,7 +10,7 @@ Website Link: https://upcs.github.io/cs341-spring-2025-cs341_sp25_avr/
 Completed Features:
 GUI
 Buttons
-Geo Location (Maybe for Sprint1 Demo)
+Geo Location
 Archive Content Added
 
 Tests:
