@@ -124,7 +124,10 @@ function updateDisplay(building) {
 // Chengen: main function was unnessary but I thought it was good for modularity 
 function main() {
     // calls the function every 5 seconds to check user has moved
-    setInterval(getUserCords, 5000);
+    // setInterval(getUserCords, 5000);
+    // bug: it keeps asking for the user's lociation
+
+    getUserCords();
 }
 
 main();
