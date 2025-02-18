@@ -15,7 +15,7 @@ document.body.innerHTML = html;
 require('geo.js');
 
 test('updates coordinates in HTML', () => {
-	const mockPostion = {
+	const mockPosition = {
 		coords: {
 			lat: 45.5725,
 			long: -122.7265
