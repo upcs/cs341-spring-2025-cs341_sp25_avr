@@ -1,6 +1,5 @@
 
 
-
 test('checks to see if html pages change properly after menu/home is selected', () => {
         var testBoolean = true
 
