@@ -3,7 +3,15 @@
     padding: 0;
 }
 
+@font-face {
+    font-family: 'TheSansOfficeLF-Bold';
+    src: url('TheSansOfficeLF-Bold.otf') format('opentype'); 
+    font-weight: normal; 
+    font-style: normal; 
+  }
+
 body{
+    font-family: TheSansOfficeLF-Bold;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -40,7 +48,6 @@ body{
 }
 
 h1 {
-    font-family: sans-serif;
     text-align: center;
     margin-bottom: 50px;
     margin-top: 20px;
