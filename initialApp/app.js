@@ -40,4 +40,11 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+//TEST PORT
+const PORT = process.env.PORT || 80;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://cs341avr.campus.up.edu:${PORT}`);
+});
+
+
 module.exports = app;
