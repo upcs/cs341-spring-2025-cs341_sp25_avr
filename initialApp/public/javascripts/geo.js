@@ -1,4 +1,3 @@
-
 /**
  * TO DO:
  * 1. find the dimentions of the whole campus
@@ -12,15 +11,6 @@
  const message = document.querySelectorAll(".default-message");
  const loader = document.querySelector(".loader");
  const popup = document.querySelector(".welcome-pop-up");
-
-// Check if message exists
-if (message.length > 1) {
-    message[1].style.display = 'none';
-    message[1].style.color = 'gray';
-    message[0].style.fontSize = '24px';
-  } else {
-    console.error("Message elements not found!");
-  }
 
  // hide the 'tap icon' message at the beginning
  message[1].style.display = 'none';
@@ -121,7 +111,6 @@ function checkWithinBounds(lat, long, latMin, latMax, longMin, longMax) {
     return (lat >= latMin && lat <= latMax && long >= longMin && long <= longMax);
 }
 
-
 // changes the name of the info buttons based on the passed in string
 function updateDisplay(building) {
     message[0].style.display = 'flex';
@@ -141,8 +130,4 @@ function main() {
     getUserCords();
 }
 
-
 main();
-
-// Export the function for testing
-module.exports = { getUserCords };
