@@ -149,5 +149,21 @@ button:hover {
 .show {display: block;}
 
 .creditText {
-  margin-bottom: 20px;
+  box-shadow: #444448;
+  border: #444448;
+  background-color: #444448;
+  border-radius: 10%;
+
  }
+
+ .creditBox {
+  margin-bottom: 20px;
+  padding: 20px;
+  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3); /* Adds a soft shadow */
+  border: 1px solid #444448; /* Adds a subtle border */
+  background-color: #444448; /* Gray background */
+  border-radius: 10px; /* Rounded corners */
+  text-align:center; /* Centers text */
+  max-width: 75%; /* Prevents box from being too wide */
+  margin: 1%; /* Centers the box horizontally */
+}
