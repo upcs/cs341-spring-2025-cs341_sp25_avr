@@ -26,6 +26,7 @@ body{
     color: white;
     background-color: #1E1656;
     padding: 10px 20px 10px 20px;
+    margin-bottom: 10px;
     border-radius: 20px;
     font-size: 24px;
     -moz-animation: bounce 2s infinite;
@@ -104,7 +105,7 @@ body{
     font-size: 20px;
     text-align: center;
     margin-bottom: 20px;
-    margin-top: 20px;
+    margin-top: 0px;
     color: #1E1656;
 }
 
@@ -113,9 +114,11 @@ body{
     width: 350px;
     margin-top: 40px;
     display: flex;
+    border: solid;
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    overflow: auto;
     
 }
 
