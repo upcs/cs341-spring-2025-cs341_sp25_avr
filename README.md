@@ -6,16 +6,19 @@ stories about key campus locations. Using geolocation, users can receive context
 offering an immersive journey through time.
 
 =======
-Website Link: https://upcs.github.io/cs341-spring-2025-cs341_sp25_avr/
+Website Link: https://upcs.github.io/cs341-spring-2025-cs341_sp25_avr/initialApp/public/index.html
 
 Completed Features:
 GUI
-Buttons
-Geo Location (Maybe for Sprint1 Demo)
-Archive Content Added
+Buttons (including menu)
+Geo Location
+Timeline (updates text for building from Archive Content)
 
 Tests:
-Lat and Long
+-Lat and Long (geo)
+-Location 
+-archive info (for timeline)
+-menu (drop down menu)
 
 What went well during the sprint cycle?
 - Timing went well. Not super rushed
