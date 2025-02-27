@@ -10,7 +10,16 @@
  const map = document.getElementById("map");
  const message = document.querySelectorAll(".default-message");
  const loader = document.querySelector(".loader");
- const popup = document.querySelector(".welcome-pop-up");
+ const popups = document.querySelectorAll(".welcome-pop-up");
+ const devButton = document.getElementById("debug-btn");
+
+ // developer button to display all the other pop ups
+ devButton.addEventListener('click', () => {
+    popups.forEach((popup) => {
+        popup.style.display = "flex";
+    });
+ });
+
 
  // hide the 'tap icon' message at the beginning
  message[1].style.display = 'none';
@@ -117,8 +126,8 @@ function updateDisplay(building) {
     message[0].innerHTML = 'Near by buildings:';
     message[1].style.display = 'flex';
     loader.style.display = 'none';
-    popup.style.visibility = 'visible';
-    popup.innerHTML = `${building}!`;
+    popups[0].style.display = 'flex';
+    popups[0].innerHTML = `${building}!`;
 }
 
 // Chengen: main function was unnessary but I thought it was good for modularity 

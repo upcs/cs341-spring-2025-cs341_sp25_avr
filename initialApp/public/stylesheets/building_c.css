@@ -147,5 +147,19 @@ button:hover {
 .show {display: block;}
 
 .creditText {
+  width: 350px;
   margin-bottom: 20px;
  }
+ 
+ #descriptionText {
+  width: 360px;
+  text-align: left;
+ }
+
+#buildingImage, #buildingText, #yearText {
+  padding-bottom: 0px;
+}
+
+#buildingText{
+  margin-top: 04px;
+}
