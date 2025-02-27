@@ -13,7 +13,7 @@
 
 </head>
 
-<body>
+<body onload="updateYear('chiles', null)">
     <div id="phone-container">
 <div class = "dropdown">
         <button id = "menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
@@ -37,8 +37,8 @@
 
        <button class="link" id="read-button">Read more</button>
            
-        <button id = "past-button" style= color:gray;><i class="fa fa-step-backward"></i> Past </button>
-        <button id = "future-button"> Future <i class="fa fa-step-forward"></i></button>
+       <button id = "past-button" ><i class="fa fa-step-backward"></i> Past </button>
+       <button id = "future-button" style= color:gray;> Future <i class="fa fa-step-forward"></i></button>
         
    <script>
    
@@ -59,6 +59,12 @@
 function updateYear(building, forward) {
     const years = Object.keys(descriptionPaths[building]);
     years.sort()
+
+    //if not going forwards or backwards, default is most recent year
+    if(forward == null) {
+        updateInfo(building, years[years.length - 1])
+        return
+    }
 
     let currentYear = document.getElementById('yearText').innerText
     let currentIndex = years.indexOf(currentYear)
