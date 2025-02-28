@@ -24,6 +24,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
+//Error test
+app.get('/test-error', (req, res) => {
+    res.render('error', { message: 'Test error page', error: {} });
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -41,7 +46,7 @@ app.use(function(err, req, res, next) {
 });
 
 //TEST PORT
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running at http://cs341avr.campus.up.edu:${PORT}`);
 });

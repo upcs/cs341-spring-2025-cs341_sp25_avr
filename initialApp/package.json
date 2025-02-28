@@ -34,8 +34,7 @@
     "regenerator-runtime": "^0.14.1",
     "ts-jest": "^29.2.5"
   },
-
   "jest": {
-  "testEnvironment": "jsdom"
-}
+    "testEnvironment": "jsdom"
+  }
 }
