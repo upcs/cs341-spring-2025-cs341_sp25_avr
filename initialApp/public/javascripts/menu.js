@@ -1,4 +1,6 @@
 // Function to handle page navigation
+var dbms = require("./dbms");
+
 function navigateTo(page) {
     if (page === "home") {
         window.location.href = "index.html";
@@ -18,6 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const geoButton = document.getElementById("geo-button");
 
     if (homeButton) {
+        //TEST DELETE LATER 
+        $.post("/geoTable", {}).done((p) => {
+            console.log(p);
+        })
+
+
         homeButton.addEventListener("click", () => navigateTo("home"));
     }
     if (mapButton) {
