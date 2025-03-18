@@ -1,6 +1,8 @@
 //Edited by: Emma Jeppesen
 
 var createError = require('http-errors');
+var https = require('https');
+const fs = require('fs');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -29,7 +31,16 @@ app.get('/test-error', (req, res) => {
     res.render('error', { message: 'Test error page', error: {} });
 });
 
-// catch 404 and forward to error handler
+//Load SSL certificate and key
+const options = {
+  key: fs.readFileSync('./ssl/server.key'),
+  cert: fs.readFileSync('./ssl/server.cert')
+};
+
+//Serve static files if needed
+app.use(express.static('public'));
+
+//catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
@@ -49,6 +60,11 @@ app.use(function(err, req, res, next) {
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running at http://cs341avr.campus.up.edu`);
+});
+
+//Create an HTTPS server
+https.createServer(options, app).listen(3001, () => {
+  console.log('Server running on https://localhost:3000');
 });
 
 
