@@ -8,6 +8,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var geoRouter = require('./routes/geoTable');
 
 var app = express();
 
@@ -23,19 +24,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/geoTable', geoRouter);
 
 //Error test
 app.get('/test-error', (req, res) => {
-    res.render('error', { message: 'Test error page', error: {} });
+  res.render('error', { message: 'Test error page', error: {} });
 });
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -48,7 +50,7 @@ app.use(function(err, req, res, next) {
 //TEST PORT
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running at http://cs341avr.campus.up.edu`);
+  console.log(`Server running at http://cs341avr.campus.up.edu`);
 });
 
 
