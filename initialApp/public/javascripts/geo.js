@@ -6,25 +6,25 @@
  *    to update user's location as they move around the campus
  */
 
- // reference the HTML elements 
- const map = document.getElementById("map");
- const message = document.querySelectorAll(".default-message");
- const loader = document.querySelector(".loader");
- const popups = document.querySelectorAll(".welcome-pop-up");
- const devButton = document.getElementById("debug-btn");
+// reference the HTML elements 
+const map = document.getElementById("map");
+const message = document.querySelectorAll(".default-message");
+const loader = document.querySelector(".loader");
+const popups = document.querySelectorAll(".welcome-pop-up");
+const devButton = document.getElementById("debug-btn");
 
- // developer button to display all the other pop ups
- devButton.addEventListener('click', () => {
+// developer button to display all the other pop ups
+devButton.addEventListener('click', () => {
     popups.forEach((popup) => {
         popup.style.display = "flex";
     });
- });
+});
 
 
- // hide the 'tap icon' message at the beginning
- message[1].style.display = 'none';
- message[1].style.color = 'gray';
- message[0].style.fontSize = '24px';
+// hide the 'tap icon' message at the beginning
+message[1].style.display = 'none';
+message[1].style.color = 'gray';
+message[0].style.fontSize = '24px';
 
 const MAP_WIDTH = 350;
 const MAP_HEIGHT = 350;
@@ -43,7 +43,7 @@ const cords = {
         longMin: -122.725850,
         longMax: -122.724010
     },
-    library: { 
+    library: {
         latMax: 45.573230,
         latMin: 45.572310,
         longMin: -122.727390,
@@ -66,7 +66,7 @@ const cords = {
 
 function getUserCords() {
     navigator.geolocation.getCurrentPosition(position => {
-        const {latitude, longitude} = position.coords;
+        const { latitude, longitude } = position.coords;
 
         // Ensure the element exists before modifying innerHTML
         if (map) {
@@ -75,7 +75,7 @@ function getUserCords() {
                 frameborder="0" style="border:0;"></iframe>`;
 
         } else {
-            console.error("Element with id 'map' not found."); 
+            console.error("Element with id 'map' not found.");
         }
         // update the cordinates in HTML
         details.innerHTML = `Latitude: ${latitude} <br> Longitude: ${longitude} <br>`;
@@ -85,9 +85,9 @@ function getUserCords() {
 
             // set an empty string for the location name
             let locationName = "";
-            
+
             // checks location, set locationName based on the where user is
-            switch(true) {
+            switch (true) {
                 case checkWithinBounds(latitude, longitude, cords.dundon.latMin, cords.dundon.latMax, cords.dundon.longMin, cords.dundon.longMax):
                     locationName = "Dundon-Berchtold Hall";
                     break;
@@ -100,7 +100,7 @@ function getUserCords() {
                 case checkWithinBounds(latitude, longitude, cords.waldschmidt.latMin, cords.waldschmidt.latMax, cords.waldschmidt.longMin, cords.waldschmidt.longMax):
                     locationName = "Waldschmidt Hall";
                     break;
-                default: 
+                default:
                     locationName = "";
                     break;
 
@@ -127,7 +127,7 @@ function updateDisplay(building) {
     message[1].style.display = 'flex';
     loader.style.display = 'none';
     popups[0].style.display = 'flex';
-    popups[0].innerHTML = `${building}!`;
+    popups[0].innerHTML = `${building}`;
 }
 
 // Chengen: main function was unnessary but I thought it was good for modularity 
