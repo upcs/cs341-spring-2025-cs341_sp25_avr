@@ -37,6 +37,11 @@ const options = {
   cert: fs.readFileSync('./ssl/server.cert')
 };
 
+//Test
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
 //Serve static files if needed
 app.use(express.static('public'));
 
@@ -63,8 +68,8 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 
 //Create an HTTPS server
-https.createServer(options, app).listen(4001, () => {
-  console.log('Server running on https://localhost:4000');
+https.createServer(options, app).listen(3001, () => {
+  console.log('Server running on https://localhost:3001');
 });
 
 
