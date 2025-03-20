@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "npm config set progress=false && cross-env CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31 jest --env=jsdom"
+    "test": "npm config set progress=false && cross-env CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31 jest --env=jsdom --coverage"
   },
   "dependencies": {
     "@testing-library/dom": "^8.11.1",
