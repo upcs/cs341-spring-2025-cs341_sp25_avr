@@ -2,21 +2,10 @@ language: node_js
 node_js:
   - "22"
 
+os: windows
+
 install:
   - npm install
-
-before_install:
-  # Upgrade glibc to a compatible version
-  - wget http://ftp.gnu.org/gnu/libc/glibc-2.27.tar.gz
-  - tar -xvzf glibc-2.27.tar.gz
-  - cd glibc-2.27
-  - mkdir build
-  - cd build
-  - ../configure --prefix=$HOME/glibc-2.27
-  - make -j$(nproc)
-  - make install
-  - export LD_LIBRARY_PATH=$HOME/glibc-2.27/lib:$LD_LIBRARY_PATH
-  - cd ../..
 
 script:
   - npm test
