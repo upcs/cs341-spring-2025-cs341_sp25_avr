@@ -32,10 +32,12 @@ function getUserCords() {
       },
       (error) => {
         console.error("Error getting location:", error);
+        alert("Unable to access location. Please enable location services and try again.");
       }
     );
   } else {
     console.error("Geolocation is not supported by this browser.");
+    alert("Geolocation is not supported by your browser. Please use a supported browser.");
   }
 }
 
@@ -100,9 +102,11 @@ function updateDisplay(building) {
   if (loader) {
     loader.style.display = "none";
   }
-  if (popups[0]) {
+  if (popups && popups[0]) {
     popups[0].style.display = "flex";
     popups[0].innerHTML = `${building}!`;
+  } else {
+    console.error("Popups not found in the DOM.");
   }
 }
 
@@ -126,5 +130,3 @@ main();
 
 // Export functions for testing
 module.exports = { getUserCords, checkWithinBounds, updateDisplay, getLocationName };
-
-
