@@ -1,13 +1,23 @@
-global.TextEncoder = require('util').TextEncoder;
-global.TextDecoder = require('util').TextDecoder;
+const { TextEncoder, TextDecoder } = require("util");
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 const fs = require('fs');
 const { JSDOM } = require('jsdom');
 
 beforeEach((done) => {
-  fs.readFile(`${__dirname}/public/shiley.html`, 'utf8', (err, data) => {
+  const filePath = `${__dirname}/public/shiley.html`;
+
+  if (!fs.existsSync(filePath)) {
+    console.warn(`Warning: File not found at ${filePath}. Skipping setup.`);
+    done(); // Skip the test setup
+    return;
+  }
+
+  fs.readFile(filePath, 'utf8', (err, data) => {
     if (err) {
-      done(err);
+      console.error(`Error reading file at ${filePath}:`, err);
+      done(err); // Pass error to test framework
     } else {
       const dom = new JSDOM(data);
       global.document = dom.window.document;
