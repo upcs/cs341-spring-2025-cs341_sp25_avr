@@ -1,7 +1,10 @@
 const fs = require('fs');
 const { JSDOM } = require('jsdom');
-global.TextEncoder = require('util').TextEncoder; // Polyfill for TextEncoder
-global.TextDecoder = require('util').TextDecoder; // Polyfill for TextDecoder
+
+const { TextEncoder, TextDecoder } = require("util");
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
 
 // Import the function to test
 const { getUserCords } = require('../public/javascripts/geo');
