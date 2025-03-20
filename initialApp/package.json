@@ -2,10 +2,10 @@
   "name": "hw3",
   "version": "0.0.0",
   "private": true,
- "scripts": {
-  "start": "node ./bin/www",
-  "test": "cross-env CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31 jest --env=jsdom"
-  }
+  "scripts": {
+    "start": "node ./bin/www",
+    "test": "npm config set progress=false && cross-env CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31 jest --env=jsdom"
+  },
   "dependencies": {
     "@testing-library/dom": "^8.11.1",
     "@testing-library/jest-dom": "^5.16.1",
