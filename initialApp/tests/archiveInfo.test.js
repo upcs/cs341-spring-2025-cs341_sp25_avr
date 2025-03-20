@@ -16,7 +16,7 @@ describe('Archive Info Tests', () => {
     }
 
     // Read directory contents and filter for .jpg files
-    const files = fs.readdirSync(dirPath).filter(file => file.endsWith('.jpg'));
+    const files = fs.readdirSync(dirPath).filter((file) => file.endsWith('.jpg'));
 
     if (files.length === 0) {
       console.warn(`No .jpg files found in ${dirPath}. Skipping test.`);
@@ -30,7 +30,7 @@ describe('Archive Info Tests', () => {
       <html>
       <body>
         <div id="gallery">
-          ${files.map(file => `<img src="${path.join(dirPath, file)}" alt="${file}">`).join('')}
+          ${files.map((file) => `<img src="${path.join(dirPath, file)}" alt="${file}">`).join('')}
         </div>
       </body>
       </html>
@@ -61,23 +61,21 @@ describe('Archive Info Tests', () => {
     });
   });
 
-it('should gracefully handle missing directory', (done) => {
-  const dirPath = path.resolve(__dirname, '../public/archiveContent/nonexistent');
+  it('should gracefully handle missing directory', (done) => {
+    const dirPath = path.resolve(__dirname, '../public/archiveContent/nonexistent');
 
-  if (!fs.existsSync(dirPath)) {
-    console.warn(`Directory not found at ${dirPath}. Skipping test.`);
-    expect(fs.existsSync(dirPath)).toBe(false); // Assert the directory does not exist
-    done(); // Skip the test gracefully
-    return;
-  }
+    if (!fs.existsSync(dirPath)) {
+      console.warn(`Directory not found at ${dirPath}. Skipping test.`);
+      expect(fs.existsSync(dirPath)).toBe(false); // Assert the directory does not exist
+      done(); // Skip the test gracefully
+      return;
+    }
 
-  // If the directory exists (unexpectedly), proceed with the test
-  fs.readdir(dirPath, (err, files) => {
-    expect(err).toBeNull(); // Ensure no error occurs
-    expect(files.length).toBeGreaterThan(0); // Validate directory is not empty
-    done();
+    // If the directory exists (unexpectedly), proceed with the test
+    fs.readdir(dirPath, (err, files) => {
+      expect(err).toBeNull(); // Ensure no error occurs
+      expect(files.length).toBeGreaterThan(0); // Validate directory is not empty
+      done();
+    });
   });
 });
-
-
-
