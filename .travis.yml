@@ -14,10 +14,12 @@ install:
 
   script:
   - npm test
-  - npx codecov -f coverage/lcov.info --token=$77cc6ece-fd65-426a-b228-aef3d6b70a31
+  - npx codecov -f coverage/lcov.info
+  - ls -R coverage
+  - cat coverage/lcov.info
 
 env:
   global:
-    - CODECOV_TOKEN=<77cc6ece-fd65-426a-b228-aef3d6b70a31>
+    - CODECOV_TOKEN=<77cc6ece-fd65-426a-b228-aef3d6b70a31
  
 
