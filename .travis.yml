@@ -10,8 +10,10 @@ before_install:
 install:
   - npm install
   - npm install cross-env --no-save
+  - npm install codecov --no-save
 
 script:
-  - npm test     
-  - npx codecov   
+  - npm test
+  - npx codecov -f coverage/lcov.info
+ 
 
