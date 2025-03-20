@@ -38,8 +38,7 @@
   },
   "jest": {
     "collectCoverage": true,
-    "coverageReporters": ["lcov", "text"],
+    "coverageReporters": ["text", "cobertura", "lcov"],
     "coverageDirectory": "./coverage"
   }
 }
-
