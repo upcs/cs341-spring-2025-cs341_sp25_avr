@@ -71,5 +71,18 @@ describe('Geo.js Tests', () => {
 
     expect(() => updateDetails(45.5725, -122.7265)).not.toThrow();
   });
+
+  test('debug DOM structure to verify debug-btn existence', () => {
+    // Log the current DOM structure
+    console.log(document.body.innerHTML); // Prints the DOM structure for debugging
+
+    // Check if the debug button exists in the DOM
+    const debugButton = document.getElementById('debug-btn');
+    expect(debugButton).not.toBeNull(); // Assert that the debug button exists
+
+    // Log further details for the debug button if needed
+    console.log('Debug button found:', debugButton); // Logs the debug button element
+  });
 });
+
 
