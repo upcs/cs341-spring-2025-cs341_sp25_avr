@@ -1,21 +1,19 @@
 // archiveInfo.test.js
 const fs = require('fs');
 
-describe('Archive Info', () => {
-    beforeEach(() => {
-      // Load the HTML file
-      fs.readFile('sh_1948.html', 'utf8', (err, data) => {
-        if (err) {
-          done(err);
-        } else {
-          html = data;
-          const dom = new jsdom.JSDOM(html);
-          global.document = dom.window.document;
-          global.window = dom.window;
-          done();
-        }
-      });
-    });
+beforeEach((done) => {
+  // Load the HTML file
+  fs.readFile('sh_1948.html', 'utf8', (err, data) => {
+    if (err) {
+      done(err); // Pass error to Jest
+    } else {
+      const dom = new jsdom.JSDOM(data);
+      global.document = dom.window.document;
+      global.window = dom.window;
+      done(); // Signal completion
+    }
+  });
+});
   
     it('should display archive info for each page', () => {
       // Get the archive info elements
