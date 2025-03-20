@@ -6,7 +6,7 @@ const fs = require('fs');
 const { JSDOM } = require('jsdom');
 
 beforeEach((done) => {
-  const filePath = `${__dirname}/public/shiley.html`;
+  const filePath = `${initialApp}/public/shiley.html`;
 
   // Check if the file exists
   if (!fs.existsSync(filePath)) {
