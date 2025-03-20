@@ -37,7 +37,6 @@
     "codecov": "^3.8.2"
   },
   "jest": {
-    "testMatch": ["<rootDir>/initialApp/tests/**/*.test.js"],
     "collectCoverage": true,
     "coverageReporters": ["lcov", "text"],
     "coverageDirectory": "./coverage"
