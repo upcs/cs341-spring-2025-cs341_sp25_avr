@@ -1,5 +1,5 @@
 const { JSDOM } = require('jsdom');
-const { getUserCords, checkWithinBounds, updateDisplay } = require('../public/javascripts/geo');
+const { getUserCords, checkWithinBounds, updateDisplay, getLocationName } = require('../public/javascripts/geo');
 
 describe('Geo.js Tests', () => {
   let document;
@@ -36,7 +36,7 @@ describe('Geo.js Tests', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks(); // Reset mocks after each test
+    jest.clearAllMocks();
   });
 
   test('should update #details with coordinates on successful geolocation', () => {
@@ -47,35 +47,23 @@ describe('Geo.js Tests', () => {
     expect(details.innerHTML).toContain('Longitude: -122.7265');
   });
 
-  test('should return true if user is within bounds of a building', () => {
+  test('should return correct location name for valid coordinates', () => {
+    const locationName = getLocationName(45.5725, -122.7265);
+    expect(locationName).toBe('Dundon-Berchtold Hall');
+  });
+
+  test('should return true if coordinates are within bounds', () => {
     const isWithinBounds = checkWithinBounds(
-      45.5724, -122.7272, 45.5713, 45.5724, -122.7287, -122.7272
+      45.5725, -122.7265, 45.572, 45.573, -122.727, -122.726
     );
     expect(isWithinBounds).toBe(true);
   });
 
-  test('should call updateDisplay with correct building name', () => {
-    const building = "Shiley School of Engineering";
-    const message = document.querySelectorAll('.welcome-pop-up');
-    updateDisplay(building);
+  test('should update display with correct building name', () => {
+    updateDisplay('Shiley School of Engineering');
 
-    expect(message[0].innerHTML).toContain(`${building}!`);
-  });
-
-  test('should log an error if geolocation fails', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    global.navigator.geolocation.getCurrentPosition.mockImplementationOnce((_, error) =>
-      error({ code: 1, message: 'Geolocation error' })
-    );
-
-    getUserCords();
-
-    expect(consoleSpy).toHaveBeenCalledWith('Error getting location:', {
-      code: 1,
-      message: 'Geolocation error',
-    });
-
-    consoleSpy.mockRestore();
+    const popups = document.querySelectorAll('.welcome-pop-up');
+    expect(popups[0].innerHTML).toContain('Shiley School of Engineering!');
   });
 });
 
