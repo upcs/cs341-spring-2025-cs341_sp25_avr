@@ -1,8 +1,8 @@
-const fs = require('fs');
-const { JSDOM } = require('jsdom');
-
 global.TextEncoder = require('util').TextEncoder;
 global.TextDecoder = require('util').TextDecoder;
+
+const fs = require('fs');
+const { JSDOM } = require('jsdom');
 
 beforeEach((done) => {
   fs.readFile(`${__dirname}/public/shiley.html`, 'utf8', (err, data) => {
