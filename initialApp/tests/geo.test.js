@@ -13,19 +13,23 @@ const { getUserCords } = require('../public/javascripts/geo');
 describe('Geolocation Tests', () => {
   let document;
 
-  beforeEach(() => {
-    // Set up mock HTML and DOM
-    const html = `
-      <!DOCTYPE html>
-      <html>
+ beforeEach(() => {
+  const html = `
+    <!DOCTYPE html>
+    <html>
       <body>
+        <button id="debug-btn">Show all locations</button>
+        <div class="popup" id="popup1" style="display: none;">Popup 1</div>
+        <div class="popup" id="popup2" style="display: none;">Popup 2</div>
         <div id="details"></div>
+        <div id="map"></div>
       </body>
-      </html>`;
-    const dom = new JSDOM(html);
-    document = dom.window.document;
-    global.document = document;
-    global.window = dom.window;
+    </html>`;
+  const dom = new JSDOM(html);
+  global.document = dom.window.document;
+  global.window = dom.window;
+});
+
 
     // Mock "details" div in the DOM
     const detailsDiv = document.getElementById('details');
