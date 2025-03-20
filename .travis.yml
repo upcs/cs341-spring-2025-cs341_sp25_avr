@@ -9,7 +9,9 @@ before_install:
 
 install:
   - npm install
+  - npm install cross-env --no-save
 
 script:
-  - npm test
-  - npx codecov
+  - npm test     
+  - npx codecov   
+
