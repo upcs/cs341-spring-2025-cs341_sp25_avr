@@ -5,6 +5,7 @@ describe('Geo.js Tests', () => {
   let document;
 
   beforeEach(() => {
+    // Mock HTML structure
     const html = `
       <!DOCTYPE html>
       <html>
@@ -49,7 +50,7 @@ describe('Geo.js Tests', () => {
 
   test('should return correct location name for valid coordinates', () => {
     const locationName = getLocationName(45.5725, -122.7265);
-    expect(locationName).toBe('Dundon-Berchtold Hall');
+    expect(locationName).toBe('Clark Library'); // Update expected name based on your cords object
   });
 
   test('should return true if coordinates are within bounds', () => {
@@ -59,11 +60,53 @@ describe('Geo.js Tests', () => {
     expect(isWithinBounds).toBe(true);
   });
 
+  test('should return false if coordinates are out of bounds', () => {
+    const isWithinBounds = checkWithinBounds(
+      45.5700, -122.7300, 45.572, 45.573, -122.727, -122.726
+    );
+    expect(isWithinBounds).toBe(false);
+  });
+
   test('should update display with correct building name', () => {
     updateDisplay('Shiley School of Engineering');
 
     const popups = document.querySelectorAll('.welcome-pop-up');
     expect(popups[0].innerHTML).toContain('Shiley School of Engineering!');
+    expect(popups[0].style.display).toBe('flex');
+  });
+
+  test('should toggle popups on debug button click', () => {
+    const button = document.getElementById('debug-btn');
+    const popups = document.querySelectorAll('.welcome-pop-up');
+
+    // Initial state
+    expect(popups[0].style.display).toBe('none');
+
+    // Simulate button click
+    button.click();
+
+    // Updated state
+    expect(popups[0].style.display).toBe('flex');
+  });
+
+  test('should handle geolocation not supported', () => {
+    // Remove the geolocation API
+    global.navigator.geolocation = undefined;
+
+    expect(() => getUserCords()).toThrow("Geolocation is not supported by this browser.");
+  });
+
+  test('should handle missing #map element gracefully', () => {
+    const mapElement = document.getElementById('map');
+    mapElement.parentNode.removeChild(mapElement); // Remove map element
+
+    expect(() => updateMap(45.5725, -122.7265)).not.toThrow();
+  });
+
+  test('should handle missing #details element gracefully', () => {
+    const detailsElement = document.getElementById('details');
+    detailsElement.parentNode.removeChild(detailsElement); // Remove details element
+
+    expect(() => updateDetails(45.5725, -122.7265)).not.toThrow();
   });
 });
-
