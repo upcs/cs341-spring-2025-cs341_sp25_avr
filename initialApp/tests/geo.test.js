@@ -1,10 +1,11 @@
+// Import necessary modules
 const fs = require('fs');
 const { JSDOM } = require('jsdom');
 
+// Polyfill for TextEncoder and TextDecoder
 const { TextEncoder, TextDecoder } = require("util");
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
-
 
 // Import the function to test
 const { getUserCords } = require('../public/javascripts/geo');
@@ -14,7 +15,9 @@ describe('Geolocation Tests', () => {
 
   beforeEach(() => {
     // Load HTML and setup DOM
-    const html = fs.readFileSync(`${__dirname}/../public/geo.html`, 'utf8');
+    const html = `<!DOCTYPE html><html><body>
+      <div id="details"></div>
+    </body></html>`;
     const dom = new JSDOM(html);
     document = dom.window.document;
     global.document = document;
