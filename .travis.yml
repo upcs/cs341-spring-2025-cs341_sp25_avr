@@ -21,6 +21,7 @@ script:
   - cat coverage/lcov.info || echo "lcov.info file not found"
 
 after_script:
-  - ./codecov -cF javascript || echo "Codecov upload failed"
+  - ./codecov -t 77cc6ece-fd65-426a-b228-aef3d6b70a31 -cF javascript || echo "Codecov upload failed"
+
 
 
