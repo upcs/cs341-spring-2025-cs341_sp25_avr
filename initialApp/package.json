@@ -2,12 +2,11 @@
   "name": "hw3",
   "version": "0.0.0",
   "private": true,
- "scripts": {
-  "start": "node ./bin/www",
-  "test": "npm config set progress=false && cross-env CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31 jest --env=jsdom --coverage",
-  "upload-coverage": "npx codecov -f coverage/lcov.info"
-   
-},
+  "scripts": {
+    "start": "node ./bin/www",
+    "test": "npm config set progress=false && cross-env CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31 jest --env=jsdom --coverage",
+    "upload-coverage": "npx codecov -f coverage/lcov.info"
+  },
   "dependencies": {
     "@testing-library/dom": "^8.11.1",
     "@testing-library/jest-dom": "^5.16.1",
@@ -26,22 +25,22 @@
     "pug": "^3.0.3",
     "typescript": "^4.5.4"
   },
-"devDependencies": {
-  "babel-jest": "^29.7.0",
-  "fast-text-encoding": "^1.0.6",
-  "jest": "^29.7.0",
-  "jest-environment-jsdom": "^29.7.0",
-  "jsdom": "^22.1.0",
-  "regenerator-runtime": "^0.14.1",
-  "ts-jest": "^29.2.5",
-  "cross-env": "^7.0.3",
-  "codecov": "^3.8.2"
-},
+  "devDependencies": {
+    "babel-jest": "^29.7.0",
+    "fast-text-encoding": "^1.0.6",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^22.1.0",
+    "regenerator-runtime": "^0.14.1",
+    "ts-jest": "^29.2.5",
+    "cross-env": "^7.0.3",
+    "codecov": "^3.8.2"
+  },
+  "jest": {
+    "testMatch": ["<rootDir>/initialApp/tests/**/*.test.js"],
+    "collectCoverage": true,
+    "coverageReporters": ["lcov", "text"],
+    "coverageDirectory": "./coverage"
+  }
+}
 
-"jest": {
-  "testMatch": ["<rootDir>/initialApp/tests/**/*.test.js"],
-  "collectCoverage": true,
-  "coverageReporters": ["lcov", "text"],
-  "coverageDirectory": "./coverage",
-}
-}
