@@ -1,14 +1,5 @@
-// Import necessary modules
-const fs = require('fs');
 const { JSDOM } = require('jsdom');
-
-// Polyfill for TextEncoder and TextDecoder
-const { TextEncoder, TextDecoder } = require("util");
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
-
-// Import the function to test
-const { getUserCords } = require('../public/javascripts/geo');
+const { getUserCords, checkWithinBounds, updateDisplay } = require('../public/javascripts/geo');
 
 describe('Geolocation Tests', () => {
   let document;
@@ -17,78 +8,136 @@ describe('Geolocation Tests', () => {
     const html = `
       <!DOCTYPE html>
       <html>
-      <body>
-        <button id="debug-btn">Show all locations</button>
-        <div class="popup" id="popup1" style="display: none;">Popup 1</div>
-        <div class="popup" id="popup2" style="display: none;">Popup 2</div>
-        <div id="details"></div>
-        <div id="map"></div>
-      </body>
+        <body>
+          <div id="details"></div>
+          <div id="map"></div>
+          <div class="popup-container">
+            <div class="welcome-pop-up" style="display: none;">Popup 1</div>
+            <div class="welcome-pop-up" style="display: none;">Popup 2</div>
+          </div>
+          <button id="debug-btn">Show all locations</button>
+        </body>
       </html>`;
     const dom = new JSDOM(html);
-    global.document = dom.window.document;
+    document = dom.window.document;
+    global.document = document;
     global.window = dom.window;
-
-    // Mock geolocation API
-    global.navigator.geolocation = {
-      getCurrentPosition: jest.fn(),
-    };
   });
 
   afterEach(() => {
-    jest.clearAllMocks(); // Clear all mocks after each test
-    document.body.innerHTML = ''; // Reset DOM
+    jest.clearAllMocks(); // Clean up mocks after each test
   });
 
-  afterAll(() => {
-    delete global.navigator.geolocation; // Cleanup geolocation mock
+  it('should update #details element with latitude and longitude on successful geolocation', () => {
+    // Mock successful geolocation
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn((success) =>
+        success({
+          coords: { latitude: 40.7128, longitude: -74.0060 },
+        })
+      ),
+    };
+
+    // Call function
+    getUserCords();
+
+    // Verify DOM updates
+    const details = document.getElementById('details');
+    expect(details.innerHTML).toContain('Latitude: 40.7128');
+    expect(details.innerHTML).toContain('Longitude: -74.0060');
   });
 
-  it('updates coordinates in HTML on successful geolocation', () => {
-    // Mock successful geolocation response
-    navigator.geolocation.getCurrentPosition.mockImplementationOnce((success) => {
-      success({
-        coords: {
-          latitude: 45.5725,
-          longitude: -122.7265,
-        },
-      });
+  it('should log an error and not update details if geolocation fails', () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock geolocation failure
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn((_, error) =>
+        error({ code: 1, message: 'User denied geolocation' })
+      ),
+    };
+
+    getUserCords();
+
+    const details = document.getElementById('details');
+    expect(details.innerHTML).toBe(''); // No changes to details
+    expect(consoleSpy).toHaveBeenCalledWith('Error getting location:', {
+      code: 1,
+      message: 'User denied geolocation',
     });
 
-    // Call the function to test
-    getUserCords();
-
-    // Validate that the DOM is updated with correct coordinates
-    const details = document.getElementById('details');
-    expect(details.innerHTML).toContain('Latitude: 45.5725');
-    expect(details.innerHTML).toContain('Longitude: -122.7265');
+    consoleSpy.mockRestore();
   });
 
-  it('displays an error message in the HTML on geolocation failure', () => {
-    // Mock geolocation failure response
-    navigator.geolocation.getCurrentPosition.mockImplementationOnce((_, error) => {
-      error({
-        code: 1,
-        message: 'Geolocation failed',
-      });
+  it('should log an error if #details element is missing', () => {
+    // Remove the #details element
+    document.getElementById('details').remove();
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock successful geolocation
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn((success) =>
+        success({
+          coords: { latitude: 45.5725, longitude: -122.7265 },
+        })
+      ),
+    };
+
+    getUserCords();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Element with id 'details' not found."
+    );
+
+    consoleSpy.mockRestore();
+  });
+
+  it('should check if user is within bounds of a specific building', () => {
+    const isWithinBounds = checkWithinBounds(
+      45.5724, // Latitude within the range
+      -122.7272, // Longitude within the range
+      45.5713, // Min latitude
+      45.5724, // Max latitude
+      -122.7287, // Min longitude
+      -122.7272 // Max longitude
+    );
+
+    expect(isWithinBounds).toBe(true);
+  });
+
+  it('should toggle popups on debug button click', () => {
+    const debugButton = document.getElementById('debug-btn');
+    const popups = document.querySelectorAll('.welcome-pop-up');
+
+    // Ensure popups are initially hidden
+    popups.forEach((popup) => {
+      expect(popup.style.display).toBe('none');
     });
 
-    // Call the function to test
-    getUserCords();
+    // Simulate button click
+    debugButton.dispatchEvent(new window.Event('click'));
 
-    // Validate that an error message is displayed in the DOM
-    const details = document.getElementById('details');
-    expect(details.innerHTML).toContain('Error: Geolocation failed');
+    // Verify popups are now visible
+    popups.forEach((popup) => {
+      expect(popup.style.display).toBe('flex');
+    });
   });
 
-  it('displays a fallback message if geolocation is not supported', () => {
-    delete global.navigator.geolocation; // Remove geolocation support
+  it('should call updateDisplay with correct building name', () => {
+    // Spy on updateDisplay
+    const spyUpdateDisplay = jest.spyOn(global, 'updateDisplay');
 
-    // Call the function to test
-    getUserCords();
+    // Mock buildings
+    const building = 'Shiley School of Engineering';
 
-    // Validate that a fallback message is displayed
-    const details = document.getElementById('details');
-    expect(details.innerHTML).toContain('Geolocation is not supported by your browser.');
+    // Call updateDisplay
+    updateDisplay(building);
+
+    // Verify popup content
+    const popups = document.querySelectorAll('.welcome-pop-up');
+    expect(popups[0].innerHTML).toContain(`${building}!`);
+    spyUpdateDisplay.mockRestore();
   });
 });
+
