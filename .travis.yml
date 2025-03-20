@@ -11,14 +11,10 @@ install:
   - npm install cross-env --no-save
   - npm install codecov --no-save
 
-  script:
+script:
   - npm test
   - ls -R coverage
   - cat coverage/lcov.info
-  - npx codecov -f coverage/lcov.info
+  - npx codecov -f coverage/lcov.info --token=77cc6ece-fd65-426a-b228-aef3d6b70a31
 
-env:
-  global:
-     - CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31
- 
 
