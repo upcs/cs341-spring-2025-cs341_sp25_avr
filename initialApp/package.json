@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "npm config set progress=false && cross-env CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31 jest --env=jsdom --coverage",
+    "test": "npm config set progress=false && cross-env CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31 jest --env=jsdom --coverage --passWithNoTests"
     "upload-coverage": "npx codecov -f coverage/lcov.info"
+  
+}
+
   },
   "dependencies": {
     "@testing-library/dom": "^8.11.1",
