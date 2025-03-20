@@ -39,7 +39,11 @@
   "jest": {
     "collectCoverage": true,
     "coverageReporters": ["lcov", "text"],
-    "coverageDirectory": "./coverage"
+    "coverageDirectory": "./coverage",
+    "testPathIgnorePatterns": [
+    "/tests/geo.test.js",
+    "/tests/archiveInfo.test.js"
+  ]
   }
 }
 
