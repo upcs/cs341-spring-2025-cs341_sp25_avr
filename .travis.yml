@@ -17,10 +17,10 @@ script:
   - ls -R coverage || echo "Coverage directory not found"
   - cat coverage/lcov.info || echo "lcov.info file not found"
   - if [ -f coverage/lcov.info ]; then
-      echo "Coverage file found, uploading...";
-      npx codecov -f coverage/lcov.info --disable=gcov || echo "Codecov upload failed";
+      echo "Coverage file found, uploading with bash uploader...";
+      curl -s https://codecov.io/bash | bash -s -- -f coverage/lcov.info || echo "Codecov upload failed";
     else
-      echo "Coverage file missing, skipping upload";
+      echo "Coverage file missing, skipping upload.";
       exit 1;
     fi
 
