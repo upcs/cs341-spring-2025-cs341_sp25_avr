@@ -1,23 +1,19 @@
-// public/javascripts/geo.js
+// public/javascripts/location.js
 
-function getUserCoords() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                const details = document.getElementById("details");
-                if (details) {
-                    details.innerHTML = `Latitude: ${latitude}, Longitude: ${longitude}`;
-                }
-            },
-            (error) => {
-                console.error("Geolocation error:", error);
-            }
-        );
+function initializeLocation() {
+    const debugButton = document.getElementById('debug-btn');
+    if (debugButton) {
+        debugButton.addEventListener('click', () => {
+            const popups = document.querySelectorAll('.popup');
+            popups.forEach((popup) => {
+                popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+            });
+        });
     } else {
-        console.error("Geolocation is not supported by this browser.");
+        console.warn('Debug button (debug-btn) is not found in the DOM.');
     }
 }
 
-// Export for Jest testing
-module.exports = { getUserCoords };
+// Export the function
+module.exports = { initializeLocation };
+
