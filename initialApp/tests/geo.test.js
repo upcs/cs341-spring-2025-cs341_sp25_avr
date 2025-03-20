@@ -13,10 +13,10 @@ const { getUserCords } = require('../public/javascripts/geo');
 describe('Geolocation Tests', () => {
   let document;
 
- beforeEach(() => {
-  const html = `
-    <!DOCTYPE html>
-    <html>
+  beforeEach(() => {
+    const html = `
+      <!DOCTYPE html>
+      <html>
       <body>
         <button id="debug-btn">Show all locations</button>
         <div class="popup" id="popup1" style="display: none;">Popup 1</div>
@@ -24,18 +24,10 @@ describe('Geolocation Tests', () => {
         <div id="details"></div>
         <div id="map"></div>
       </body>
-    </html>`;
-  const dom = new JSDOM(html);
-  global.document = dom.window.document;
-  global.window = dom.window;
-});
-
-
-    // Mock "details" div in the DOM
-    const detailsDiv = document.getElementById('details');
-    if (!detailsDiv) {
-      throw new Error('Details div is missing in the DOM');
-    }
+      </html>`;
+    const dom = new JSDOM(html);
+    global.document = dom.window.document;
+    global.window = dom.window;
 
     // Mock geolocation API
     global.navigator.geolocation = {
@@ -100,7 +92,3 @@ describe('Geolocation Tests', () => {
     expect(details.innerHTML).toContain('Geolocation is not supported by your browser.');
   });
 });
-
-
-
-
