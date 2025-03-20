@@ -14,19 +14,24 @@ describe('Geolocation Tests', () => {
   let document;
 
   beforeEach(() => {
-    // Load HTML and setup DOM
-    const html = `<!DOCTYPE html><html><body>
-      <div id="details"></div>
-    </body></html>`;
+    // Set up mock HTML and DOM
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <body>
+        <div id="details"></div>
+      </body>
+      </html>`;
     const dom = new JSDOM(html);
     document = dom.window.document;
     global.document = document;
     global.window = dom.window;
 
     // Mock "details" div in the DOM
-    const detailsDiv = document.createElement('div');
-    detailsDiv.id = 'details';
-    document.body.appendChild(detailsDiv);
+    const detailsDiv = document.getElementById('details');
+    if (!detailsDiv) {
+      throw new Error('Details div is missing in the DOM');
+    }
 
     // Mock geolocation API
     global.navigator.geolocation = {
@@ -35,16 +40,16 @@ describe('Geolocation Tests', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks(); // Clear mocks after each test
+    jest.clearAllMocks(); // Clear all mocks after each test
     document.body.innerHTML = ''; // Reset DOM
   });
 
   afterAll(() => {
-    delete global.navigator.geolocation; // Cleanup global geolocation mock
+    delete global.navigator.geolocation; // Cleanup geolocation mock
   });
 
-  it('updates coordinates in HTML', () => {
-    // Simulate successful geolocation
+  it('updates coordinates in HTML on successful geolocation', () => {
+    // Mock successful geolocation response
     navigator.geolocation.getCurrentPosition.mockImplementationOnce((success) => {
       success({
         coords: {
@@ -57,14 +62,14 @@ describe('Geolocation Tests', () => {
     // Call the function to test
     getUserCords();
 
-    // Validate that DOM is updated with correct coordinates
+    // Validate that the DOM is updated with correct coordinates
     const details = document.getElementById('details');
     expect(details.innerHTML).toContain('Latitude: 45.5725');
     expect(details.innerHTML).toContain('Longitude: -122.7265');
   });
 
-  it('handles geolocation errors gracefully', () => {
-    // Simulate geolocation failure
+  it('displays an error message in the HTML on geolocation failure', () => {
+    // Mock geolocation failure response
     navigator.geolocation.getCurrentPosition.mockImplementationOnce((_, error) => {
       error({
         code: 1,
@@ -79,7 +84,19 @@ describe('Geolocation Tests', () => {
     const details = document.getElementById('details');
     expect(details.innerHTML).toContain('Error: Geolocation failed');
   });
+
+  it('displays a fallback message if geolocation is not supported', () => {
+    delete global.navigator.geolocation; // Remove geolocation support
+
+    // Call the function to test
+    getUserCords();
+
+    // Validate that a fallback message is displayed
+    const details = document.getElementById('details');
+    expect(details.innerHTML).toContain('Geolocation is not supported by your browser.');
+  });
 });
+
 
 
 
