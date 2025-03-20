@@ -1,7 +1,5 @@
 const fs = require('fs');
-
-
-
+const { JSDOM } = require('jsdom');
 
 describe('Geolocation Tests', () => {
     let document;
