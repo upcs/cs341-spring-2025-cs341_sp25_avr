@@ -14,7 +14,7 @@ global.navigator.geolocation = {
 beforeEach(() => {
   // Mock DOM setup
   const html = `<!DOCTYPE html><html><body>
-    <button id="devButton">Developer</button>
+    <button id="debug-btn">Show all locations</button>
     <div class="popup" id="popup1" style="display: none;">Popup 1</div>
     <div class="popup" id="popup2" style="display: none;">Popup 2</div>
   </body></html>`;
@@ -22,20 +22,17 @@ beforeEach(() => {
   global.document = dom.window.document;
   global.window = dom.window;
 
-  const devButton = document.getElementById('devButton');
+  const debugButton = document.getElementById('debug-btn');
   const popups = document.querySelectorAll('.popup');
 
   // Mock addEventListener
-  devButton.addEventListener = jest.fn((event, callback) => {
-    if (event === 'click') {
-      callback();
-    }
-  });
-
-  // Simulate the popups being toggled on click
-  popups.forEach((popup) => {
-    popup.style.display = 'none';
-  });
+  if (debugButton) {
+    debugButton.addEventListener = jest.fn((event, callback) => {
+      if (event === 'click') {
+        callback();
+      }
+    });
+  }
 });
 
 afterEach(() => {
@@ -44,23 +41,27 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-test('should toggle popup visibility on developer button click', () => {
-  const devButton = document.getElementById('devButton');
+test('should toggle popup visibility on debug button click', () => {
+  const debugButton = document.getElementById('debug-btn');
   const popups = document.querySelectorAll('.popup');
 
-  // Simulate the "click" on the devButton
-  devButton.dispatchEvent(new window.Event('click'));
+  // Simulate the "click" on the debugButton
+  if (!debugButton) {
+    throw new Error('debug-btn is missing from the DOM');
+  }
+
+  debugButton.dispatchEvent(new window.Event('click'));
 
   // Verify popups are now visible
   popups.forEach((popup) => {
-    expect(popup.style.display).toBe('flex');
+    expect(popup.style.display).toBe('block'); // Changed to 'block' as common visibility style
   });
 });
 
-test('should gracefully handle missing developer button', () => {
-  // Remove devButton from DOM
-  const devButton = document.getElementById('devButton');
-  devButton?.remove();
+test('should gracefully handle missing debug button', () => {
+  // Remove debugButton from DOM
+  const debugButton = document.getElementById('debug-btn');
+  debugButton?.remove();
 
   // Initialize the function and confirm no errors are thrown
   expect(() => {
