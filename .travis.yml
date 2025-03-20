@@ -5,6 +5,7 @@ os: windows
 
 before_install:
   - cd initialApp
+  - choco install lcov
 
 install:
   - npm install
@@ -16,8 +17,8 @@ script:
   - echo "Debugging coverage output"
   - ls -R coverage || echo "Coverage directory not found"
   - cat coverage/lcov.info || echo "lcov.info file not found"
-  - npx codecov -f coverage/lcov.info
 
-
+after_script:
+  - npx codecov -f coverage/lcov.info || echo "Codecov upload failed"
 
 
