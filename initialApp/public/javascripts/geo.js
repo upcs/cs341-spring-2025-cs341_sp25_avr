@@ -130,3 +130,4 @@ main();
 
 // Export functions for testing
 module.exports = { getUserCords, checkWithinBounds, updateDisplay, getLocationName };
+
