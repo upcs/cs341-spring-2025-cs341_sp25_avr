@@ -37,6 +37,8 @@
     "ts-jest": "^29.2.5"
   },
   "jest": {
-    "testEnvironment": "jsdom"
-  }
+  "collectCoverage": true,
+  "coverageReporters": ["lcov", "text"],
+  "coverageDirectory": "./coverage"
+}
 }
