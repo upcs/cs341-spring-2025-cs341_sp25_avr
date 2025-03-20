@@ -1,16 +1,3 @@
-function togglePopups() {
-  const popups = document.querySelectorAll('.popup');
-  if (popups.length === 0) {
-    console.warn('No popups (.popup) found in the DOM.');
-    return;
-  }
-  popups.forEach((popup) => {
-    const isHidden = popup.style.display === 'none';
-    popup.style.display = isHidden ? 'block' : 'none';
-    popup.setAttribute('aria-hidden', !isHidden);
-  });
-}
-
 function initializeLocation() {
   const debugButton = document.getElementById('debug-btn');
   if (debugButton) {
@@ -20,7 +7,19 @@ function initializeLocation() {
   }
 }
 
-// Export the functions for testing
+function togglePopups() {
+  const popups = document.querySelectorAll('.popup');
+  if (popups.length === 0) {
+    console.warn('No popups (.popup) found in the DOM.');
+    return;
+  }
+  popups.forEach((popup) => {
+    const isHidden = popup.style.display === 'none';
+    popup.style.display = isHidden ? 'block' : 'none';
+    popup.setAttribute('aria-hidden', !isHidden); // Accessibility improvement
+  });
+}
+
 module.exports = { initializeLocation, togglePopups };
 
 
