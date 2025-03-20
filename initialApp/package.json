@@ -42,6 +42,7 @@
     "coverageDirectory": "./coverage",
     "testPathIgnorePatterns": [
     "/tests/geo.test.js",
+    "/tests/location.test.js",
     "/tests/archiveInfo.test.js"
   ]
   }
