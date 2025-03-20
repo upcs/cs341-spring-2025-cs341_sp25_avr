@@ -61,18 +61,23 @@ describe('Archive Info Tests', () => {
     });
   });
 
-  it('should gracefully handle missing directory', (done) => {
-    const dirPath = path.resolve(__dirname, '../public/archiveContent/nonexistent');
+it('should gracefully handle missing directory', (done) => {
+  const dirPath = path.resolve(__dirname, '../public/archiveContent/nonexistent');
 
-    if (!fs.existsSync(dirPath)) {
-      console.warn(`Directory not found at ${dirPath}. Skipping test.`);
-      expect(fs.existsSync(dirPath)).toBe(false); // Assert the directory does not exist
-      done();
-      return;
-    }
+  if (!fs.existsSync(dirPath)) {
+    console.warn(`Directory not found at ${dirPath}. Skipping test.`);
+    expect(fs.existsSync(dirPath)).toBe(false); // Assert the directory does not exist
+    done(); // Skip the test gracefully
+    return;
+  }
 
-    done(); // Should not be reached if directory is missing
+  // If the directory exists (unexpectedly), proceed with the test
+  fs.readdir(dirPath, (err, files) => {
+    expect(err).toBeNull(); // Ensure no error occurs
+    expect(files.length).toBeGreaterThan(0); // Validate directory is not empty
+    done();
   });
 });
+
 
 
