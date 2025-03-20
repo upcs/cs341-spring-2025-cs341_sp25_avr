@@ -2,6 +2,10 @@ const fs = require('fs');
 const { JSDOM } = require('jsdom');
 const { initializeLocation } = require('../public/javascripts/location');
 
+const { TextEncoder, TextDecoder } = require('util');
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
 global.navigator.geolocation = {
   getCurrentPosition: jest.fn(),
   watchPosition: jest.fn(),
