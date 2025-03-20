@@ -13,8 +13,10 @@ install:
 
 script:
   - npm test
-  - ls -R coverage
-  - cat coverage/lcov.info
-  - npx codecov -f coverage/lcov.info --token=77cc6ece-fd65-426a-b228-aef3d6b70a31
+  - echo "Debugging coverage output"
+  - ls -R coverage || echo "Coverage directory not found"
+  - cat coverage/lcov.info || echo "lcov.info file not found"
+  - chmod -R 777 coverage || echo "Could not set permissions"
+  - npx codecov -f coverage/lcov.info || echo "Codecov upload failed"
 
 
