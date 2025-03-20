@@ -43,6 +43,6 @@
   "collectCoverage": true,
   "coverageReporters": ["lcov", "text"],
   "coverageDirectory": "./coverage",
-  "setupFilesAfterEnv": ["<rootDir>/initialApp/jest.setup.js"]
+  "setupFilesAfterEnv": ["initialApp/jest.setup.js"]
 }
 }
