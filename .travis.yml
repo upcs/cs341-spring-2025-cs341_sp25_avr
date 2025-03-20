@@ -20,6 +20,6 @@ install:
 
 env:
   global:
-    - CODECOV_TOKEN=<77cc6ece-fd65-426a-b228-aef3d6b70a31
+     - CODECOV_TOKEN=77cc6ece-fd65-426a-b228-aef3d6b70a31
  
 
