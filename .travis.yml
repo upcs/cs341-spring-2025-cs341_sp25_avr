@@ -5,12 +5,14 @@ os: windows
 
 before_install:
   - cd initialApp
-  - choco install lcov
+  - choco install lcov # Install lcov for coverage reports
+  - curl -Os https://uploader.codecov.io/latest/windows/codecov.exe
+  - mv codecov.exe codecov # Rename to make it easier to use
+  - chmod +x codecov # Ensure the file is executable
 
 install:
   - npm install
   - npm install cross-env --no-save
-  - npm install codecov --no-save
 
 script:
   - npm test || echo "Tests failed, proceeding to upload coverage"
@@ -19,6 +21,6 @@ script:
   - cat coverage/lcov.info || echo "lcov.info file not found"
 
 after_script:
-  - npx codecov -f coverage/lcov.info || echo "Codecov upload failed"
+  - ./codecov -cF javascript || echo "Codecov upload failed"
 
 
