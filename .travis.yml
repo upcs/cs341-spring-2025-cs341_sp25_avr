@@ -16,7 +16,11 @@ script:
   - echo "Debugging coverage output"
   - ls -R coverage || echo "Coverage directory not found"
   - cat coverage/lcov.info || echo "lcov.info file not found"
-  - chmod -R 777 coverage || echo "Could not set permissions"
-  - npx codecov -f coverage/lcov.info || echo "Codecov upload failed"
+  - if [ -f coverage/lcov.info ]; then
+      echo "Coverage file found, uploading...";
+      npx codecov -f coverage/lcov.info --disable=gcov || echo "Codecov upload failed";
+    else
+      echo "Coverage file missing, skipping upload";
+    fi
 
 
