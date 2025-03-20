@@ -38,10 +38,11 @@
   "codecov": "^3.8.2"
 },
 
-  "jest": {
+"jest": {
+  "testMatch": ["<rootDir>/initialApp/tests/**/*.test.js"],
   "collectCoverage": true,
   "coverageReporters": ["lcov", "text"],
   "coverageDirectory": "./coverage",
-  "setupFilesAfterEnv": ["initialApp/jest.setup.js"]
+  "setupFilesAfterEnv": ["<rootDir>/initialApp/jest.setup.js"]
 }
 }
