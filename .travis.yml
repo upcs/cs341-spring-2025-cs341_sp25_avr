@@ -4,6 +4,9 @@ node_js:
 
 os: windows
 
+before_install:
+  - cd initialApp
+
 install:
   - npm install
 
