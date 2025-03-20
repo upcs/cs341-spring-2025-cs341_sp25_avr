@@ -1,73 +1,68 @@
-// Author: Chengen Li 
-// Edited by Emma Jeppesen
-
-require("fast-text-encoding");
 const fs = require('fs');
 const { JSDOM } = require('jsdom');
-const { getUserCords } = require('../public/javascripts/geo');
+const { initializeLocation } = require('../public/javascripts/location');
 
 global.navigator.geolocation = {
-  getCurrentPosition: jest.fn((success) =>
-    success({
-      coords: {
-        latitude: 45.523064, // Example latitude
-        longitude: -122.676483, // Example longitude
-      },
-    })
-  ),
+  getCurrentPosition: jest.fn(),
   watchPosition: jest.fn(),
 };
 
-beforeAll(() => {
-  // Mock navigator.geolocation
-  global.navigator.geolocation = {
-    getCurrentPosition: jest.fn(),
-  };
-});
-
 beforeEach(() => {
-  const html = fs.readFileSync(`${__dirname}/../public/geo.html`, 'utf8');
+  // Mock DOM setup
+  const html = `<!DOCTYPE html><html><body>
+    <button id="devButton">Developer</button>
+    <div class="popup" id="popup1" style="display: none;">Popup 1</div>
+    <div class="popup" id="popup2" style="display: none;">Popup 2</div>
+  </body></html>`;
   const dom = new JSDOM(html);
   global.document = dom.window.document;
   global.window = dom.window;
 
-  const detailsDiv = document.createElement('div');
-  detailsDiv.id = 'details';
-  document.body.appendChild(detailsDiv);
+  const devButton = document.getElementById('devButton');
+  const popups = document.querySelectorAll('.popup');
+
+  // Mock addEventListener
+  devButton.addEventListener = jest.fn((event, callback) => {
+    if (event === 'click') {
+      callback();
+    }
+  });
+
+  // Simulate the popups being toggled on click
+  popups.forEach((popup) => {
+    popup.style.display = 'none';
+  });
 });
 
 afterEach(() => {
+  // Reset DOM
   document.body.innerHTML = '';
   jest.clearAllMocks();
 });
 
-test('updates coordinates in HTML', () => {
-  const mockPosition = {
-    coords: {
-      latitude: 45.5725,
-      longitude: -122.7265,
-    },
-  };
-  navigator.geolocation.getCurrentPosition.mockImplementationOnce((success) => success(mockPosition));
+test('should toggle popup visibility on developer button click', () => {
+  const devButton = document.getElementById('devButton');
+  const popups = document.querySelectorAll('.popup');
 
-  getUserCords();
+  // Simulate the "click" on the devButton
+  devButton.dispatchEvent(new window.Event('click'));
 
-  const details = document.getElementById('details');
-  expect(details.innerHTML).toContain('Latitude: 45.5725');
-  expect(details.innerHTML).toContain('Longitude: -122.7265');
+  // Verify popups are now visible
+  popups.forEach((popup) => {
+    expect(popup.style.display).toBe('flex');
+  });
 });
 
-test('handles geolocation errors gracefully', () => {
-  navigator.geolocation.getCurrentPosition.mockImplementationOnce((_, error) =>
-    error({
-      code: 1,
-      message: 'Geolocation failed',
-    })
-  );
+test('should gracefully handle missing developer button', () => {
+  // Remove devButton from DOM
+  const devButton = document.getElementById('devButton');
+  devButton?.remove();
 
-  getUserCords();
-
-  const details = document.getElementById('details');
-  expect(details.innerHTML).toContain('Error: Geolocation failed');
+  // Initialize the function and confirm no errors are thrown
+  expect(() => {
+    initializeLocation();
+  }).not.toThrow();
 });
+
+
 
