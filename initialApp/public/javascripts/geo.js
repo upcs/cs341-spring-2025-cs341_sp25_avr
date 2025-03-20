@@ -13,14 +13,16 @@
  const popups = document.querySelectorAll(".welcome-pop-up");
  const devButton = document.getElementById("debug-btn");
 
- // developer button to display all the other pop ups
- devButton.addEventListener('click', () => {
+// developer button to display all the other popups
+if (debugButton) {
+  debugButton.addEventListener('click', () => {
     popups.forEach((popup) => {
-        popup.style.display = "flex";
+      popup.style.display = "flex"; // Adjust based on your CSS
     });
- });
-
-
+  });
+} else {
+  console.warn("Debug button (debug-btn) is not found in the DOM.");
+}
  // hide the 'tap icon' message at the beginning
  message[1].style.display = 'none';
  message[1].style.color = 'gray';
