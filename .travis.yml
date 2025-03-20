@@ -21,6 +21,7 @@ script:
       npx codecov -f coverage/lcov.info --disable=gcov || echo "Codecov upload failed";
     else
       echo "Coverage file missing, skipping upload";
+      exit 1;
     fi
 
 
