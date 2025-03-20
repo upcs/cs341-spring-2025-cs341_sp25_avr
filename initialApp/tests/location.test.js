@@ -1,6 +1,14 @@
 const { JSDOM } = require('jsdom');
 const { initializeLocation, togglePopups } = require('../public/javascripts/location');
 
+// Helper function to assert visibility
+function assertPopupVisibility(popups, expectedDisplay, expectedAriaHidden) {
+  popups.forEach((popup) => {
+    expect(popup.style.display).toBe(expectedDisplay);
+    expect(popup.getAttribute('aria-hidden')).toBe(expectedAriaHidden);
+  });
+}
+
 beforeEach(() => {
   // Set up a mock DOM
   const html = `
@@ -32,22 +40,15 @@ test('should toggle popup visibility on debug button click', () => {
   expect(debugButton).not.toBeNull();
 
   // Simulate a click event
-  const event = document.createEvent('Event');
-  event.initEvent('click', true, true);
+  const event = new Event('click');
   debugButton.dispatchEvent(event);
 
   // Verify all popups are now visible
-  popups.forEach((popup) => {
-    expect(popup.style.display).toBe('block');
-    expect(popup.getAttribute('aria-hidden')).toBe('false');
-  });
+  assertPopupVisibility(popups, 'block', 'false');
 
   // Simulate another click event to toggle visibility
   debugButton.dispatchEvent(event);
-  popups.forEach((popup) => {
-    expect(popup.style.display).toBe('none');
-    expect(popup.getAttribute('aria-hidden')).toBe('true');
-  });
+  assertPopupVisibility(popups, 'none', 'true');
 });
 
 test('should gracefully handle missing debug button', () => {
@@ -73,4 +74,28 @@ test('should warn if no popups are found in the DOM', () => {
 
   expect(consoleSpy).toHaveBeenCalledWith('No popups (.popup) found in the DOM.');
   consoleSpy.mockRestore();
+});
+
+test('should handle a single popup in the DOM', () => {
+  // Remove all but one popup
+  document.querySelectorAll('.popup').forEach((popup, index) => {
+    if (index > 0) popup.remove();
+  });
+
+  const debugButton = document.getElementById('debug-btn');
+  expect(debugButton).not.toBeNull();
+
+  // Simulate a click event
+  const event = new Event('click');
+  debugButton.dispatchEvent(event);
+
+  // Verify the single popup visibility
+  const popup = document.querySelector('.popup');
+  expect(popup.style.display).toBe('block');
+  expect(popup.getAttribute('aria-hidden')).toBe('false');
+
+  debugButton.dispatchEvent(event);
+
+  expect(popup.style.display).toBe('none');
+  expect(popup.getAttribute('aria-hidden')).toBe('true');
 });
