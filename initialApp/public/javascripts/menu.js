@@ -27,3 +27,4 @@ document.addEventListener("DOMContentLoaded", () => {
         geoButton.addEventListener("click", () => navigateTo("geo"));
     }
 });
+module.exports = { navigateTo }; // Export navigateTo for testing
