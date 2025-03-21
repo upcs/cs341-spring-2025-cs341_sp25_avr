@@ -37,7 +37,7 @@ jobs:
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       with:
-        token: 77cc6ece-fd65-426a-b228-aef3d6b70a31
+        token: 1ac3bc55-ba43-45ee-88d0-9883f527b4fd
         files: initialApp/coverage/lcov.info
         slug: mckinler2/cs341-spring-2025-cs341_sp25_avr
 
