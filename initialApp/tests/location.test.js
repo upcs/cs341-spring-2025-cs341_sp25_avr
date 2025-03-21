@@ -1,107 +1,105 @@
-const { JSDOM } = require("jsdom");
-const { getUserCoords } = require("../public/javascripts/geo");
+const { getUserCoords } = require("../public/javascripts/location");
 
-describe("getUserCoords Function Tests", () => {
-  let document, detailsElement;
+describe("getUserCoords Function", () => {
+  let details;
 
   beforeEach(() => {
-    // Set up a mock DOM
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <body>
-          <div id="details"></div>
-        </body>
-      </html>`;
-    const dom = new JSDOM(html);
-    global.document = dom.window.document;
-    global.window = dom.window;
+    // Set up mock DOM
+    document.body.innerHTML = `
+      <div id="details"></div>
+    `;
+    details = document.getElementById("details");
 
-    // Mock navigator.geolocation
-    global.navigator.geolocation = {
-      getCurrentPosition: jest.fn(),
-    };
-
-    // Reference DOM element
-    detailsElement = document.getElementById("details");
+    // Reset global.navigator.geolocation before each test
+    delete global.navigator.geolocation;
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    global.document = undefined;
-    global.window = undefined;
   });
 
-  test("should update details with latitude and longitude on successful geolocation", () => {
-    const mockPosition = {
-      coords: {
-        latitude: 45.5725,
-        longitude: -122.7265,
-      },
+  test("should update details with latitude and longitude on success", () => {
+    // Mock navigator.geolocation
+    const mockPosition = { coords: { latitude: 40.7128, longitude: -74.006 } };
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn((successCallback) =>
+        successCallback(mockPosition)
+      ),
     };
 
-    // Mock getCurrentPosition to call success callback
-    global.navigator.geolocation.getCurrentPosition.mockImplementation((success) =>
-      success(mockPosition)
-    );
-
+    // Call the function
     getUserCoords();
 
-    // Check that the details are updated with coordinates
-    expect(detailsElement.innerHTML).toContain("Latitude: 45.5725");
-    expect(detailsElement.innerHTML).toContain("Longitude: -122.7265");
+    // Ensure getCurrentPosition was called
+    expect(global.navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
+
+    // Verify that the details element was updated correctly
+    expect(details.innerHTML).toBe("Latitude: 40.7128, Longitude: -74.006");
   });
 
-  test("should log error on geolocation failure", () => {
-    const mockError = { message: "User denied geolocation" };
+  test("should log an error if geolocation fails", () => {
+    // Mock navigator.geolocation with an error
+    const mockError = { message: "User denied Geolocation" };
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn((_, errorCallback) =>
+        errorCallback(mockError)
+      ),
+    };
 
-    // Mock getCurrentPosition to call error callback
-    global.navigator.geolocation.getCurrentPosition.mockImplementation((_, error) =>
-      error(mockError)
-    );
-
+    // Spy on console.error
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
+    // Call the function
     getUserCoords();
 
-    // Check that the error was logged
-    expect(consoleSpy).toHaveBeenCalledWith("Geolocation error:", mockError);
+    // Ensure getCurrentPosition was called
+    expect(global.navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
 
+    // Verify that the error was logged
+    expect(consoleSpy).toHaveBeenCalledWith("Geolocation error:", mockError);
     consoleSpy.mockRestore();
   });
 
-  test("should log an error when geolocation is not supported", () => {
-    // Remove geolocation from navigator
+  test("should log an error if geolocation is not supported", () => {
+    // No navigator.geolocation support
     global.navigator.geolocation = undefined;
 
+    // Spy on console.error
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
+    // Call the function
     getUserCoords();
 
-    // Check that the error was logged
+    // Verify that the error was logged
     expect(consoleSpy).toHaveBeenCalledWith(
       "Geolocation is not supported by this browser."
     );
-
     consoleSpy.mockRestore();
   });
 
-  test("should do nothing if details element is missing", () => {
-    // Remove the details element from the DOM
-    document.getElementById = jest.fn(() => null);
-
-    const mockPosition = {
-      coords: {
-        latitude: 45.5725,
-        longitude: -122.7265,
-      },
+  test("should gracefully handle a missing 'details' element", () => {
+    // Mock navigator.geolocation
+    const mockPosition = { coords: { latitude: 34.0522, longitude: -118.2437 } };
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn((successCallback) =>
+        successCallback(mockPosition)
+      ),
     };
 
-    global.navigator.geolocation.getCurrentPosition.mockImplementation((success) =>
-      success(mockPosition)
-    );
+    // Remove the "details" element from the DOM
+    document.getElementById("details").remove();
 
+    // Spy on console.error
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    // Call the function
+    getUserCoords();
+
+    // Ensure no error occurs
     expect(() => getUserCoords()).not.toThrow();
+
+    // Verify that no error was logged (missing details is handled silently)
+    expect(consoleSpy).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 });
-
