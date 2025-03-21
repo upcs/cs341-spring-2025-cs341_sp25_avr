@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
@@ -37,7 +37,7 @@ jobs:
     - name: Upload coverage reports to Codecov
       run: |
         cd initialApp
-        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        curl -Os https://uploader.codecov.io/latest/windows/codecov
         chmod +x codecov
         ./codecov -f coverage/lcov.info --disable=gcov --token=${{ secrets.CODECOV_TOKEN }} --slug=mckinler2/cs341-spring-2025-cs341_sp25_avr
 
