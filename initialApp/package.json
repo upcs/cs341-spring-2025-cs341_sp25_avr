@@ -38,6 +38,11 @@
   },
   "jest": {
     "collectCoverage": true,
+    "collectCoverageFrom": [
+      "public/javascripts/**/*.js",
+      "!**/node_modules/**",
+      "!**/tests/**"
+    ],
     "coverageReporters": ["text", "cobertura", "lcov"],
     "coverageDirectory": "./coverage",
     "testEnvironment": "jest-environment-jsdom"
