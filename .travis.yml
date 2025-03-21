@@ -10,7 +10,7 @@ before_install:
   - chmod +x codecov
 
 install:
-  - npm ci
+  - npm install
   - npm install cross-env --no-save
   - npm install --save-dev jest
   - npm i jest-environment-jsdom --save-dev
@@ -22,10 +22,7 @@ script:
   - cat coverage/lcov.info || echo "lcov.info file not found"
 
 after_script:
-  - for i in {1..3}; do
-      ./codecov -t 1ac3bc55-ba43-45ee-88d0-9883f527b4fd -v && break || echo "Retrying Codecov upload ($i)";
-    done || echo "Codecov upload failed after 3 attempts"
-
+  - ./codecov -t 1ac3bc55-ba43-45ee-88d0-9883f527b4fd -v || echo "Codecov upload failed"
 
 
 
