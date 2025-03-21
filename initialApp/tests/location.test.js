@@ -1,7 +1,7 @@
 const { JSDOM } = require('jsdom');
 const { initializeLocation, togglePopups } = require('../public/javascripts/location');
 
-// Helper function to assert visibility
+// Helper function to assert popup visibility
 function assertPopupVisibility(popups, expectedDisplay, expectedAriaHidden) {
   popups.forEach((popup) => {
     expect(popup.style.display).toBe(expectedDisplay);
@@ -99,14 +99,39 @@ test('should handle a single popup in the DOM', () => {
   expect(popup.style.display).toBe('none');
   expect(popup.getAttribute('aria-hidden')).toBe('true');
 });
-test('debug DOM structure to verify debug-btn existence', () => {
-  // Log the current DOM structure
-  console.log(document.body.innerHTML); // Prints the DOM structure for debugging
 
-  // Check if the debug button exists in the DOM
-  const debugButton = document.getElementById('debug-btn');
-  expect(debugButton).not.toBeNull(); // Assert that the debug button exists
+test('should warn if popups are missing aria-hidden attribute', () => {
+  // Remove the aria-hidden attribute from all popups
+  document.querySelectorAll('.popup').forEach((popup) => {
+    popup.removeAttribute('aria-hidden');
+  });
 
-  // Log further details for the debug button if needed
-  console.log('Debug button found:', debugButton); // Logs the debug button element
+  const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+  togglePopups();
+
+  // Assert that a warning is logged for each popup
+  document.querySelectorAll('.popup').forEach((popup) => {
+    expect(consoleSpy).toHaveBeenCalledWith(
+      `Popup with id ${popup.id} is missing the 'aria-hidden' attribute.`
+    );
+  });
+
+  consoleSpy.mockRestore();
 });
+
+test('should maintain consistent popup state after multiple toggles', () => {
+  initializeLocation();
+
+  const debugButton = document.getElementById('debug-btn');
+  const popups = document.querySelectorAll('.popup');
+
+  for (let i = 0; i < 5; i++) {
+    debugButton.dispatchEvent(new Event('click'));
+    const expectedDisplay = i % 2 === 0 ? 'block' : 'none';
+    const expectedAriaHidden = i % 2 === 0 ? 'false' : 'true';
+
+    assertPopupVisibility(popups, expectedDisplay, expectedAriaHidden);
+  }
+});
+
