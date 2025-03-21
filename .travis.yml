@@ -5,7 +5,7 @@ os: windows
 
 before_install:
   - cd initialApp
-  - curl -Os https://uploader.codecov.io/latest/windows/codecov.exe
+  - curl -Os https://uploader.codecov.io/v0.5.0/windows/codecov.exe
   - mv codecov.exe codecov
   - chmod +x codecov
 
@@ -21,7 +21,8 @@ script:
   - cat coverage/lcov.info || echo "lcov.info file not found"
 
 after_script:
-  - ./codecov -t $CODECOV_TOKEN -cF javascript || echo "Codecov upload failed"
+  ./codecov -t 77cc6ece-fd65-426a-b228-aef3d6b70a31 -v || echo "Codecov upload failed"
+
 
 
 
