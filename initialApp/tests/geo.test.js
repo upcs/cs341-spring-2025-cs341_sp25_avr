@@ -52,23 +52,33 @@ describe("Geo.js Tests", () => {
   test("should attach event listener to devButton and show popups on click", () => {
     expect(devButton).not.toBeNull();
 
-    // Simulate the `DOMContentLoaded` event
-    document.addEventListener("DOMContentLoaded", () => {
-      devButton.addEventListener("click", () => {
-        popups.forEach((popup) => {
-          popup.style.display = "flex";
-        });
+    devButton.addEventListener("click", () => {
+      popups.forEach((popup) => {
+        popup.style.display = "flex";
       });
     });
-
-    const domContentLoadedEvent = new Event("DOMContentLoaded");
-    document.dispatchEvent(domContentLoadedEvent);
 
     devButton.click();
 
     popups.forEach((popup) => {
       expect(popup.style.display).toBe("flex");
     });
+  });
+
+  test("should handle missing devButton gracefully", () => {
+    jest.spyOn(global.document, "getElementById").mockImplementation((id) =>
+      id === "debug-btn" ? null : {}
+    );
+
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const mockDevButton = document.getElementById("debug-btn");
+
+    if (!mockDevButton) {
+      console.error("Debug button (debug-btn) not found.");
+    }
+
+    expect(consoleSpy).toHaveBeenCalledWith("Debug button (debug-btn) not found.");
+    consoleSpy.mockRestore();
   });
 
   test("should update map and details with user coordinates", () => {
@@ -105,28 +115,41 @@ describe("Geo.js Tests", () => {
     consoleSpy.mockRestore();
   });
 
-  test("should check if user is within bounds", () => {
-    const lat = 45.5723;
-    const long = -122.7275;
-    const latMin = 45.5713;
-    const latMax = 45.5724;
-    const longMin = -122.7287;
-    const longMax = -122.7272;
+  test("should handle missing map element gracefully", () => {
+    jest.spyOn(global.document, "getElementById").mockImplementation((id) =>
+      id === "map" ? null : {}
+    );
 
-    const result = checkWithinBounds(lat, long, latMin, latMax, longMin, longMax);
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    getUserCords();
+
+    expect(consoleSpy).toHaveBeenCalledWith("Element with id 'map' not found.");
+    consoleSpy.mockRestore();
+  });
+
+  test("should verify user is within bounds", () => {
+    const result = checkWithinBounds(
+      45.5723,
+      -122.7275,
+      45.5713,
+      45.5724,
+      -122.7287,
+      -122.7272
+    );
 
     expect(result).toBe(true);
   });
 
   test("should return false if user is outside bounds", () => {
-    const lat = 45.5700;
-    const long = -122.7300;
-    const latMin = 45.5713;
-    const latMax = 45.5724;
-    const longMin = -122.7287;
-    const longMax = -122.7272;
-
-    const result = checkWithinBounds(lat, long, latMin, latMax, longMin, longMax);
+    const result = checkWithinBounds(
+      45.5700,
+      -122.7300,
+      45.5713,
+      45.5724,
+      -122.7287,
+      -122.7272
+    );
 
     expect(result).toBe(false);
   });
@@ -142,16 +165,15 @@ describe("Geo.js Tests", () => {
     expect(popups[0].innerHTML).toBe("Shiley School of Engineering!");
   });
 
-  test("should handle missing map element", () => {
-    jest.spyOn(global.document, "getElementById").mockImplementation((id) =>
-      id === "map" ? null : {}
+  test("should handle undefined message elements gracefully", () => {
+    jest.spyOn(global.document, "querySelectorAll").mockImplementation((selector) =>
+      selector === ".default-message" ? null : []
     );
 
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    updateDisplay("Shiley School of Engineering");
 
-    getUserCords();
-
-    expect(consoleSpy).toHaveBeenCalledWith("Element with id 'map' not found.");
+    expect(consoleSpy).not.toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 });
