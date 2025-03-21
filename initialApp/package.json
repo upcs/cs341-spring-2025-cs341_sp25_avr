@@ -39,6 +39,7 @@
   "jest": {
     "collectCoverage": true,
     "coverageReporters": ["text", "cobertura", "lcov"],
-    "coverageDirectory": "./coverage"
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "jest-environment-jsdom"
   }
 }
