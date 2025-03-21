@@ -138,6 +138,16 @@ function main() {
 
     getUserCords();
 }
+if (devButton) {
+  devButton.addEventListener("click", () => {
+    popups.forEach((popup) => {
+      popup.style.display = "flex";
+    });
+  });
+} else {
+  console.error("Debug button (debug-btn) not found.");
+}
+
 module.exports = { getUserCords, checkWithinBounds, updateDisplay };
 
 main();
