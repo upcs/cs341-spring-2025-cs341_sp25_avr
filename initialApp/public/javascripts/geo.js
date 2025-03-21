@@ -138,6 +138,7 @@ function main() {
 
     getUserCords();
 }
+module.exports = { getUserCords, checkWithinBounds, updateDisplay };
 
 main();
 
