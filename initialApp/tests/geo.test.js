@@ -1,7 +1,12 @@
 const { JSDOM } = require("jsdom");
+const {
+  getUserCords,
+  checkWithinBounds,
+  updateDisplay,
+} = require("../public/javascripts/geo");
 
 describe("Geo.js Tests", () => {
-  let devButton, popups;
+  let map, details, message, loader, popups, devButton;
 
   beforeEach(() => {
     const html = `
@@ -11,82 +16,145 @@ describe("Geo.js Tests", () => {
           <div id="map"></div>
           <div id="details"></div>
           <div class="loader"></div>
+          <div class="default-message"></div>
+          <div class="default-message"></div>
           <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
-          <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
           <button id="debug-btn">Debug</button>
         </body>
       </html>`;
     const dom = new JSDOM(html);
     global.document = dom.window.document;
 
-    // Reference DOM elements
-    devButton = document.getElementById("debug-btn");
+    map = document.getElementById("map");
+    details = document.getElementById("details");
+    message = document.querySelectorAll(".default-message");
+    loader = document.querySelector(".loader");
     popups = document.querySelectorAll(".welcome-pop-up");
+    devButton = document.getElementById("debug-btn");
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    global.document = undefined;
   });
 
-  test("should display all popups when devButton is clicked", () => {
-    // Validate that devButton exists
+  // Helper function to mock geolocation
+  const mockGeolocation = (success, error) => {
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn((successCallback, errorCallback) =>
+        success ? successCallback(success) : errorCallback(error)
+      ),
+    };
+  };
+
+  test("should attach event listener to devButton and display popups", () => {
     expect(devButton).not.toBeNull();
 
-    // Attach event listener logic
     devButton.addEventListener("click", () => {
       popups.forEach((popup) => {
         popup.style.display = "flex";
       });
     });
 
-    // Simulate button click
     devButton.click();
 
-    // Verify all popups are visible
     popups.forEach((popup) => {
       expect(popup.style.display).toBe("flex");
     });
   });
 
-  test("should trigger error if popups are missing", () => {
-    // Ensure devButton exists
-    expect(devButton).not.toBeNull();
+  test("should update map and details with user coordinates", () => {
+    const mockPosition = {
+      coords: { latitude: 45.5725, longitude: -122.7265 },
+    };
 
-    // Attach event listener logic
-    devButton.addEventListener("click", () => {
-      const popups = document.querySelectorAll(".welcome-pop-up");
-      if (popups.length === 0) {
-        console.error("No popups found.");
-      } else {
-        popups.forEach((popup) => {
-          popup.style.display = "flex";
-        });
-      }
-    });
+    mockGeolocation(mockPosition, null);
 
-    // Simulate empty popups and trigger click
-    popups = [];
+    getUserCords();
+
+    // Verify map iframe is updated
+    expect(map.innerHTML).toContain(
+      `https://maps.google.com/maps?q=${mockPosition.coords.latitude},${mockPosition.coords.longitude}`
+    );
+
+    // Verify details are updated
+    expect(details.innerHTML).toContain(
+      `Latitude: ${mockPosition.coords.latitude}`
+    );
+    expect(details.innerHTML).toContain(
+      `Longitude: ${mockPosition.coords.longitude}`
+    );
+  });
+
+  test("should log error if geolocation fails", () => {
+    const mockError = { message: "Geolocation error" };
+    mockGeolocation(null, mockError);
+
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    devButton.click();
+    getUserCords();
 
-    // Verify error is logged
-    expect(consoleSpy).toHaveBeenCalledWith("No popups found.");
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Error getting location: ",
+      mockError
+    );
     consoleSpy.mockRestore();
   });
 
-  test("should handle missing devButton gracefully", () => {
-    // Simulate missing devButton
+  test("should check if user is within bounds", () => {
+    const lat = 45.5723;
+    const long = -122.7275;
+    const latMin = 45.5713;
+    const latMax = 45.5724;
+    const longMin = -122.7287;
+    const longMax = -122.7272;
+
+    const result = checkWithinBounds(lat, long, latMin, latMax, longMin, longMax);
+
+    expect(result).toBe(true);
+  });
+
+  test("should return false if user is outside bounds", () => {
+    const lat = 45.5700;
+    const long = -122.7300;
+    const latMin = 45.5713;
+    const latMax = 45.5724;
+    const longMin = -122.7287;
+    const longMax = -122.7272;
+
+    const result = checkWithinBounds(lat, long, latMin, latMax, longMin, longMax);
+
+    expect(result).toBe(false);
+  });
+
+  test("should update display with building name", () => {
+    updateDisplay("Shiley School of Engineering");
+
+    // Verify updates to messages
+    expect(message[0].style.display).toBe("flex");
+    expect(message[0].innerHTML).toBe("Near by buildings:");
+    expect(message[1].style.display).toBe("flex");
+
+    // Verify loader is hidden
+    expect(loader.style.display).toBe("none");
+
+    // Verify popup shows correct building name
+    expect(popups[0].style.display).toBe("flex");
+    expect(popups[0].innerHTML).toBe("Shiley School of Engineering!");
+  });
+
+  test("should handle missing map element", () => {
+    global.document.getElementById = jest.fn((id) =>
+      id === "map" ? null : {}
+    );
+
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    document.getElementById = jest.fn(() => null);
 
-    const devButton = document.getElementById("debug-btn");
-    if (!devButton) {
-      console.error("Debug button (debug-btn) not found.");
-    }
+    getUserCords();
 
-    // Verify error is logged
-    expect(consoleSpy).toHaveBeenCalledWith("Debug button (debug-btn) not found.");
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Element with id 'map' not found."
+    );
     consoleSpy.mockRestore();
   });
 });
