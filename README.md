@@ -49,3 +49,4 @@ Additional Features for the Future:
  </a>
 
  [![Coverage](https://github.com/mckinler2/cs341-spring-2025-cs341_sp25_avr/actions/workflows/coverage.yml/badge.svg)](https://github.com/mckinler2/cs341-spring-2025-cs341_sp25_avr/actions/workflows/coverage.yml)
+ 9YIMPTQY09
