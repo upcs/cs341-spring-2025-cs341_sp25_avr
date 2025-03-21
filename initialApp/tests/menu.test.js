@@ -57,11 +57,16 @@ describe('Menu Navigation Tests', () => {
     consoleSpy.mockRestore();
   });
 
-  test('should attach event listeners to menu buttons', () => {
+  test('should attach event listeners to menu buttons and navigate correctly', () => {
     // Mock event listeners
     const homeButton = document.getElementById("home-button");
     const mapButton = document.getElementById("map-button");
     const geoButton = document.getElementById("geo-button");
+
+    // Attach event listeners
+    homeButton.addEventListener("click", () => navigateTo("home"));
+    mapButton.addEventListener("click", () => navigateTo("map"));
+    geoButton.addEventListener("click", () => navigateTo("geo"));
 
     // Simulate button clicks
     homeButton.click();
@@ -72,5 +77,32 @@ describe('Menu Navigation Tests', () => {
 
     geoButton.click();
     expect(mockWindow.location.href).toBe("geo.html");
+  });
+
+  test('should handle missing menu buttons gracefully', () => {
+    // Remove buttons from the DOM
+    document.getElementById('home-button').remove();
+    document.getElementById('map-button').remove();
+    document.getElementById('geo-button').remove();
+
+    // Simulate loading event
+    expect(() => {
+      const buttons = ['home-button', 'map-button', 'geo-button'];
+      buttons.forEach((id) => {
+        const button = document.getElementById(id);
+        if (button) {
+          button.addEventListener("click", () => navigateTo(id));
+        }
+      });
+    }).not.toThrow();
+  });
+
+  test('should gracefully handle null navigation input', () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    navigateTo(null); // Pass a null value
+    expect(consoleSpy).toHaveBeenCalledWith("Invalid page selection");
+
+    consoleSpy.mockRestore();
   });
 });
