@@ -1,5 +1,5 @@
 const { JSDOM } = require('jsdom');
-const { navigateTo } = require('../public/javascripts/menu'); // Assuming navigateTo is exported for testing
+const { navigateTo } = require('../public/javascripts/menu');
 
 describe('Menu Navigation Tests', () => {
   let dom;
