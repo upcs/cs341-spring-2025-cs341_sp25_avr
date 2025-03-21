@@ -10,41 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Check out the code
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Set up Node.js environment
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
 
-    # Install dependencies
     - name: Install dependencies
       run: |
         cd initialApp
         npm install
 
-    # Run tests and collect coverage
     - name: Run tests and generate coverage
       run: |
         cd initialApp
         npm test -- --coverage
 
-    # Debug coverage report
     - name: Debug coverage report
       run: |
         cd initialApp
         ls -R coverage || echo "Coverage directory not found"
         cat coverage/lcov.info || echo "lcov.info file not found"
 
-    # Upload coverage to Codecov
     - name: Upload coverage reports to Codecov
       run: |
         cd initialApp
-        npx codecov --disable=gcov -f coverage/lcov.info --token=${{ secrets.CODECOV_TOKEN }} --slug=mckinler2/cs341-spring-2025-cs341_sp25_avr
-
-
+        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        chmod +x codecov
+        ./codecov -f coverage/lcov.info --disable=gcov --token=${{ secrets.CODECOV_TOKEN }} --slug=mckinler2/cs341-spring-2025-cs341_sp25_avr
 
 
