@@ -12,8 +12,7 @@ before_install:
 install:
   - npm install
   - npm install cross-env --no-save
-  - npm install --save-dev jest
-  - npm i jest-environment-jsdom --save-dev
+
 
 script:
   - npx jest --coverage || echo "Tests failed, continuing to generate coverage"
