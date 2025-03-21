@@ -39,6 +39,6 @@ jobs:
         cd initialApp
         curl -Os https://uploader.codecov.io/latest/windows/codecov
         chmod +x codecov
-        ./codecov -f coverage/lcov.info --disable=gcov --token=${{ secrets.CODECOV_TOKEN }} --slug=mckinler2/cs341-spring-2025-cs341_sp25_avr
+        ./codecov -f coverage/lcov.info --disable=gcov --token=77cc6ece-fd65-426a-b228-aef3d6b70a31 --slug=mckinler2/cs341-spring-2025-cs341_sp25_avr
 
 
