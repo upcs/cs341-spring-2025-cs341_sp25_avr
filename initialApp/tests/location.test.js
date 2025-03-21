@@ -40,7 +40,7 @@ test('should toggle popup visibility on debug button click', () => {
   expect(debugButton).not.toBeNull();
 
   // Simulate a click event
-  const event = new Event('click');
+  const event = new window.Event('click');
   debugButton.dispatchEvent(event);
 
   // Verify all popups are now visible
@@ -86,7 +86,7 @@ test('should handle a single popup in the DOM', () => {
   expect(debugButton).not.toBeNull();
 
   // Simulate a click event
-  const event = new Event('click');
+  const event = new window.Event('click');
   debugButton.dispatchEvent(event);
 
   // Verify the single popup visibility
@@ -127,7 +127,7 @@ test('should maintain consistent popup state after multiple toggles', () => {
   const popups = document.querySelectorAll('.popup');
 
   for (let i = 0; i < 5; i++) {
-    debugButton.dispatchEvent(new Event('click'));
+    debugButton.dispatchEvent(new window.Event('click'));
     const expectedDisplay = i % 2 === 0 ? 'block' : 'none';
     const expectedAriaHidden = i % 2 === 0 ? 'false' : 'true';
 
@@ -135,3 +135,15 @@ test('should maintain consistent popup state after multiple toggles', () => {
   }
 });
 
+test('should handle the debug button being initialized multiple times gracefully', () => {
+  const debugButton = document.getElementById('debug-btn');
+  const addEventListenerSpy = jest.spyOn(debugButton, 'addEventListener');
+
+  initializeLocation();
+  initializeLocation(); // Calling again to ensure only one listener is added
+
+  expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
+  expect(debugButton.dataset.initialized).toBe('true');
+
+  addEventListenerSpy.mockRestore();
+});
