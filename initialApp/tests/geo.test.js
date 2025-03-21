@@ -9,6 +9,7 @@ describe("Geo.js Tests", () => {
   let map, details, message, loader, popups, devButton;
 
   beforeEach(() => {
+    // Set up the mock DOM structure
     const html = `
       <!DOCTYPE html>
       <html>
@@ -19,26 +20,27 @@ describe("Geo.js Tests", () => {
           <div class="default-message"></div>
           <div class="default-message"></div>
           <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
+          <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
           <button id="debug-btn">Debug</button>
         </body>
       </html>`;
     const dom = new JSDOM(html);
     global.document = dom.window.document;
 
+    // Reference DOM elements
     map = document.getElementById("map");
     details = document.getElementById("details");
-    message = document.querySelectorAll(".default-message");
     loader = document.querySelector(".loader");
+    message = document.querySelectorAll(".default-message");
     popups = document.querySelectorAll(".welcome-pop-up");
     devButton = document.getElementById("debug-btn");
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    global.document = undefined;
   });
 
-  // Helper function to mock geolocation
+  // Mock geolocation
   const mockGeolocation = (success, error) => {
     global.navigator.geolocation = {
       getCurrentPosition: jest.fn((successCallback, errorCallback) =>
@@ -47,14 +49,20 @@ describe("Geo.js Tests", () => {
     };
   };
 
-  test("should attach event listener to devButton and display popups", () => {
+  test("should attach event listener to devButton and show popups on click", () => {
     expect(devButton).not.toBeNull();
 
-    devButton.addEventListener("click", () => {
-      popups.forEach((popup) => {
-        popup.style.display = "flex";
+    // Simulate the `DOMContentLoaded` event
+    document.addEventListener("DOMContentLoaded", () => {
+      devButton.addEventListener("click", () => {
+        popups.forEach((popup) => {
+          popup.style.display = "flex";
+        });
       });
     });
+
+    const domContentLoadedEvent = new Event("DOMContentLoaded");
+    document.dispatchEvent(domContentLoadedEvent);
 
     devButton.click();
 
@@ -67,17 +75,13 @@ describe("Geo.js Tests", () => {
     const mockPosition = {
       coords: { latitude: 45.5725, longitude: -122.7265 },
     };
-
     mockGeolocation(mockPosition, null);
 
     getUserCords();
 
-    // Verify map iframe is updated
     expect(map.innerHTML).toContain(
       `https://maps.google.com/maps?q=${mockPosition.coords.latitude},${mockPosition.coords.longitude}`
     );
-
-    // Verify details are updated
     expect(details.innerHTML).toContain(
       `Latitude: ${mockPosition.coords.latitude}`
     );
@@ -130,21 +134,16 @@ describe("Geo.js Tests", () => {
   test("should update display with building name", () => {
     updateDisplay("Shiley School of Engineering");
 
-    // Verify updates to messages
     expect(message[0].style.display).toBe("flex");
     expect(message[0].innerHTML).toBe("Near by buildings:");
     expect(message[1].style.display).toBe("flex");
-
-    // Verify loader is hidden
     expect(loader.style.display).toBe("none");
-
-    // Verify popup shows correct building name
     expect(popups[0].style.display).toBe("flex");
     expect(popups[0].innerHTML).toBe("Shiley School of Engineering!");
   });
 
   test("should handle missing map element", () => {
-    global.document.getElementById = jest.fn((id) =>
+    jest.spyOn(global.document, "getElementById").mockImplementation((id) =>
       id === "map" ? null : {}
     );
 
@@ -152,9 +151,8 @@ describe("Geo.js Tests", () => {
 
     getUserCords();
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Element with id 'map' not found."
-    );
+    expect(consoleSpy).toHaveBeenCalledWith("Element with id 'map' not found.");
     consoleSpy.mockRestore();
   });
 });
+
