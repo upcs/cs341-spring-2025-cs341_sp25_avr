@@ -1,149 +1,107 @@
-const { JSDOM } = require('jsdom');
-const { initializeLocation, togglePopups } = require('../public/javascripts/location');
+const { JSDOM } = require("jsdom");
+const { getUserCoords } = require("../public/javascripts/geo");
 
-// Helper function to assert popup visibility
-function assertPopupVisibility(popups, expectedDisplay, expectedAriaHidden) {
-  popups.forEach((popup) => {
-    expect(popup.style.display).toBe(expectedDisplay);
-    expect(popup.getAttribute('aria-hidden')).toBe(expectedAriaHidden);
-  });
-}
+describe("getUserCoords Function Tests", () => {
+  let document, detailsElement;
 
-beforeEach(() => {
-  // Set up a mock DOM
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <body>
-        <button id="debug-btn">Show all locations</button>
-        <div class="popup" id="popup1" style="display: none;" aria-hidden="true">Popup 1</div>
-        <div class="popup" id="popup2" style="display: none;" aria-hidden="true">Popup 2</div>
-      </body>
-    </html>`;
-  const dom = new JSDOM(html);
-  global.document = dom.window.document;
-  global.window = dom.window;
-});
+  beforeEach(() => {
+    // Set up a mock DOM
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <body>
+          <div id="details"></div>
+        </body>
+      </html>`;
+    const dom = new JSDOM(html);
+    global.document = dom.window.document;
+    global.window = dom.window;
 
-afterEach(() => {
-  jest.clearAllMocks();
-  document.body.innerHTML = ''; // Reset DOM after each test
-});
+    // Mock navigator.geolocation
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn(),
+    };
 
-test('should toggle popup visibility on debug button click', () => {
-  initializeLocation();
-
-  const debugButton = document.getElementById('debug-btn');
-  const popups = document.querySelectorAll('.popup');
-
-  // Ensure the debug button exists
-  expect(debugButton).not.toBeNull();
-
-  // Simulate a click event
-  const event = new window.Event('click');
-  debugButton.dispatchEvent(event);
-
-  // Verify all popups are now visible
-  assertPopupVisibility(popups, 'block', 'false');
-
-  // Simulate another click event to toggle visibility
-  debugButton.dispatchEvent(event);
-  assertPopupVisibility(popups, 'none', 'true');
-});
-
-test('should gracefully handle missing debug button', () => {
-  // Remove the debug button from the DOM
-  const debugButton = document.getElementById('debug-btn');
-  debugButton?.remove();
-
-  const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-  initializeLocation();
-
-  expect(consoleSpy).toHaveBeenCalledWith('Debug button (debug-btn) is not found in the DOM.');
-  consoleSpy.mockRestore();
-});
-
-test('should warn if no popups are found in the DOM', () => {
-  // Remove all popup elements
-  document.querySelectorAll('.popup').forEach((popup) => popup.remove());
-
-  const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-  togglePopups();
-
-  expect(consoleSpy).toHaveBeenCalledWith('No popups (.popup) found in the DOM.');
-  consoleSpy.mockRestore();
-});
-
-test('should handle a single popup in the DOM', () => {
-  // Remove all but one popup
-  document.querySelectorAll('.popup').forEach((popup, index) => {
-    if (index > 0) popup.remove();
+    // Reference DOM element
+    detailsElement = document.getElementById("details");
   });
 
-  const debugButton = document.getElementById('debug-btn');
-  expect(debugButton).not.toBeNull();
-
-  // Simulate a click event
-  const event = new window.Event('click');
-  debugButton.dispatchEvent(event);
-
-  // Verify the single popup visibility
-  const popup = document.querySelector('.popup');
-  expect(popup.style.display).toBe('block');
-  expect(popup.getAttribute('aria-hidden')).toBe('false');
-
-  debugButton.dispatchEvent(event);
-
-  expect(popup.style.display).toBe('none');
-  expect(popup.getAttribute('aria-hidden')).toBe('true');
-});
-
-test('should warn if popups are missing aria-hidden attribute', () => {
-  // Remove the aria-hidden attribute from all popups
-  document.querySelectorAll('.popup').forEach((popup) => {
-    popup.removeAttribute('aria-hidden');
+  afterEach(() => {
+    jest.clearAllMocks();
+    global.document = undefined;
+    global.window = undefined;
   });
 
-  const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  test("should update details with latitude and longitude on successful geolocation", () => {
+    const mockPosition = {
+      coords: {
+        latitude: 45.5725,
+        longitude: -122.7265,
+      },
+    };
 
-  togglePopups();
-
-  // Assert that a warning is logged for each popup
-  document.querySelectorAll('.popup').forEach((popup) => {
-    expect(consoleSpy).toHaveBeenCalledWith(
-      `Popup with id ${popup.id} is missing the 'aria-hidden' attribute.`
+    // Mock getCurrentPosition to call success callback
+    global.navigator.geolocation.getCurrentPosition.mockImplementation((success) =>
+      success(mockPosition)
     );
+
+    getUserCoords();
+
+    // Check that the details are updated with coordinates
+    expect(detailsElement.innerHTML).toContain("Latitude: 45.5725");
+    expect(detailsElement.innerHTML).toContain("Longitude: -122.7265");
   });
 
-  consoleSpy.mockRestore();
+  test("should log error on geolocation failure", () => {
+    const mockError = { message: "User denied geolocation" };
+
+    // Mock getCurrentPosition to call error callback
+    global.navigator.geolocation.getCurrentPosition.mockImplementation((_, error) =>
+      error(mockError)
+    );
+
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    getUserCoords();
+
+    // Check that the error was logged
+    expect(consoleSpy).toHaveBeenCalledWith("Geolocation error:", mockError);
+
+    consoleSpy.mockRestore();
+  });
+
+  test("should log an error when geolocation is not supported", () => {
+    // Remove geolocation from navigator
+    global.navigator.geolocation = undefined;
+
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    getUserCoords();
+
+    // Check that the error was logged
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Geolocation is not supported by this browser."
+    );
+
+    consoleSpy.mockRestore();
+  });
+
+  test("should do nothing if details element is missing", () => {
+    // Remove the details element from the DOM
+    document.getElementById = jest.fn(() => null);
+
+    const mockPosition = {
+      coords: {
+        latitude: 45.5725,
+        longitude: -122.7265,
+      },
+    };
+
+    global.navigator.geolocation.getCurrentPosition.mockImplementation((success) =>
+      success(mockPosition)
+    );
+
+    expect(() => getUserCoords()).not.toThrow();
+  });
 });
 
-test('should maintain consistent popup state after multiple toggles', () => {
-  initializeLocation();
-
-  const debugButton = document.getElementById('debug-btn');
-  const popups = document.querySelectorAll('.popup');
-
-  for (let i = 0; i < 5; i++) {
-    debugButton.dispatchEvent(new window.Event('click'));
-    const expectedDisplay = i % 2 === 0 ? 'block' : 'none';
-    const expectedAriaHidden = i % 2 === 0 ? 'false' : 'true';
-
-    assertPopupVisibility(popups, expectedDisplay, expectedAriaHidden);
-  }
-});
-
-test('should handle the debug button being initialized multiple times gracefully', () => {
-  const debugButton = document.getElementById('debug-btn');
-  const addEventListenerSpy = jest.spyOn(debugButton, 'addEventListener');
-
-  initializeLocation();
-  initializeLocation(); // Calling again to ensure only one listener is added
-
-  expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
-  expect(debugButton.dataset.initialized).toBe('true');
-
-  addEventListenerSpy.mockRestore();
-});
