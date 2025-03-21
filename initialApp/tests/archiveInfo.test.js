@@ -1,97 +1,80 @@
-const fs = require('fs');
-const path = require('path');
 const { JSDOM } = require('jsdom');
-const { toggleReadMore } = require('../public/javascripts/archiveInfo'); // Only imported function for testing
+const { toggleReadMore } = require('../public/javascripts/archiveInfo');
 
 describe('Archive Info Tests', () => {
-  let dom;
+  let dom, document, readButton, archiveInfo;
 
   beforeEach(() => {
-    // Mock HTML structure
-    const mockHTML = `
+    // Set up a mock DOM
+    const html = `
       <!DOCTYPE html>
       <html>
-      <body>
-        <div id="gallery"></div>
-        <button id="read-button">Read more</button>
-        <div id="archive-info" class="collapsed">Archive content here.</div>
-      </body>
+        <body>
+          <button id="read-button">Read more</button>
+          <div id="archive-info" class="collapsed">Some archive information.</div>
+        </body>
       </html>
     `;
-    dom = new JSDOM(mockHTML);
-    global.document = dom.window.document;
-    global.window = dom.window;
+    dom = new JSDOM(html);
+    document = dom.window.document;
+
+    // Reference DOM elements
+    readButton = document.getElementById('read-button');
+    archiveInfo = document.getElementById('archive-info');
   });
 
   afterEach(() => {
-    global.document = undefined;
-    global.window = undefined;
+    // Clean up after each test
+    dom = null;
+    document = null;
+    readButton = null;
+    archiveInfo = null;
   });
 
-  it('should toggle archive info expansion', () => {
-    const readButton = document.getElementById('read-button');
-    const archiveInfo = document.getElementById('archive-info');
-
-    // Initial state
-    expect(archiveInfo.classList.contains('collapsed')).toBe(true);
-    expect(readButton.textContent).toBe('Read more');
-
-    // Expand the content
+  test('should expand archive info and update button text', () => {
+    // Call the toggleReadMore function
     toggleReadMore(readButton, archiveInfo);
+
+    // Verify that the archive info is expanded
     expect(archiveInfo.classList.contains('expanded')).toBe(true);
     expect(readButton.textContent).toBe('Read less');
+  });
 
-    // Collapse the content
+  test('should collapse archive info and update button text', () => {
+    // Pre-expand the archive info
+    archiveInfo.classList.add('expanded');
+    readButton.textContent = 'Read less';
+
+    // Call the toggleReadMore function
     toggleReadMore(readButton, archiveInfo);
+
+    // Verify that the archive info is collapsed
     expect(archiveInfo.classList.contains('expanded')).toBe(false);
     expect(readButton.textContent).toBe('Read more');
   });
 
-  it('should display all images from a valid directory', (done) => {
-    const dirPath = path.resolve(__dirname, '../public/archiveContent/shiley');
-
-    if (!fs.existsSync(dirPath)) {
-      console.warn(`Directory not found at ${dirPath}. Skipping test.`);
-      expect(fs.existsSync(dirPath)).toBe(false);
-      done();
-      return;
-    }
-
-    const files = fs.readdirSync(dirPath).filter((file) => file.endsWith('.jpg'));
-
-    if (files.length === 0) {
-      console.warn(`No .jpg files found in ${dirPath}. Skipping test.`);
-      expect(files.length).toBe(0);
-      done();
-      return;
-    }
-
-    const gallery = document.getElementById('gallery');
-    files.forEach((file) => {
-      const img = document.createElement('img');
-      img.src = file;
-      img.alt = file;
-      gallery.appendChild(img);
-    });
-
-    const images = gallery.querySelectorAll('img');
-    expect(images.length).toBe(files.length);
-    images.forEach((img) => {
-      expect(img.src.trim()).not.toBe('');
-      expect(img.alt.trim()).not.toBe('');
-    });
-    done();
+  test('should not throw an error if button or content is not present', () => {
+    expect(() => toggleReadMore(null, archiveInfo)).not.toThrow();
+    expect(() => toggleReadMore(readButton, null)).not.toThrow();
+    expect(() => toggleReadMore(null, null)).not.toThrow();
   });
 
-  it('should handle empty gallery gracefully', () => {
-    const gallery = document.getElementById('gallery');
-    expect(gallery.children.length).toBe(0);
+  test('should attach event listener to readButton and toggle behavior', () => {
+    // Mock the DOMContentLoaded event handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const button = document.getElementById('read-button');
+      const content = document.getElementById('archive-info');
+      if (button && content) {
+        button.click();
+      }
+    });
 
-    const warningMessage = document.createElement('p');
-    warningMessage.textContent = 'No images available.';
-    gallery.appendChild(warningMessage);
+    // Simulate a click on the readButton
+    readButton.click();
 
-    expect(gallery.children.length).toBe(1);
-    expect(gallery.querySelector('p').textContent).toBe('No images available.');
+    // Verify that the archive info is toggled
+    expect(archiveInfo.classList.contains('expanded')).toBe(true);
+    expect(readButton.textContent).toBe('Read less');
   });
 });
+
