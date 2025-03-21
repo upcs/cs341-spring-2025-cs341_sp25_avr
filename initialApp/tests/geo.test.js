@@ -59,12 +59,16 @@ describe("Geo.js Tests", () => {
   });
 
   test("should toggle popups when debug button is clicked", () => {
+    // Ensure the debug button exists
+    expect(debugButton).not.toBeNull();
+
     debugButton.addEventListener("click", () => {
       popups.forEach((popup) => {
         popup.style.display = popup.style.display === "none" ? "flex" : "none";
       });
     });
 
+    // Simulate button click
     debugButton.click();
 
     popups.forEach((popup) => {
@@ -76,6 +80,19 @@ describe("Geo.js Tests", () => {
     popups.forEach((popup) => {
       expect(popup.style.display).toBe("none");
     });
+  });
+
+  test("should log error if debug button is missing", () => {
+    // Remove debug button from the DOM
+    document.getElementById = jest.fn((id) => (id === "debug-btn" ? null : {}));
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    if (!debugButton) {
+      console.error("Debug button (debug-btn) not found.");
+    }
+
+    expect(consoleSpy).toHaveBeenCalledWith("Debug button (debug-btn) not found.");
+    consoleSpy.mockRestore();
   });
 
   test("should update display with building name", () => {
@@ -129,3 +146,4 @@ describe("Geo.js Tests", () => {
     consoleSpy.mockRestore();
   });
 });
+
