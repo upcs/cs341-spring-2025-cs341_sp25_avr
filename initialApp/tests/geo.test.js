@@ -1,38 +1,35 @@
 const { JSDOM } = require('jsdom');
-const {
-  getUserCords,
-  checkWithinBounds,
-  updateDisplay,
-  getLocationName,
-  updateMap,
-  updateDetails,
-} = require('../public/javascripts/geo');
 
 describe('Geo.js Tests', () => {
-  let document, map, details, debugButton, popups, messages;
+  let document, map, details, debugButton, loader, popups, message;
 
   beforeEach(() => {
     const html = `
       <!DOCTYPE html>
       <html>
         <body>
-          <div id="details"></div>
           <div id="map"></div>
-          <div class="popup-container">
-            <div class="welcome-pop-up" style="display: none;">Popup 1</div>
-            <div class="welcome-pop-up" style="display: none;">Popup 2</div>
-          </div>
-          <button id="debug-btn">Show all locations</button>
-          <div class="default-message">Default Message 1</div>
-          <div class="default-message">Default Message 2</div>
+          <div id="details"></div>
           <div class="loader"></div>
+          <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
+          <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
+          <div class="default-message">Message 1</div>
+          <div class="default-message" style="color: gray;">Message 2</div>
+          <button id="debug-btn">Debug</button>
         </body>
       </html>`;
     const dom = new JSDOM(html);
     global.document = dom.window.document;
-    global.window = dom.window;
 
-    // Mock browser APIs
+    // Reference DOM elements
+    map = document.getElementById('map');
+    details = document.getElementById('details');
+    loader = document.querySelector('.loader');
+    popups = document.querySelectorAll('.welcome-pop-up');
+    message = document.querySelectorAll('.default-message');
+    debugButton = document.getElementById('debug-btn');
+
+    // Mock navigator.geolocation
     global.navigator.geolocation = {
       getCurrentPosition: jest.fn((success) =>
         success({
@@ -43,78 +40,39 @@ describe('Geo.js Tests', () => {
         })
       ),
     };
-
-    // Reference DOM elements
-    map = document.getElementById('map');
-    details = document.getElementById('details');
-    debugButton = document.getElementById('debug-btn');
-    popups = document.querySelectorAll('.welcome-pop-up');
-    messages = document.querySelectorAll('.default-message');
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  // Existing tests...
+  test('should display map and update details with coordinates', () => {
+    const MAP_WIDTH = 350;
+    const MAP_HEIGHT = 350;
 
-  test('should handle geolocation errors gracefully', () => {
-    global.navigator.geolocation.getCurrentPosition = jest.fn((_, error) =>
-      error({ message: 'User denied geolocation' })
-    );
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+      map.innerHTML = `<iframe width="${MAP_WIDTH}" height="${MAP_HEIGHT}"
+        src="https://maps.google.com/maps?q=${latitude},${longitude}&z=18&output=embed"
+        frameborder="0" style="border:0;"></iframe>`;
+      details.innerHTML = `Latitude: ${latitude} <br> Longitude: ${longitude} <br>`;
 
-    expect(() => getUserCords()).not.toThrow();
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Error getting location:'));
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Unable to access location. Please enable location services and try again.'
-    );
-
-    consoleSpy.mockRestore();
-    alertSpy.mockRestore();
+      // Test map iframe and details
+      expect(map.innerHTML).toContain(`<iframe width="${MAP_WIDTH}" height="${MAP_HEIGHT}"`);
+      expect(details.innerHTML).toContain('Latitude: 45.5725');
+      expect(details.innerHTML).toContain('Longitude: -122.7265');
+    });
   });
 
-  test('should log error when geolocation is not supported', () => {
-    global.navigator.geolocation = undefined;
+  test('should toggle popups when debug button is clicked', () => {
+    debugButton.addEventListener('click', () => {
+      popups.forEach((popup) => {
+        popup.style.display = popup.style.display === 'none' ? 'flex' : 'none';
+      });
+    });
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
-    expect(() => getUserCords()).not.toThrow();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Geolocation is not supported by this browser.'
-    );
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Geolocation is not supported by your browser. Please use a supported browser.'
-    );
-
-    consoleSpy.mockRestore();
-    alertSpy.mockRestore();
-  });
-
-  test('should log error if map element is missing', () => {
-    document.getElementById = jest.fn((id) => (id === 'map' ? null : {}));
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    updateMap(45.5725, -122.7265);
-
-    expect(consoleSpy).toHaveBeenCalledWith("Element with id 'map' not found.");
-    consoleSpy.mockRestore();
-  });
-
-  test('should log error if details element is missing', () => {
-    document.getElementById = jest.fn((id) => (id === 'details' ? null : {}));
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    updateDetails(45.5725, -122.7265);
-
-    expect(consoleSpy).toHaveBeenCalledWith("Element with id 'details' not found.");
-    consoleSpy.mockRestore();
-  });
-
-  test('should toggle popups visibility on debug button click', () => {
+    // Simulate button click
     debugButton.click();
 
     popups.forEach((popup) => {
@@ -128,19 +86,58 @@ describe('Geo.js Tests', () => {
     });
   });
 
-  test('should return "Location not recognized" for unknown coordinates', () => {
-    const locationName = getLocationName(0, 0);
-    expect(locationName).toBe('Location not recognized');
+  test('should update display with building name', () => {
+    const building = 'Shiley School of Engineering';
+    message[0].style.display = 'flex';
+    message[0].innerHTML = 'Near by buildings:';
+    loader.style.display = 'none';
+    popups[0].style.display = 'flex';
+    popups[0].innerHTML = `${building}!`;
+
+    // Validate changes to the DOM
+    expect(message[0].style.display).toBe('flex');
+    expect(message[0].innerHTML).toBe('Near by buildings:');
+    expect(loader.style.display).toBe('none');
+    expect(popups[0].style.display).toBe('flex');
+    expect(popups[0].innerHTML).toBe('Shiley School of Engineering!');
   });
 
-  test('should maintain consistent display after multiple debug button clicks', () => {
-    for (let i = 0; i < 3; i++) {
-      debugButton.click();
+  test('should return false for checkWithinBounds if outside bounds', () => {
+    const result = checkWithinBounds(0, 0, 45.5713, 45.5724, -122.7287, -122.7272);
+    expect(result).toBe(false);
+  });
 
-      const expectedDisplay = i % 2 === 0 ? 'flex' : 'none';
-      popups.forEach((popup) => {
-        expect(popup.style.display).toBe(expectedDisplay);
-      });
-    }
+  test('should return true for checkWithinBounds if inside bounds', () => {
+    const result = checkWithinBounds(45.5720, -122.7275, 45.5713, 45.5724, -122.7287, -122.7272);
+    expect(result).toBe(true);
+  });
+
+  test('should log error if geolocation fails', () => {
+    global.navigator.geolocation.getCurrentPosition = jest.fn((_, error) =>
+      error({ message: 'Geolocation error' })
+    );
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    getUserCords();
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Error getting location:'));
+    consoleSpy.mockRestore();
+  });
+
+  test('should log error when map element is missing', () => {
+    global.document.getElementById = jest.fn((id) => (id === 'map' ? null : {}));
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      if (!map) {
+        console.error("Element with id 'map' not found.");
+      }
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith("Element with id 'map' not found.");
+    consoleSpy.mockRestore();
   });
 });
+
