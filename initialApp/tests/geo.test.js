@@ -1,10 +1,9 @@
 const { JSDOM } = require("jsdom");
 
 describe("Geo.js Tests", () => {
-  let map, details, loader, popups, message, devButton;
+  let devButton, popups;
 
   beforeEach(() => {
-    // Set up mock HTML structure
     const html = `
       <!DOCTYPE html>
       <html>
@@ -14,8 +13,6 @@ describe("Geo.js Tests", () => {
           <div class="loader"></div>
           <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
           <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
-          <div class="default-message">Message 1</div>
-          <div class="default-message" style="color: gray;">Message 2</div>
           <button id="debug-btn">Debug</button>
         </body>
       </html>`;
@@ -23,12 +20,8 @@ describe("Geo.js Tests", () => {
     global.document = dom.window.document;
 
     // Reference DOM elements
-    map = document.getElementById("map");
-    details = document.getElementById("details");
-    loader = document.querySelector(".loader");
+    devButton = document.getElementById("debug-btn");
     popups = document.querySelectorAll(".welcome-pop-up");
-    message = document.querySelectorAll(".default-message");
-    devButton = document.getElementById("debug-btn"); // Matches variable name in geo.js
   });
 
   afterEach(() => {
@@ -49,32 +42,17 @@ describe("Geo.js Tests", () => {
     // Simulate button click
     devButton.click();
 
-    // Verify that all popups are visible
+    // Verify all popups are visible
     popups.forEach((popup) => {
       expect(popup.style.display).toBe("flex");
     });
   });
 
-  test("should handle missing devButton gracefully", () => {
-    // Simulate absence of devButton
-    document.getElementById = jest.fn((id) => (id === "debug-btn" ? null : {}));
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-    const devButton = document.getElementById("debug-btn");
-    if (!devButton) {
-      console.error("Debug button (debug-btn) not found.");
-    }
-
-    // Assert the error message is logged
-    expect(consoleSpy).toHaveBeenCalledWith("Debug button (debug-btn) not found.");
-    consoleSpy.mockRestore();
-  });
-
   test("should trigger error if popups are missing", () => {
-    // Simulate the absence of popups
-    document.querySelectorAll = jest.fn(() => []);
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    // Ensure devButton exists
+    expect(devButton).not.toBeNull();
 
+    // Attach event listener logic
     devButton.addEventListener("click", () => {
       const popups = document.querySelectorAll(".welcome-pop-up");
       if (popups.length === 0) {
@@ -86,11 +64,29 @@ describe("Geo.js Tests", () => {
       }
     });
 
-    // Simulate button click
+    // Simulate empty popups and trigger click
+    popups = [];
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
     devButton.click();
 
-    // Assert error message is logged
+    // Verify error is logged
     expect(consoleSpy).toHaveBeenCalledWith("No popups found.");
+    consoleSpy.mockRestore();
+  });
+
+  test("should handle missing devButton gracefully", () => {
+    // Simulate missing devButton
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    document.getElementById = jest.fn(() => null);
+
+    const devButton = document.getElementById("debug-btn");
+    if (!devButton) {
+      console.error("Debug button (debug-btn) not found.");
+    }
+
+    // Verify error is logged
+    expect(consoleSpy).toHaveBeenCalledWith("Debug button (debug-btn) not found.");
     consoleSpy.mockRestore();
   });
 });
