@@ -20,10 +20,6 @@ jobs:
       with:
         node-version: '18'
 
-    # Change to initialApp directory
-    - name: Change directory to initialApp
-      run: cd initialApp
-
     # Install dependencies
     - name: Install dependencies
       run: |
@@ -36,11 +32,19 @@ jobs:
         cd initialApp
         npm test -- --coverage
 
+    # Debug coverage report
+    - name: Debug coverage report
+      run: |
+        cd initialApp
+        ls -R coverage || echo "Coverage directory not found"
+        cat coverage/lcov.info || echo "lcov.info file not found"
+
     # Upload coverage to Codecov
     - name: Upload coverage reports to Codecov
       run: |
         cd initialApp
-        npx codecov --disable=gcov --verbose --token=${{ secrets.CODECOV_TOKEN }} --slug=mckinler2/cs341-spring-2025-cs341_sp25_avr
+        npx codecov --disable=gcov -f coverage/lcov.info --token=${{ secrets.CODECOV_TOKEN }} --slug=mckinler2/cs341-spring-2025-cs341_sp25_avr
+
 
 
 
