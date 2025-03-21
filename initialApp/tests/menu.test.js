@@ -1,27 +1,76 @@
+const { JSDOM } = require('jsdom');
+const { navigateTo } = require('../public/javascripts/menu'); // Assuming navigateTo is exported for testing
 
+describe('Menu Navigation Tests', () => {
+  let dom;
+  let mockWindow;
 
-test('checks to see if html pages change properly after menu/home is selected', () => {
-        var testBoolean = true
+  beforeEach(() => {
+    // Mock the DOM
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <body>
+        <button id="home-button">Home</button>
+        <button id="map-button">Map</button>
+        <button id="geo-button">Geo</button>
+      </body>
+      </html>`;
+    dom = new JSDOM(html, { url: 'http://localhost/' });
+    global.document = dom.window.document;
+    global.window = dom.window;
 
-        //makes sure that it starts at map page and then goes to home
-        var windowlocationhref = "sh_1969.html";
+    // Mock window.location.href for navigation
+    mockWindow = { location: { href: '' } };
+    global.window = mockWindow;
+  });
 
-        if(windowlocationhref == "index.html"){
-            testBoolean = false
-        }
+  afterEach(() => {
+    jest.clearAllMocks();
+    global.window = undefined; // Reset global window
+  });
 
-        windowlocationhref ="index.html"
-        if(windowlocationhref != "index.html"){
-            testBoolean = false
-        }
+  test('should navigate to index.html when home is selected', () => {
+    navigateTo("home");
 
-        var windowlocationhref = "geo.html";
-        windowlocationhref ="index.html"
-        if(windowlocationhref != "index.html"){
-            testBoolean = false
-        }
+    expect(mockWindow.location.href).toBe("index.html");
+  });
 
+  test('should navigate to map.html when map is selected', () => {
+    navigateTo("map");
 
-expect(testBoolean).toBe(true);
+    expect(mockWindow.location.href).toBe("map.html");
+  });
 
+  test('should navigate to geo.html when geo is selected', () => {
+    navigateTo("geo");
+
+    expect(mockWindow.location.href).toBe("geo.html");
+  });
+
+  test('should log an error for invalid page selection', () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    navigateTo("invalid");
+
+    expect(consoleSpy).toHaveBeenCalledWith("Invalid page selection");
+    consoleSpy.mockRestore();
+  });
+
+  test('should attach event listeners to menu buttons', () => {
+    // Mock event listeners
+    const homeButton = document.getElementById("home-button");
+    const mapButton = document.getElementById("map-button");
+    const geoButton = document.getElementById("geo-button");
+
+    // Simulate button clicks
+    homeButton.click();
+    expect(mockWindow.location.href).toBe("index.html");
+
+    mapButton.click();
+    expect(mockWindow.location.href).toBe("map.html");
+
+    geoButton.click();
+    expect(mockWindow.location.href).toBe("geo.html");
+  });
 });
