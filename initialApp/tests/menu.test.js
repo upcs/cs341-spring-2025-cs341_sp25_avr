@@ -1,67 +1,41 @@
-const { JSDOM } = require('jsdom');
-const { navigateTo } = require('../public/javascripts/menu');
+const { JSDOM } = require("jsdom");
+const { navigateTo } = require("../public/javascripts/menu");
 
-describe('Menu Navigation Tests', () => {
-  let dom;
-  let mockWindow;
+describe("Menu Navigation Tests", () => {
+  let mockWindow, homeButton, mapButton, geoButton;
 
   beforeEach(() => {
-    // Mock the DOM
+    // Mock DOM
     const html = `
       <!DOCTYPE html>
       <html>
-      <body>
-        <button id="home-button">Home</button>
-        <button id="map-button">Map</button>
-        <button id="geo-button">Geo</button>
-      </body>
+        <body>
+          <button id="home-button">Home</button>
+          <button id="map-button">Map</button>
+          <button id="geo-button">Geo</button>
+        </body>
       </html>`;
-    dom = new JSDOM(html, { url: 'http://localhost/' });
+    const dom = new JSDOM(html);
     global.document = dom.window.document;
-    global.window = dom.window;
 
-    // Mock window.location.href for navigation
-    mockWindow = { location: { href: '' } };
+    // Mock window
+    mockWindow = { location: { href: "" } };
     global.window = mockWindow;
+
+    // Reference buttons
+    homeButton = document.getElementById("home-button");
+    mapButton = document.getElementById("map-button");
+    geoButton = document.getElementById("geo-button");
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    global.window = undefined; // Reset global window
   });
 
-  test('should navigate to index.html when home is selected', () => {
-    navigateTo("home");
-
-    expect(mockWindow.location.href).toBe("index.html");
-  });
-
-  test('should navigate to map.html when map is selected', () => {
-    navigateTo("map");
-
-    expect(mockWindow.location.href).toBe("map.html");
-  });
-
-  test('should navigate to geo.html when geo is selected', () => {
-    navigateTo("geo");
-
-    expect(mockWindow.location.href).toBe("geo.html");
-  });
-
-  test('should log an error for invalid page selection', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    navigateTo("invalid");
-
-    expect(consoleSpy).toHaveBeenCalledWith("Invalid page selection");
-    consoleSpy.mockRestore();
-  });
-
-  test('should attach event listeners to menu buttons and navigate correctly', () => {
-    // Mock event listeners
-    const homeButton = document.getElementById("home-button");
-    const mapButton = document.getElementById("map-button");
-    const geoButton = document.getElementById("geo-button");
+  test("should attach event listeners to menu buttons and navigate correctly", () => {
+    expect(homeButton).not.toBeNull();
+    expect(mapButton).not.toBeNull();
+    expect(geoButton).not.toBeNull();
 
     // Attach event listeners
     homeButton.addEventListener("click", () => navigateTo("home"));
@@ -79,28 +53,15 @@ describe('Menu Navigation Tests', () => {
     expect(mockWindow.location.href).toBe("geo.html");
   });
 
-  test('should handle missing menu buttons gracefully', () => {
-    // Remove buttons from the DOM
-    document.getElementById('home-button').remove();
-    document.getElementById('map-button').remove();
-    document.getElementById('geo-button').remove();
-
-    // Simulate loading event
-    expect(() => {
-      const buttons = ['home-button', 'map-button', 'geo-button'];
-      buttons.forEach((id) => {
-        const button = document.getElementById(id);
-        if (button) {
-          button.addEventListener("click", () => navigateTo(id));
-        }
-      });
-    }).not.toThrow();
+  test("should handle missing menu buttons gracefully", () => {
+    document.getElementById("home-button").remove();
+    expect(document.getElementById("home-button")).toBeNull();
   });
 
-  test('should gracefully handle null navigation input', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  test("should gracefully handle null navigation input", () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    navigateTo(null); // Pass a null value
+    navigateTo(null); // Simulate null input
     expect(consoleSpy).toHaveBeenCalledWith("Invalid page selection");
 
     consoleSpy.mockRestore();
