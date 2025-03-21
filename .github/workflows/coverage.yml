@@ -35,10 +35,13 @@ jobs:
         cat coverage/lcov.info || echo "lcov.info file not found"
 
     - name: Upload coverage reports to Codecov
-      run: |
-        cd initialApp
-        curl -Os https://uploader.codecov.io/latest/windows/codecov
-        chmod +x codecov
-        ./codecov -f coverage/lcov.info --disable=gcov --token=77cc6ece-fd65-426a-b228-aef3d6b70a31 --slug=mckinler2/cs341-spring-2025-cs341_sp25_avr
+      uses: codecov/codecov-action@v5
+      with:
+        token: 77cc6ece-fd65-426a-b228-aef3d6b70a31
+        files: initialApp/coverage/lcov.info
+        slug: mckinler2/cs341-spring-2025-cs341_sp25_avr
+
+
+
 
 
