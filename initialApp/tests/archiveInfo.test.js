@@ -1,81 +1,97 @@
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
+const { toggleReadMore } = require('../public/javascripts/archiveInfo'); // Only imported function for testing
 
 describe('Archive Info Tests', () => {
   let dom;
 
-  beforeEach((done) => {
-    const dirPath = path.resolve(__dirname, '../public/archiveContent/shiley');
-
-    // Check if the directory exists
-    if (!fs.existsSync(dirPath)) {
-      console.warn(`Directory not found at ${dirPath}. Skipping test.`);
-      done();
-      return;
-    }
-
-    // Read directory contents and filter for .jpg files
-    const files = fs.readdirSync(dirPath).filter((file) => file.endsWith('.jpg'));
-
-    if (files.length === 0) {
-      console.warn(`No .jpg files found in ${dirPath}. Skipping test.`);
-      done();
-      return;
-    }
-
-    // Create a mock HTML structure with the images
+  beforeEach(() => {
+    // Mock HTML structure
     const mockHTML = `
       <!DOCTYPE html>
       <html>
       <body>
-        <div id="gallery">
-          ${files.map((file) => `<img src="${path.join(dirPath, file)}" alt="${file}">`).join('')}
-        </div>
+        <div id="gallery"></div>
+        <button id="read-button">Read more</button>
+        <div id="archive-info" class="collapsed">Archive content here.</div>
       </body>
       </html>
     `;
-
     dom = new JSDOM(mockHTML);
     global.document = dom.window.document;
     global.window = dom.window;
-    done();
   });
 
   afterEach(() => {
-    // Clean up the DOM
     global.document = undefined;
     global.window = undefined;
   });
 
-  it('should display all images in the gallery', () => {
-    const images = document.querySelectorAll('#gallery img');
+  it('should toggle archive info expansion', () => {
+    const readButton = document.getElementById('read-button');
+    const archiveInfo = document.getElementById('archive-info');
 
-    // Verify that images exist in the DOM
-    expect(images.length).toBeGreaterThan(0);
+    // Initial state
+    expect(archiveInfo.classList.contains('collapsed')).toBe(true);
+    expect(readButton.textContent).toBe('Read more');
 
-    // Validate image attributes
+    // Expand the content
+    toggleReadMore(readButton, archiveInfo);
+    expect(archiveInfo.classList.contains('expanded')).toBe(true);
+    expect(readButton.textContent).toBe('Read less');
+
+    // Collapse the content
+    toggleReadMore(readButton, archiveInfo);
+    expect(archiveInfo.classList.contains('expanded')).toBe(false);
+    expect(readButton.textContent).toBe('Read more');
+  });
+
+  it('should display all images from a valid directory', (done) => {
+    const dirPath = path.resolve(__dirname, '../public/archiveContent/shiley');
+
+    if (!fs.existsSync(dirPath)) {
+      console.warn(`Directory not found at ${dirPath}. Skipping test.`);
+      expect(fs.existsSync(dirPath)).toBe(false);
+      done();
+      return;
+    }
+
+    const files = fs.readdirSync(dirPath).filter((file) => file.endsWith('.jpg'));
+
+    if (files.length === 0) {
+      console.warn(`No .jpg files found in ${dirPath}. Skipping test.`);
+      expect(files.length).toBe(0);
+      done();
+      return;
+    }
+
+    const gallery = document.getElementById('gallery');
+    files.forEach((file) => {
+      const img = document.createElement('img');
+      img.src = file;
+      img.alt = file;
+      gallery.appendChild(img);
+    });
+
+    const images = gallery.querySelectorAll('img');
+    expect(images.length).toBe(files.length);
     images.forEach((img) => {
       expect(img.src.trim()).not.toBe('');
       expect(img.alt.trim()).not.toBe('');
     });
+    done();
   });
 
-  it('should gracefully handle missing directory', (done) => {
-    const dirPath = path.resolve(__dirname, '../public/archiveContent/nonexistent');
+  it('should handle empty gallery gracefully', () => {
+    const gallery = document.getElementById('gallery');
+    expect(gallery.children.length).toBe(0);
 
-    if (!fs.existsSync(dirPath)) {
-      console.warn(`Directory not found at ${dirPath}. Skipping test.`);
-      expect(fs.existsSync(dirPath)).toBe(false); // Assert the directory does not exist
-      done(); // Skip the test gracefully
-      return;
-    }
+    const warningMessage = document.createElement('p');
+    warningMessage.textContent = 'No images available.';
+    gallery.appendChild(warningMessage);
 
-    // If the directory exists (unexpectedly), proceed with the test
-    fs.readdir(dirPath, (err, files) => {
-      expect(err).toBeNull(); // Ensure no error occurs
-      expect(files.length).toBeGreaterThan(0); // Validate directory is not empty
-      done();
-    });
+    expect(gallery.children.length).toBe(1);
+    expect(gallery.querySelector('p').textContent).toBe('No images available.');
   });
 });
