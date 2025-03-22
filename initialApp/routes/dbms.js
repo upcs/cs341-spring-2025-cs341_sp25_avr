@@ -13,7 +13,11 @@ var mysql = require('mysql'),
     async = require('async');
 
 var host = "10.6.2.7";    //pdx0mysql00 IP address
+<<<<<<< HEAD
 var database = "db_jeppesen27";  //database name
+=======
+var database = "cs341-02";  //database name
+>>>>>>> main
 var user = "cs341-02";         //username (change to match your db)
 var password = "Rjlo6QAZEewY-w[q";  //password (change to match your db, yes THIS IS VERY POOR PRACTICE)
 
@@ -28,11 +32,19 @@ var password = "Rjlo6QAZEewY-w[q";  //password (change to match your db, yes THI
  *                   error - (or 'false' if none)
  *                   results - as given by the mysql client
  */
+<<<<<<< HEAD
 exports.dbquery = function(query_str, callback) {
 
     var dbclient;
     var results = null;
     
+=======
+exports.dbquery = function (query_str, callback) {
+
+    var dbclient;
+    var results = null;
+
+>>>>>>> main
     async.waterfall([
 
         //Step 1: Connect to the database
@@ -63,6 +75,7 @@ exports.dbquery = function(query_str, callback) {
         }
 
     ],
+<<<<<<< HEAD
     // waterfall cleanup function
     function (err, res) {
         if (err) {
@@ -78,5 +91,22 @@ exports.dbquery = function(query_str, callback) {
         dbclient.end();
 
     });
+=======
+        // waterfall cleanup function
+        function (err, res) {
+            if (err) {
+                console.log("Database query failed.  sad");
+                console.log(err);
+                callback(err, null);
+            } else {
+                console.log("Database query completed.");
+                callback(false, results);
+            }
+
+            //close connection to database
+            dbclient.end();
+
+        });
+>>>>>>> main
 
 }//function dbquery

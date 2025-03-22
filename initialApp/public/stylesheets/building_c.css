@@ -1,35 +1,40 @@
-
 * {
   margin: 0;
   padding: 0;
 }
 
 @font-face {
-font-family: 'TheSansOfficeLF-Bold';
-src: url('TheSansOfficeLF-Bold.otf') format('opentype'); 
-font-weight: normal; 
-font-style: normal; 
+  font-family: 'TheSansOfficeLF-Bold';
+  src: url('TheSansOfficeLF-Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
 }
 
-body{
+@font-face {
+  font-family: 'TheSansOfficeLF-Plain';
+  src: url('TheSansOfficeLF-Plain.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
   font-family: TheSansOfficeLF-Bold;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-#phone-container{
-  display: flex;
-  position: relative;
-  width: 393px;
-  height: 852px;
-  border: 10px solid;
-  border-radius: 24px;
+
+#phone-container3 {
+  display: none;
+  width: 100vw;
+  height: auto;
   align-items: center;
   flex-direction: column;
+  background-color: white;
 }
 
-#time-machine{
+#time-machine {
   display: flex;
   position: relative;
   width: 393px;
@@ -40,24 +45,35 @@ body{
   flex-direction: column;
 }
 
-#building-photo{
- max-width: 100%;
+#creditBox {
+  background-color: rgb(30, 22, 86);
+  display: flex;
+  position: relative;
+  border: 10px transparent;
+  border-radius: 24px;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 10px;
 }
 
-#multnomah-header{
-text-align: center;
+#building-photo {
+  max-width: 100%;
 }
 
-#toggle-text{
-display: none;
+#multnomah-header {
+  text-align: center;
 }
 
-#dropdown{
-display: none;
+#toggle-text {
+  display: none;
 }
 
-img {
-  border: 3px solid black;
+#dropdown {
+  display: none;
+}
+
+h1 {
+  text-align: center;
 }
 
 h2 {
@@ -76,14 +92,23 @@ h3 {
 }
 
 p {
+  font-family: TheSansOfficeLF-Plain;
   margin-left: 10px;
   color: black;
 }
 
+a:link,
+:visited {
+  color: #ffffff;
+}
 
-#past-button, #future-button, #menu-button, #shiley-button {
-  width: 350px;
-  margin-top: 8px;
+#past-button,
+#future-button,
+#menu-button,
+#shiley-button {
+  width: 90vw;
+  max-width: 380px;
+  margin-top: 1vh;
   margin-bottom: 10px;
   font-size: 24px;
   font-weight: bold;
@@ -91,34 +116,41 @@ p {
   border: solid 3px#ffffff;
   color: white;
   background-color: #1E1656;
-  padding: 15px 40px 15px 40px; 
+  padding: 15px 40px 15px 40px;
 }
 
-button.link{
-background:none;
-border:none;
-text-align: center;
-font-size: 20px;
-margin-top: 10px;
-margin-bottom: 10px;
+#past-button,
+#future-button {
+  width: 70%;
+  ;
+  padding: 15px 30px 15px 30px;
+}
+
+button.link {
+  background: none;
+  border: none;
+  text-align: center;
+  font-size: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 #read-button {
-animation: pulse 2s infinite;
+  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-0% {
+  0% {
     transform: scale(1);
-}
+  }
 
-50% {
+  50% {
     transform: scale(1.1);
-}
+  }
 
-100% {
+  100% {
     transform: scale(1);
-}
+  }
 }
 
 button:hover {
@@ -128,59 +160,80 @@ button:hover {
 }
 
 .dropbtn {
-background-color: #3498DB;
-color: white;
-padding: 16px;
-font-size: 16px;
-border: none;
-cursor: pointer;
+  background-color: #3498DB;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
 }
 
-.dropbtn:hover, .dropbtn:focus {
-background-color: #2980B9;
+.dropbtn:hover,
+.dropbtn:focus {
+  background-color: #2980B9;
 }
 
 .dropdown {
-position: relative;
-display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 .dropdown-content {
-display: none;
-position: absolute;
-background-color: #f1f1f1;
-width:100%;
-box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-z-index: 1;
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  width: 100%;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
 
 .dropdown-content button {
-color: black;
-padding: 12px 16px;
-text-decoration: none;
-display: block;
-width:100%;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  width: 100%;
 }
 
-.dropdown button:hover {background-color: #ddd;}
+.dropdown button:hover {
+  background-color: #ddd;
+}
 
-.show {display: block;}
+.show {
+  display: block;
+}
+
+.timeline-btn-container {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  justify-content: center;
+  /* border: solid; */
+}
 
 .creditText {
-width: 350px;
-margin-bottom: 20px;
-text-align: center;
+  width: 350px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.creditTitle {
+  color: #ffffff;
 }
 
 #descriptionText {
-width: 360px;
-text-align: left;
+  width: 360px;
+  text-align: left;
 }
 
-#buildingImage, #buildingText, #yearText {
-padding-bottom: 0px;
+#buildingImage,
+#buildingText,
+#yearText {
+  padding-bottom: 0px;
 }
 
-#buildingText{
-margin-top: 04px;
+#buildingText {
+  margin-top: 04px;
+  color: black;
 }
