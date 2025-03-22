@@ -14,11 +14,11 @@ exports.version = '0.0.1';
 const mysql = require('mysql');
 const async = require('async');
 
-    var host = "10.6.2.7";    //pdx0mysql00 IP address
-    var database = "db_jeppesen27";  //database name
-    var user = "cs341-02";         //username (change to match your db)
-    var password = "Rjlo6QAZEewY-w[q";  //password (change to match your db, yes THIS IS VERY POOR PRACTICE)
-
+//Changed so it's more secure and uses environment vars
+var host = process.env.DB_HOST;
+var database = process.env.DB_DATABASE;
+var user = process.env.DB_USER;
+var password = process.env.DB_PASSWORD;
 
 /**
  * dbquery
