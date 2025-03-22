@@ -28,13 +28,14 @@ message[0].style.fontSize = '24px';
 let buildingsData = {}; // store JSON data globally
 
 // retreive the coordinates from JSON file
-fetch('/coordinates.json')
+fetch('/geoTable/coordinates') 
     .then(response => response.json())
     .then(data => {
-        buildingsData = data;
-        getUserCords();
+        buildingsData = data; 
+        getUserCords();   
     })
-    .catch(error => console.error("Error fetching bulding coordinates: ", error));
+
+    .catch(error => console.error("Error fetching building coordinates: ", error));
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {

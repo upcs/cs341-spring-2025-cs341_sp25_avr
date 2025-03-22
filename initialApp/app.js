@@ -1,5 +1,6 @@
 //Edited by: Emma Jeppesen
 
+require('dotenv').config();
 var createError = require('http-errors');
 var https = require('https');
 const fs = require('fs');
@@ -10,7 +11,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var geoRouter = require('./routes/geoTable');
+var geoRouter = require('./routes/geoTable.js');
 
 var app = express();
 
