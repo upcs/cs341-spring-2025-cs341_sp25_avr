@@ -39,7 +39,7 @@ The `Geo` table has the following columns:
 
 To add a new row to the `Geo` table, follow these steps:
 
-1. **Determine the building name**: The building name should be a string that uniquely identifies the building. It should be in title case (e.g., "Shiley Hall").
+1. **Determine the building name**: The building name should be a string that uniquely identifies the building. It should be in title case (e.g., "Shiley").
 2. **Determine the latitude and longitude bounds**: The latitude and longitude bounds should be decimal values that represent the maximum and minimum coordinates of the building. The bounds should be in the WGS84 coordinate system.
 3. **Use the correct data types**: The building name should be a string (VARCHAR(50)), and the latitude and longitude bounds should be decimal values (DOUBLE).
 4. **Insert the data**: Use a SQL INSERT statement to add the data to the `Geo` table.
@@ -105,10 +105,9 @@ To add a new row to the `Content` table, follow these steps:
 
 ## Example INSERT Statement
 
-
 ```sql
 INSERT INTO Content (buildingName, year, description, imagePath)
-VALUES ('New Building', 2022, 'This is a new building on campus.', 'path/to/image.jpg');
+VALUES ('New Building', 2022, 'This is a new building on campus.', 'path//to//image.jpg');
 
 ## Best Practices
 
