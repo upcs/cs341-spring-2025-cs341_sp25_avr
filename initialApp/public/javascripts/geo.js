@@ -1,3 +1,4 @@
+
 /**
  * TO DO:
  * 1.
@@ -16,7 +17,12 @@ const devButton = document.getElementById("debug-btn");
 devButton.addEventListener('click', () => {
     popups.forEach((popup) => {
         popup.style.display = "flex";
+      });
     });
+
+  function main() {
+    // Calls the function every 5 seconds to check if the user has moved
+    // setInterval(getUserCords, 5000); // Commented out to avoid frequent prompts
 });
 
 
@@ -54,8 +60,6 @@ function initMap() {
 
     getUserCords(); // Get initial user location
 }
-
-
 
 function getUserCords() {
     navigator.geolocation.getCurrentPosition(position => {
@@ -206,10 +210,11 @@ function main() {
     // calls the function every 5 seconds to check user has moved
     // setInterval(getUserCords, 5000);
     // bug: it keeps asking for the user's lociation
-
-
-
     getUserCords();
-}
+  }
 
-main();
+  // Invoke the main function
+  main();
+});
+
+module.exports = { getUserCords, checkWithinBounds, updateDisplay };
