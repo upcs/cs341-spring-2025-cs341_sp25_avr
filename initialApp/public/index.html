@@ -1,41 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>UP Tour App</title>
-    <link rel="stylesheet" href="stylesheets/home_c.css">
+    <link rel="stylesheet" href="stylesheets/style.css">
+    <link rel="stylesheet" href="stylesheets/building_c.css">
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDrpfcrECysmLNhicmodDriYivS1E6efpQ&callback=initMap"></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
+    <!-- home screen -->
     <div id="phone-container">
         <video autoplay muted loop>
             <source src="images/Tour_video.mp4" type="video/mp4">
         </video>
 
         <div class="logo-container">
-            <img src="images/UP_logo.png" alt="logo image">
+            <img src="images/UP_PrimaryLogo_stacked_web_purple.png" alt="logo image">
         </div>
-        
 
-        <h1> 125th Anniversary 
-            <br> Time Machine </h1>
-        <button id ="startButton">Start</button>
-       <!-- <button>Map <i class="fa-solid fa-map"></i></button> -->
-       <button id = "aboutButton">About</button>
+        <h1> 125th Anniversary
+            <br> Time Machine
+        </h1>
+
+        <button id="startButton" class="home-button">Start</button>
+        <button id="aboutButton" class="home-button">About</button>
+        <button id="fullScreenButton" class="home-button">Fullscreen</button>
     </div>
 
-<script>
-document.getElementById("startButton").onclick = function () {
-    window.location.href = "geo.html";
-};
+    <!-- about screen -->
+    <div id="phone-container1" style="display: none; flex-direction: column; align-items: center;">
 
-document.getElementById("aboutButton").onclick = function () {
-    window.location.href = "about.html";
-};
 
-</script>
+        <button id="home-toggle" class="home-button"><i class="fa fa-bars"></i> Menu </button>
 
+
+        <div id="creditBox">
+            <h1 class="creditTitle"> <br> Credits </h2>
+
+                <h3 class="creditText"> <br> Thank you to the Marketing Team for helping make this possible.
+                </h3>
+
+                <h3 class="creditText"> <br> Thank you to the Archives for providing the images and
+                    information for each of the building locations.
+                </h3>
+
+                <p class="creditText"> <br> The Clark Library Digital Collections can be found by clicking
+                    <a href="https://digital.up.edu/" target=”_blank”>this</a>
+                    link
+                </p>
+
+                <p class="creditText"> More pages and articles from the University Museum can be found by clicking
+                    <a href="https://sites.up.edu/museum/about/" target=”_blank”>this</a>
+                    link
+                </p>
+
+                <h3 class="creditText"> <br> <br> Thank you for trying our Time Machine made by UP Shiley School of
+                    Engineering students!
+                </h3>
+        </div>
+
+    </div>
+
+    <!-- map screen -->
+    <div id="phone-container2">
+        <div id="map"></div>
+
+        <button id="home-toggle" class="app-button" onclick="toHomeScreen()"><i class="fa fa-bars"></i> Menu</button>
+
+        <div class="popup-container">
+            <div class="loading-message">
+                <p class="default-message">Walk to a nearby building</p>
+                <p class="default-message">Tap icon to learn more</p>
+                <div class="loader"></div>
+            </div>
+
+            <div class="welcome-pop-up">Shiley Hall</div>
+
+
+            <div id="waldschmidt" class="welcome-pop-up" onclick="selectedBuilding('waldschmidt')">Waldschmidt Hall
+            </div>
+            <div id="shiley" class="welcome-pop-up" onclick="selectedBuilding('shiley')">Engineering Hall</div>
+            <div id="chiles" class="welcome-pop-up" onclick="selectedBuilding('chiles')">Chiles Center</div>
+            <div id="christie" class="welcome-pop-up" onclick="selectedBuilding('christie')">Christie Hall</div>
+            <div id="mago" class="welcome-pop-up" onclick="selectedBuilding('mago')">Mago Hunt Center</div>
+            <div id="chapel" class="welcome-pop-up" onclick="selectedBuilding('chapel')">The Chapel of Christ the
+                Teacher</div>
+            <div id="commons" class="welcome-pop-up" onclick="selectedBuilding('commons')">Bauccio Commons</div>
+            <div id="db" class="welcome-pop-up" onclick="selectedBuilding('db')">Dundon-Berchtold Hall</div>
+            <div id="library" class="welcome-pop-up" onclick="selectedBuilding('library')">Clark Library</div>
+            <div id="kenna" class="welcome-pop-up" onclick="selectedBuilding('kenna')">Kenna Hall</div>
+            <div id="mehling" class="welcome-pop-up" onclick="selectedBuilding('mehling')">Mehling Hall</div>
+            <div id="corrado" class="welcome-pop-up" onclick="selectedBuilding('corrado')">Corrado Hall</div>
+
+            <button id="debug-btn">Show all locations</button>
+        </div>
+    </div>
+
+    <!-- timeline screen -->
+    <div id="phone-container3">
+
+        <!-- drop down menu-->
+        <div class="dropdown">
+            <button id="menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
+
+            <div id="myDropdown" class="dropdown-content">
+                <button class="link" id="home-toggle" onclick="toHomeScreen()">Home</button>
+                <button class="link" id="map-toggle">Map</button>
+            </div>
+
+        </div>
+
+        <div class="building-photo">
+            <embed id="buildingImage" src="archiveContent\shiley\1948.jpg" alt="Picture of Shiley"
+                style="width: 100%; height: 100%;">
+        </div>
+
+        <h1 id="buildingText">Engineering Hall</h1>
+        <h3 id="yearText">1948</h3>
+
+        <p id="descriptionText">The Engineering building was opened in 1948. It was designed and the construction was
+            supervised by<span id="dots">...</span><span id="toggle-text"> the architectural firm of Jacobberger,
+                Stanton & Zeller. The building was built by the Ross B. Hammond Co. of Portland, Oregon.</span></P>
+
+        <button class="link" id="read-button">Read more</button>
+
+        <div class="timeline-btn-container">
+            <button id="past-button"><i class="fa fa-step-backward"></i> Past </button>
+            <button id="future-button" style=color:gray;> Future <i class="fa fa-step-forward"></i></button>
+        </div>
+    </div>
+
+
+
+    <script src="javascripts/geo.js"></script>
+    <script src="javascripts/timeline.js"></script>
 
 </body>
 

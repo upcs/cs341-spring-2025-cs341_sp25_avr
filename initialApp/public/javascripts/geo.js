@@ -1,180 +1,215 @@
 
-  /**
-   * TO DO:
-   * 1. Find the dimensions of the whole campus.
-   * 2. Fill the `cords` object with every building.
-   * 3. Add an animation loop that refreshes every few seconds (3-5)
-   *    to update the user's location as they move around the campus.
-   */
-document.addEventListener("DOMContentLoaded", () => {
-  // Reference the HTML elements
-  const map = document.getElementById("map");
-  const message = document.querySelectorAll(".default-message");
-  const loader = document.querySelector(".loader");
-  const popups = document.querySelectorAll(".welcome-pop-up");
-  const devButton = document.getElementById("debug-btn");
+/**
+ * TO DO:
+ * 1.
+ */
 
-  // Developer button to display all the other pop-ups
-  if (devButton) {
-    devButton.addEventListener("click", () => {
-      popups.forEach((popup) => {
+// reference the HTML elements 
+let map;
+let marker;
+
+const message = document.querySelectorAll(".default-message");
+const loader = document.querySelector(".loader");
+const popups = document.querySelectorAll(".welcome-pop-up");
+const devButton = document.getElementById("debug-btn");
+
+//  developer button to display all the other pop ups
+devButton.addEventListener('click', () => {
+    popups.forEach((popup) => {
         popup.style.display = "flex";
       });
     });
-  } else {
-    console.error("Debug button (debug-btn) not found.");
-  }
-
-  // Hide the 'tap icon' message at the beginning
-  if (message[1]) {
-    message[1].style.display = "none";
-    message[1].style.color = "gray";
-    if (message[0]) {
-      message[0].style.fontSize = "24px";
-    }
-  }
-
-  const MAP_WIDTH = 350;
-  const MAP_HEIGHT = 350;
-
-  // Coordinates of each building on campus
-  const cords = {
-    shiley: {
-      latMax: 45.572400,
-      latMin: 45.571320,
-      longMin: -122.728720,
-      longMax: -122.727180,
-    },
-    dundon: {
-      latMax: 45.572940,
-      latMin: 45.572000,
-      longMin: -122.725850,
-      longMax: -122.724010,
-    },
-    library: {
-      latMax: 45.573230,
-      latMin: 45.572310,
-      longMin: -122.727390,
-      longMax: -122.725990,
-    },
-    franz: {
-      latMax: 45.572940,
-      latMin: 45.572000,
-      longMin: -122.725850,
-      longMax: -122.724010,
-    },
-    waldschmidt: {
-      latMax: 45.572160,
-      latMin: 45.571368,
-      longMin: -122.725120,
-      longMax: -122.723950,
-    },
-  };
-
-  function getUserCords() {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-
-        // Ensure the `map` element exists before modifying innerHTML
-        if (map) {
-          map.innerHTML = `<iframe width="${MAP_WIDTH}" height="${MAP_HEIGHT}" 
-            src="https://maps.google.com/maps?q=${latitude},${longitude}&z=18&output=embed&pb=!1m14!1m12!1m3!1d"
-            frameborder="0" style="border:0;"></iframe>`;
-        } else {
-          console.error("Element with id 'map' not found.");
-        }
-
-        // Update the coordinates in HTML
-        if (details) {
-          details.innerHTML = `Latitude: ${latitude} <br> Longitude: ${longitude} <br>`;
-        }
-
-        // Add a delay before showing the pop-up
-        setTimeout(() => {
-          let locationName = "";
-
-          // Check location and set locationName based on where the user is
-          switch (true) {
-            case checkWithinBounds(
-              latitude,
-              longitude,
-              cords.dundon.latMin,
-              cords.dundon.latMax,
-              cords.dundon.longMin,
-              cords.dundon.longMax
-            ):
-              locationName = "Dundon-Berchtold Hall";
-              break;
-            case checkWithinBounds(
-              latitude,
-              longitude,
-              cords.shiley.latMin,
-              cords.shiley.latMax,
-              cords.shiley.longMin,
-              cords.shiley.longMax
-            ):
-              locationName = "Shiley School of Engineering";
-              break;
-            case checkWithinBounds(
-              latitude,
-              longitude,
-              cords.library.latMin,
-              cords.library.latMax,
-              cords.library.longMin,
-              cords.library.longMax
-            ):
-              locationName = "Clark Library";
-              break;
-            case checkWithinBounds(
-              latitude,
-              longitude,
-              cords.waldschmidt.latMin,
-              cords.waldschmidt.latMax,
-              cords.waldschmidt.longMin,
-              cords.waldschmidt.longMax
-            ):
-              locationName = "Waldschmidt Hall";
-              break;
-            default:
-              locationName = "";
-              break;
-          }
-
-          // Update the pop-up based on the location
-          updateDisplay(locationName);
-        }, 3000); // 3000ms = 3 seconds
-      },
-      (error) => {
-        console.error("Error getting location: ", error);
-      }
-    );
-  }
-
-  function checkWithinBounds(lat, long, latMin, latMax, longMin, longMax) {
-    return lat >= latMin && lat <= latMax && long >= longMin && long <= longMax;
-  }
-
-  function updateDisplay(building) {
-    if (message[0]) {
-      message[0].style.display = "flex";
-      message[0].innerHTML = "Near by buildings:";
-    }
-    if (message[1]) {
-      message[1].style.display = "flex";
-    }
-    if (loader) {
-      loader.style.display = "none";
-    }
-    if (popups[0]) {
-      popups[0].style.display = "flex";
-      popups[0].innerHTML = `${building}!`;
-    }
-  }
 
   function main() {
     // Calls the function every 5 seconds to check if the user has moved
     // setInterval(getUserCords, 5000); // Commented out to avoid frequent prompts
+});
+
+
+// hide the 'tap icon' message at the beginning
+message[1].style.display = 'none';
+message[1].style.color = 'gray';
+message[0].style.fontSize = '24px';
+
+let buildingsData = {}; // store JSON data globally
+
+// retreive the coordinates from JSON file
+fetch('/coordinates.json')
+    .then(response => response.json())
+    .then(data => {
+        buildingsData = data;
+        getUserCords();
+    })
+    .catch(error => console.error("Error fetching bulding coordinates: ", error));
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 45.572, lng: -122.727 }, // Default center
+        zoom: 18,
+        disableDefaultUI: true, // Disable all default UI elements
+        zoomControl: false,     // Disable zoom controls
+        streetViewControl: false, // Disable street view controls
+        mapTypeControl: false,  // Disable map type controls (satellite, terrain, etc.)
+        fullscreenControl: false // Disable fullscreen button
+    });
+    marker = new google.maps.Marker({
+        position: { lat: 45.572, lng: -122.727 },
+        map: map,
+        title: "Your Location",
+    });
+
+    getUserCords(); // Get initial user location
+}
+
+function getUserCords() {
+    navigator.geolocation.getCurrentPosition(position => {
+        const { latitude, longitude } = position.coords;
+
+        console.log(`coords: ${latitude}, ${longitude}`);
+
+        // Update the map's center
+        map.setCenter({ lat: latitude, lng: longitude });
+
+        // Move markter to new location
+        marker.setPosition({ lat: latitude, lng: longitude });
+
+
+        // update the cordinates in HTML
+        // details.innerHTML = `Latitude: ${latitude} <br> Longitude: ${longitude} <br>`;
+
+        // add a delay before popup
+        setTimeout(() => {
+            let buildingKey = findLocation(latitude, longitude); // get the key 
+
+            // set location name to a building in the JSON file, if name is not included, return unknown
+            let locationName = buildingsData[buildingKey] ? buildingsData[buildingKey].name : "Unknown Location";
+
+            // update the popup text 
+            updateDisplay(locationName);
+
+        }, 1000); // 3000ms = 3 seconds
+
+    }, error => {
+        console.error("Error getting location: ", error);
+    });
+}
+
+function findLocation(lat, long) {
+    for (const building in buildingsData) {
+        const buildingData = buildingsData[building];
+
+        let latMin = buildingData.latMin;
+        let latMax = buildingData.latMax;
+        let longMin = buildingData.longMin;
+        let longMax = buildingData.longMax;
+
+        if (lat >= latMin && lat <= latMax && long >= longMin && long <= longMax) {
+            return building; // Return the raw building name as in JSON
+        }
+    }
+
+    return "Unknown Location";
+}
+
+
+// changes the name of the info buttons based on the passed in string
+function updateDisplay(building) {
+    message[0].style.display = 'flex';
+    message[0].innerHTML = 'Near by buildings:';
+    message[1].style.display = 'flex';
+    loader.style.display = 'none';
+    popups[0].style.display = 'flex';
+    popups[0].innerHTML = `${building}`;
+}
+
+
+function goFullscreen() {
+    let elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.mozRequestFullScreen) {
+        elem.mozRequestFullScreen();
+    } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (sessionStorage.getItem("fullscreen") === "true") {
+        goFullscreen();
+    }
+});
+
+document.getElementById("startButton").onclick = function () {
+    document.getElementById("phone-container").style.display = 'none';
+    document.getElementById("phone-container2").style.display = 'flex';
+};
+
+document.querySelector(".welcome-pop-up").onclick = function () {
+    document.getElementById("phone-container2").style.display = 'none';
+    document.getElementById("phone-container3").style.display = 'flex';
+};
+
+document.getElementById("aboutButton").onclick = function () {
+    window.location.href = "about.html";
+};
+
+
+const btn = document.getElementById("fullScreenButton");
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        // Enter fullscreen
+        let elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+        btn.textContent = "Minimize";
+    } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        btn.textContent = "Fullscreen";
+    }
+}
+
+// Listen for fullscreen changes and update the button text
+document.addEventListener("fullscreenchange", updateButton);
+document.addEventListener("webkitfullscreenchange", updateButton);
+document.addEventListener("mozfullscreenchange", updateButton);
+document.addEventListener("MSFullscreenChange", updateButton);
+
+function updateButton() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        btn.textContent = "Minimize";
+    } else {
+        btn.textContent = "Fullscreen";
+    }
+}
+
+btn.addEventListener("click", toggleFullscreen);
+
+
+// Chengen: main function was unnessary but I thought it was good for modularity 
+function main() {
+    // calls the function every 5 seconds to check user has moved
+    // setInterval(getUserCords, 5000);
+    // bug: it keeps asking for the user's lociation
     getUserCords();
   }
 
@@ -183,4 +218,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 module.exports = { getUserCords, checkWithinBounds, updateDisplay };
-
