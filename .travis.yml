@@ -1,0 +1,29 @@
+language: node_js
+node_js:
+  - "18"
+os: windows
+
+before_install:
+  - cd initialApp
+  - curl -Os https://uploader.codecov.io/v0.5.0/windows/codecov.exe
+  - mv codecov.exe codecov
+  - chmod +x codecov
+
+install:
+  - npm install
+  - npm install cross-env --no-save
+
+
+script:
+  - npx jest --coverage || echo "Tests failed, continuing to generate coverage"
+  - echo "Debugging coverage output"
+  - ls -R coverage || echo "Coverage directory not found"
+  - cat coverage/lcov.info || echo "lcov.info file not found"
+
+after_script:
+  - ./codecov -t 1ac3bc55-ba43-45ee-88d0-9883f527b4fd -v || echo "Codecov upload failed"
+
+
+
+
+

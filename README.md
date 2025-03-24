@@ -43,3 +43,9 @@ Additional Features for the Future:
 -Color Blindness Options
 -Large Bouncing Buttons
 -Distance to nearby buildings
+
+<a href="https://codecov.io/gh/mckinler2/cs341-spring-2025-cs341_sp25_avr" > 
+ <img src="https://codecov.io/gh/mckinler2/cs341-spring-2025-cs341_sp25_avr/graph/badge.svg?token=9YIMPTQY09"/> 
+ </a>
+
+ [![Coverage](https://github.com/mckinler2/cs341-spring-2025-cs341_sp25_avr/actions/workflows/coverage.yml/badge.svg)](https://github.com/mckinler2/cs341-spring-2025-cs341_sp25_avr/actions/workflows/coverage.yml)
