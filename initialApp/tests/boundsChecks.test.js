@@ -1,4 +1,4 @@
-const { isUserNearBuilding } = require('../geo.js');
+const { isUserNearBuilding } = require('../public/javascripts/geo.js');
 
 describe('Boundary Check Functions', () => {
   const testBuilding = {

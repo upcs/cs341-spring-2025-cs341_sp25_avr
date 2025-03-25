@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-const { toggleFullscreen, updateButton } = require('../geo.js');
+const { toggleFullscreen, updateButton } = require('../public/javascripts/geo.js');
 
 beforeEach(() => {
   document.body.innerHTML = '<div id="fullScreenButton"></div>';

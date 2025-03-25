@@ -1,4 +1,4 @@
-const { getUserCoords, checkAllBuildings } = require('../geo.js');
+const { getUserCoords, checkAllBuildings } = require('..public/javascripts/geo.js');
 
 // Mock navigator.geolocation
 global.navigator.geolocation = {

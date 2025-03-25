@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-const { message, loader, popups, devButton } = require('../geo.js');
+const { message, loader, popups, devButton } = require('../public/javascripts/geo.js');
 
 beforeEach(() => {
   document.body.innerHTML = `

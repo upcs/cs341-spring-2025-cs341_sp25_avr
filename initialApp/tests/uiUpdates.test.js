@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-const { updateDisplay } = require('../geo.js');
+const { updateDisplay } = require('../public/javascripts/geo.js');
 
 beforeEach(() => {
   document.body.innerHTML = `

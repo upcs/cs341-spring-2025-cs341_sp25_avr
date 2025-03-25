@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-const { initMap, map, marker } = require('../geo.js');
+const { initMap, map, marker } = require('../public/javascripts/geo.js');
 
 // Mock Google Maps
 jest.mock('../__mocks__/google.js');
