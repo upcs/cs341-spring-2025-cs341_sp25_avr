@@ -92,47 +92,123 @@ function selectedBuilding(building) {
     //updates building name
     document.getElementById('buildingText').innerText = document.getElementById(building).innerText
 
+    // //TEST DELETE
+    // getContent("library", null)
+    // getContent("shiley", 1948)
+
+}
+
+//retrieves all content and info for timeline from database for selected building and year
+//if year is null returns array of years with content
+function getContent(building, year) {
+    //gets info for selected year and building
+    var contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "' AND year=" + year + ";"
+    $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
+        console.log(p[0]);
+        return (p[0]);
+    })
 }
 
 //determines year of next event/timeline if possible, 
 //building for hashmap and forward boolean for future(true) or past(false) in timeline
 function updateYear(building, forward) {
-    const years = Object.keys(descriptionPaths[building]);
-    years.sort()
+    //if year is null, returns array of years from building
+    contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "';"
 
-    //if not going forwards or backwards, default is most recent year
-    if (forward == null) {
-        updateInfo(building, years[years.length - 1])
-        return
-    }
+    $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
+        const years = [];
+        for (let i = 0; i < p.length; i++) {
+            years[i] = p[i].year
+        }
 
-    let currentYear = document.getElementById('yearText').innerText
-    let currentIndex = years.indexOf(currentYear)
-    //goes to future year if possible and going forward
-    if (currentIndex + 1 < years.length && forward == true) {
-        currentIndex = currentIndex + 1
-        currentYear = years[currentIndex]
-        updateInfo(building, currentYear)
-    }
+        let currentYear = document.getElementById('yearText').innerText
+        let currentIndex = years.indexOf(currentYear);
+        for (let i = 0; i < p.length; i++) {
+            if (currentYear == p[i].year) {
+                currentIndex = i;
+                console.log(currentIndex)
+            }
+        }
 
-    //goes to past year if possible and going backwards
-    if (currentIndex > 0 && forward == false) {
-        currentIndex = currentIndex - 1
-        currentYear = years[currentIndex]
-        updateInfo(building, currentYear)
-    }
+        //if not going forwards or backwards, default is most recent year
+        if (forward == null) {
+            updateInfo(building, years[p.length - 1])
+            return;
+        }
 
-    //grays or whites out future and past buttons if event is possible
-    document.getElementById("future-button").style = "color:floralwhite;"
-    document.getElementById("past-button").style = "color:floralwhite;"
-    if (currentIndex == 0) {
-        document.getElementById("past-button").style = "color:gray;"
-    }
-    if (currentIndex == years.length - 1) {
-        document.getElementById("future-button").style = "color:gray;"
-    }
+        //goes to future year if possible and going forward
+        if (currentIndex + 1 < years.length && forward == true) {
+            currentIndex = currentIndex + 1
+            currentYear = years[currentIndex]
+            updateInfo(building, currentYear)
+        }
 
+        //goes to past year if possible and going backwards
+        if (currentIndex > 0 && forward == false) {
+            currentIndex = currentIndex - 1
+            currentYear = years[currentIndex]
+            console.log("currentYear " + currentYear + "currentIndex " + currentIndex + years)
+            updateInfo(building, currentYear)
+        }
+
+        console.log("currentYear " + currentYear + "currentIndex " + currentIndex + years)
+
+        //grays or whites out future and past buttons if event is possible
+        document.getElementById("future-button").style = "color:floralwhite;"
+        document.getElementById("past-button").style = "color:floralwhite;"
+        if (currentIndex == 0) {
+            document.getElementById("past-button").style = "color:gray;"
+        }
+        if (currentIndex == years.length - 1) {
+            document.getElementById("future-button").style = "color:gray;"
+        }
+
+
+    })
 }
+
+
+// //determines year of next event/timeline if possible, 
+// //building for hashmap and forward boolean for future(true) or past(false) in timeline
+// function updateYear(building, forward) {
+//     console.log(getContent(building, null) + "ITS WORKING")
+//     var years = Object.keys(descriptionPaths[building]);
+//     years.sort()
+//     console.log(years + "test")
+
+//     //if not going forwards or backwards, default is most recent year
+//     if (forward == null) {
+//         updateInfo(building, years[years.length - 1])
+//         return
+//     }
+
+//     let currentYear = document.getElementById('yearText').innerText
+//     let currentIndex = years.indexOf(currentYear)
+//     //goes to future year if possible and going forward
+//     if (currentIndex + 1 < years.length && forward == true) {
+//         currentIndex = currentIndex + 1
+//         currentYear = years[currentIndex]
+//         updateInfo(building, currentYear)
+//     }
+
+//     //goes to past year if possible and going backwards
+//     if (currentIndex > 0 && forward == false) {
+//         currentIndex = currentIndex - 1
+//         currentYear = years[currentIndex]
+//         updateInfo(building, currentYear)
+//     }
+
+//     //grays or whites out future and past buttons if event is possible
+//     document.getElementById("future-button").style = "color:floralwhite;"
+//     document.getElementById("past-button").style = "color:floralwhite;"
+//     if (currentIndex == 0) {
+//         document.getElementById("past-button").style = "color:gray;"
+//     }
+//     if (currentIndex == years.length - 1) {
+//         document.getElementById("future-button").style = "color:gray;"
+//     }
+
+// }
 
 //updates all of the relevant texts and images to new event 
 function updateInfo(building, year) {
