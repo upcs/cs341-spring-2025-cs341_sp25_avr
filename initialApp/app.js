@@ -12,6 +12,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var geoRouter = require('./routes/geoTable.js');
+var contentRouter = require('./routes/contentTable.js')
 
 var app = express();
 
