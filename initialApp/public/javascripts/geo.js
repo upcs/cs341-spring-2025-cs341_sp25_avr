@@ -17,7 +17,7 @@ const devButton = document.getElementById("debug-btn");
 devButton.addEventListener('click', () => {
     popups.forEach((popup) => {
         popup.style.display = "flex";
-      });
+    });
 });
 
 
