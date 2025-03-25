@@ -13,6 +13,7 @@ exports.version = '0.0.1';
 
 const mysql = require('mysql');
 const async = require('async');
+require('dotenv').config();
 
 //Changed so it's more secure and uses environment vars
 var host = process.env.DB_HOST;
