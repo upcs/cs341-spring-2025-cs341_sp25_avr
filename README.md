@@ -46,7 +46,6 @@ To add a new row to the `Geo` table, follow these steps:
 
 ## Example INSERT Statement
 
-sql
 INSERT INTO Geo (buildingName, latMax, latMin, longMax, longMin)
 VALUES ('New Building', 45.12345, 45.12340, -122.12345, -122.12350);
 
@@ -106,7 +105,6 @@ To add a new row to the `Content` table, follow these steps:
 
 ## Example INSERT Statement
 
-sql
 INSERT INTO Content (buildingName, year, description, imagePath)
 VALUES ('New Building', 2022, 'This is a new building on campus.', 'path//to//image.jpg');
 
