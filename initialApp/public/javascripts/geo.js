@@ -242,4 +242,4 @@ function main() {
 }
 main();
 
-//module.exports = { getUserCords, checkWithinBounds, updateDisplay };
+module.exports = { getUserCoords, toggleFullscreen, updateButton, updateDisplay, isUserNearBuilding, checkAllBuildings };
