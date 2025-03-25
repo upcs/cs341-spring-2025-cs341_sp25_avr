@@ -1,9 +1,4 @@
 
-/**
- * TO DO:
- * 1.
- */
-
 // reference the HTML elements 
 let map;
 let marker;
@@ -13,33 +8,16 @@ const loader = document.querySelector(".loader");
 const popups = document.querySelectorAll(".welcome-pop-up");
 const devButton = document.getElementById("debug-btn");
 
+const buildingNames = ["shiley", "margo", "merlo", "chapel", "commons", "waldschmidt", 
+                        "db", "shiley marcos", "fields and sho", "beauchamp", "lund", 
+                        "chiles", "baseball", "library", "phouse", "plaze", "franz", 
+                        "buckley", "swindels", "romanaggi"];
 
-//var dbms = require("./dbms");
+// document.getElementById("aboutButton").addEventListener('click', () => {
+//    getBuildingCoords('shiley');
 
-document.getElementById("aboutButton").addEventListener('click', () => {
-    console.log("test");
+// })
 
-    $.post("/geoTable", { buildingName: building }).done((p) => {
-        console.log("test2");
-        console.log(p);
-
-    })
-
-})
-//gets coords from database
-function getBuildingCoords(building) {
-    console.log("test");
-    $.post("/geoTable", { buildingName: building }).done((p) => {
-        console.log("test2");
-        console.log(p);
-
-    })
-
-
-
-}
-
-//  developer button to display all the other pop ups
 devButton.addEventListener('click', () => {
     popups.forEach((popup) => {
         popup.style.display = "flex";
@@ -47,23 +25,27 @@ devButton.addEventListener('click', () => {
 });
 
 
+//gets coords from database
+function getBuildingBounds(building, callback) {
+    console.log("test");
+    $.post("/geoTable", { buildingName: building }).done((response) => {
+        console.log(response);
+        const bounds = response[0];
+        callback(bounds);
+    }).fail(() => {
+        console.error("Error fetching orders. Please try again");
+        callback(null);
+    });
+}
+
 
 // hide the 'tap icon' message at the beginning
 message[1].style.display = 'none';
 message[1].style.color = 'gray';
 message[0].style.fontSize = '24px';
 
-// let buildingsData = {}; // store JSON data globally
 
-// // retreive the coordinates from JSON file
-// fetch('/coordinates.json')
-//     .then(response => response.json())
-//     .then(data => {
-//         buildingsData = data;
-//         getUserCords();
-//     })
-//     .catch(error => console.error("Error fetching bulding coordinates: ", error));
-
+// initiate the google maps with marker
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 45.572, lng: -122.727 }, // Default center
@@ -80,10 +62,11 @@ function initMap() {
         title: "Your Location",
     });
 
-    getUserCords(); // Get initial user location
+    getUserCoords(); // Get initial user location
 }
 
-function getUserCords() {
+// get the user's coordinates and check if they're near a building
+function getUserCoords() {
     navigator.geolocation.getCurrentPosition(position => {
         const { latitude, longitude } = position.coords;
 
@@ -98,45 +81,40 @@ function getUserCords() {
 
         // update the cordinates in HTML
         // details.innerHTML = `Latitude: ${latitude} <br> Longitude: ${longitude} <br>`;
-
-        // add a delay before popup
-        setTimeout(() => {
-
-            let locationName = "";
-
-            switch(true) {
-                case checkWithinBounds(latitude, longitude, cords.dundon.latMin, cords.dundon.latMax, cords.dundon.longMin, cords.dundon.longMax):
-                    locationName = "Dundon-Berchtold Hall";
-                    break;
-                case checkWithinBounds(latitude, longitude, cords.shiley.latMin, cords.shiley.latMax, cords.shiley.longMin, cords.shiley.longMax):
-                    locationName = "Shiley School of Engineering";
-                    break;
-                case checkWithinBounds(latitude, longitude, cords.library.latMin, cords.library.latMax, cords.library.longMin, cords.library.longMax):
-                    locationName = "Clark Library";
-                    break;
-                case checkWithinBounds(latitude, longitude, cords.waldschmidt.latMin, cords.waldschmidt.latMax, cords.waldschmidt.longMin, cords.waldschmidt.longMax):
-                    locationName = "Waldschmidt Hall";
-                    break;
-                default: 
-                    locationName = "";
-                    break;
-
-            }
-
-            // update the popup text 
-            updateDisplay(locationName);
-
-        }, 1000); // 3000ms = 3 seconds
+        
+        checkAllBuildings(latitude, longitude);
 
     }, error => {
         console.error("Error getting location: ", error);
     });
 }
 
-function checkBounds(lat, long, latMin, latMax, longMin, longMax) {
-    return (lat >= latMin && lat <= latMax && long >= longMin && long <= longMax);
+// check if user is within the rectangle radius of a building
+function isUserNearBuilding(userLat, userLong, building) {
+    return (
+        userLat >= building.latMin &&
+        userLat <= building.latMax && 
+        userLong >= building.longMin && 
+        userLong <= building.longMax
+    );
 }
 
+// check all building bounds
+function checkAllBuildings(userLat, userLong) {
+    buildingNames.forEach(building => {
+        getBuildingBounds(building, (bounds) => {
+            if (bounds && isUserNearBuilding(userLat, userLong, bounds)) {
+
+                let displayName = formatBuildingName(building);
+
+                updateDisplay(displayName);
+            }
+        });
+    })
+}
+
+
+// const { selectedBuilding } = await import("./timeline.js");
 
 // changes the name of the info buttons based on the passed in string
 function updateDisplay(building) {
@@ -146,6 +124,28 @@ function updateDisplay(building) {
     loader.style.display = 'none';
     popups[0].style.display = 'flex';
     popups[0].innerHTML = `${building}`;
+
+    popups[0].addEventListener('click', ()=> {
+        if (window.selectedBuilding) {
+            document.getElementById("phone-container2").style.display = 'none';
+            document.getElementById("phone-container3").style.display = 'flex';
+            selectedBuilding(building);
+        }
+        
+    });
+}
+
+function formatBuildingName(dbName) {
+    const names = {
+        shiley: "Shiley School of Engineering",
+        lund: "Lund Family Hall",
+        phouse: "Pilot House",
+        chiles: "Chiles Center",
+        buckley: "Cuckley Center",
+        swindels: "Swindels hall",
+        romanaggi: "Romanaggi Hall"
+    };
+    return names[dbName] || dbName;
 }
 
 
@@ -171,16 +171,18 @@ document.addEventListener("DOMContentLoaded", function () {
 document.getElementById("startButton").onclick = function () {
     document.getElementById("phone-container").style.display = 'none';
     document.getElementById("phone-container2").style.display = 'flex';
+
 };
 
-document.querySelector(".welcome-pop-up").onclick = function () {
-    document.getElementById("phone-container2").style.display = 'none';
-    document.getElementById("phone-container3").style.display = 'flex';
-};
+// document.querySelector(".welcome-pop-up").onclick = function () {
+//     document.getElementById("phone-container2").style.display = 'none';
+//     document.getElementById("phone-container3").style.display = 'flex';
+    
+// };
 
-document.getElementById("aboutButton").onclick = function () {
-    window.location.href = "about.html";
-};
+// document.getElementById("aboutButton").onclick = function () {
+//     window.location.href = "about.html";
+// };
 
 
 const btn = document.getElementById("fullScreenButton");
@@ -236,8 +238,8 @@ function main() {
     // calls the function every 5 seconds to check user has moved
     // setInterval(getUserCords, 5000);
     // bug: it keeps asking for the user's lociation
-    getUserCords();
+    getUserCoords();
 }
+main();
 
-
-module.exports = { getUserCords, checkWithinBounds, updateDisplay };
+//module.exports = { getUserCords, checkWithinBounds, updateDisplay };

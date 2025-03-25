@@ -76,6 +76,7 @@ const descriptionPaths = {
         '1992': 'photoDescriptions\\waldschmidt\\1992.txt',
         '2021': 'photoDescriptions\\waldschmidt\\2021.txt',
     }
+
 };
 
 //keeps track of selected location button selected
