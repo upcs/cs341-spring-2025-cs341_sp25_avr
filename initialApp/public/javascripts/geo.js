@@ -18,11 +18,6 @@ devButton.addEventListener('click', () => {
     popups.forEach((popup) => {
         popup.style.display = "flex";
       });
-    });
-
-  function main() {
-    // Calls the function every 5 seconds to check if the user has moved
-    // setInterval(getUserCords, 5000); // Commented out to avoid frequent prompts
 });
 
 
@@ -211,10 +206,7 @@ function main() {
     // setInterval(getUserCords, 5000);
     // bug: it keeps asking for the user's lociation
     getUserCords();
-  }
-
-  // Invoke the main function
-  main();
-});
+}
+main();
 
 module.exports = { getUserCords, checkWithinBounds, updateDisplay };
