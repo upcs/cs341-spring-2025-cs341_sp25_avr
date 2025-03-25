@@ -13,14 +13,7 @@ exports.version = '0.0.1';
 
 
 const mysql = require('mysql');
-const async = require('async');
-
-
-//Changed so it's more secure and uses environment vars
-var host = process.env.DB_HOST;
-var database = process.env.DB_DATABASE;
-var user = process.env.DB_USER;
-var password = process.env.DB_PASSWORD;
+//const async = require('async');
 
 /**
  * dbquery
@@ -28,8 +21,10 @@ var password = process.env.DB_PASSWORD;
  * performs a given SQL query on the database and returns the results
  * to the caller
  *
- * @param query     the SQL query to perform (e.g., "SELECT * FROM ...")
+ * @param query_str the SQL query to perform (e.g., "SELECT * FROM ...")
+ * @returns {Promise} Resolves to the result of the query or rejects on error.
  */
+
 exports.dbquery = function(query_str) {
   return new Promise((resolve, reject) => {
     //var dbclient;
@@ -38,10 +33,10 @@ exports.dbquery = function(query_str) {
     //Initialize MySQL connection
     console.log("Attempting to create MySQL connection...");
     const dbclient = mysql.createConnection({
-      host: host,
-      user: user,
-      password: password,
-      database: database,
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
     });
 
     //EMMA TEST
@@ -58,13 +53,14 @@ exports.dbquery = function(query_str) {
     dbclient.query(query_str, (err, results, fields) => {
       if (err) {
         console.log("Database query failed:", err);
+        dbclient.end();
         return reject(new Error('Database query failed: ' + err.stack));
       }
       console.log("Database query completed:", results);
 
        // Close the connection
        dbclient.end();
-       
+
       //Return results
       resolve(results);  
     });
