@@ -5,9 +5,10 @@ var router = express.Router();
 var dbms = require("./dbms");
 
 router.post('/', function (req, res, next) {
+    building = req.body.buildingName
 
 
-    dbms.dbquery(`SELECT * FROM Geo;`, function (error, results) {
+    dbms.dbquery(`SELECT * FROM Geo where buildingName=${building};`, function (error, results) {
         if (error) {
             res.status(500).json({ message: "things went bad :(" })
         } else {

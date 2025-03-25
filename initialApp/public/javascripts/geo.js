@@ -13,12 +13,39 @@ const loader = document.querySelector(".loader");
 const popups = document.querySelectorAll(".welcome-pop-up");
 const devButton = document.getElementById("debug-btn");
 
+
+//var dbms = require("./dbms");
+
+document.getElementById("aboutButton").addEventListener('click', () => {
+    console.log("test");
+
+    $.post("/geoTable", { buildingName: building }).done((p) => {
+        console.log("test2");
+        console.log(p);
+
+    })
+
+})
+//gets coords from database
+function getBuildingCoords(building) {
+    console.log("test");
+    $.post("/geoTable", { buildingName: building }).done((p) => {
+        console.log("test2");
+        console.log(p);
+
+    })
+
+
+
+}
+
 //  developer button to display all the other pop ups
 devButton.addEventListener('click', () => {
     popups.forEach((popup) => {
         popup.style.display = "flex";
     });
 });
+
 
 
 // hide the 'tap icon' message at the beginning
@@ -207,6 +234,6 @@ function main() {
     // bug: it keeps asking for the user's lociation
     getUserCords();
 }
-main();
+
 
 module.exports = { getUserCords, checkWithinBounds, updateDisplay };
