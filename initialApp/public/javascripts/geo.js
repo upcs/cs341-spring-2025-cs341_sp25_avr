@@ -19,11 +19,7 @@ const devButton = document.getElementById("debug-btn");
 document.getElementById("aboutButton").addEventListener('click', () => {
     console.log("test");
 
-    $.post("/geoTable", { buildingName: building }).done((p) => {
-        console.log("test2");
-        console.log(p);
-
-    })
+    getBuildingCoords('shiley')
 
 })
 //gets coords from database
@@ -34,9 +30,6 @@ function getBuildingCoords(building) {
         console.log(p);
 
     })
-
-
-
 }
 
 //  developer button to display all the other pop ups
