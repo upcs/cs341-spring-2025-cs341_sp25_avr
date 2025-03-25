@@ -13,10 +13,6 @@ const buildingNames = ["shiley", "margo", "merlo", "chapel", "commons", "waldsch
                         "chiles", "baseball", "library", "phouse", "plaze", "franz", 
                         "buckley", "swindels", "romanaggi"];
 
-// document.getElementById("aboutButton").addEventListener('click', () => {
-//    getBuildingCoords('shiley');
-
-// })
 
 devButton.addEventListener('click', () => {
     popups.forEach((popup) => {

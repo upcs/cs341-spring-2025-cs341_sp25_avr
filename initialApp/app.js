@@ -9,6 +9,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var geoRouter = require('./routes/geoTable');
+var contentRouter = require('./routes/contentTable');
 
 var app = express();
 
@@ -25,6 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/geoTable', geoRouter);
+app.use('/contentTable', contentRouter);
 
 //Error test
 app.get('/test-error', (req, res) => {
