@@ -8,12 +8,13 @@
  * Edited by Emma and Google. Sorry
  */
 
+require('dotenv').config();
 exports.version = '0.0.1';
 
 
 const mysql = require('mysql');
 const async = require('async');
-require('dotenv').config();
+
 
 //Changed so it's more secure and uses environment vars
 var host = process.env.DB_HOST;
@@ -36,7 +37,7 @@ exports.dbquery = function(query_str) {
 
     //Initialize MySQL connection
     console.log("Attempting to create MySQL connection...");
-    var dbclient = mysql.createConnection({
+    const dbclient = mysql.createConnection({
       host: host,
       user: user,
       password: password,
@@ -54,12 +55,16 @@ exports.dbquery = function(query_str) {
     });
 
     //query
-    dbclient.query(query_str, (err, results) => {
+    dbclient.query(query_str, (err, results, fields) => {
       if (err) {
         console.log("Database query failed:", err);
-        return reject(new Error("Query failed"));
+        return reject(new Error('Database query failed: ' + err.stack));
       }
       console.log("Database query completed:", results);
+
+       // Close the connection
+       dbclient.end();
+       
       //Return results
       resolve(results);  
     });

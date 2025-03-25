@@ -12,13 +12,14 @@ router.get('/coordinates', async (req, res) => {
       const query = 'SELECT * FROM Geo';  // Assuming your table name is 'Geo'
       const result = await db.dbquery(query);  // Use the query method from your DBMS file
   
-      const coordinates = result.rows.map(row => ({
+       // Map the result into a structured response
+       const coordinates = result.map(row => ({
         name: row.buildingName,
         latMin: row.latMin,
         latMax: row.latMax,
         longMin: row.longMin,
         longMax: row.longMax
-      }));
+    }));
 
         //Return the coordinates as a JSON response
         res.json(coordinates);
