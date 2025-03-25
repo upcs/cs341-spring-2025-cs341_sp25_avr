@@ -15,9 +15,21 @@ const buildingNames = ["shiley", "margo", "merlo", "chapel", "commons", "waldsch
 
 
 devButton.addEventListener('click', () => {
-    popups.forEach((popup) => {
-        popup.style.display = "flex";
+   // Check if all popups are currently displayed
+   const allVisible = Array.from(popups).some((popup, index) => 
+       index != 0 && popup.style.display === "flex"
+   );
+
+    // Toggle display based on current state
+    popups.forEach((popup, index) => {
+        if (index != 0) {
+            popup.style.display = allVisible ? "none" : "flex";
+        }
+        
+
+       
     });
+
 });
 
 
@@ -104,6 +116,15 @@ function checkAllBuildings(userLat, userLong) {
                 let displayName = formatBuildingName(building);
 
                 updateDisplay(displayName);
+
+                popups[0].addEventListener('click', ()=> {
+                    if (window.selectedBuilding) {
+                        document.getElementById("phone-container2").style.display = 'none';
+                        document.getElementById("phone-container3").style.display = 'flex';
+                        selectedBuilding(building);
+                    }
+                    
+                });
             }
         });
     })
@@ -121,14 +142,6 @@ function updateDisplay(building) {
     popups[0].style.display = 'flex';
     popups[0].innerHTML = `${building}`;
 
-    popups[0].addEventListener('click', ()=> {
-        if (window.selectedBuilding) {
-            document.getElementById("phone-container2").style.display = 'none';
-            document.getElementById("phone-container3").style.display = 'flex';
-            selectedBuilding(building);
-        }
-        
-    });
 }
 
 function formatBuildingName(dbName) {
