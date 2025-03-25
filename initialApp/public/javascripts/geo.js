@@ -26,16 +26,16 @@ message[1].style.display = 'none';
 message[1].style.color = 'gray';
 message[0].style.fontSize = '24px';
 
-let buildingsData = {}; // store JSON data globally
+// let buildingsData = {}; // store JSON data globally
 
-// retreive the coordinates from JSON file
-fetch('/coordinates.json')
-    .then(response => response.json())
-    .then(data => {
-        buildingsData = data;
-        getUserCords();
-    })
-    .catch(error => console.error("Error fetching bulding coordinates: ", error));
+// // retreive the coordinates from JSON file
+// fetch('/coordinates.json')
+//     .then(response => response.json())
+//     .then(data => {
+//         buildingsData = data;
+//         getUserCords();
+//     })
+//     .catch(error => console.error("Error fetching bulding coordinates: ", error));
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
@@ -74,10 +74,27 @@ function getUserCords() {
 
         // add a delay before popup
         setTimeout(() => {
-            let buildingKey = findLocation(latitude, longitude); // get the key 
 
-            // set location name to a building in the JSON file, if name is not included, return unknown
-            let locationName = buildingsData[buildingKey] ? buildingsData[buildingKey].name : "Unknown Location";
+            let locationName = "";
+
+            switch(true) {
+                case checkWithinBounds(latitude, longitude, cords.dundon.latMin, cords.dundon.latMax, cords.dundon.longMin, cords.dundon.longMax):
+                    locationName = "Dundon-Berchtold Hall";
+                    break;
+                case checkWithinBounds(latitude, longitude, cords.shiley.latMin, cords.shiley.latMax, cords.shiley.longMin, cords.shiley.longMax):
+                    locationName = "Shiley School of Engineering";
+                    break;
+                case checkWithinBounds(latitude, longitude, cords.library.latMin, cords.library.latMax, cords.library.longMin, cords.library.longMax):
+                    locationName = "Clark Library";
+                    break;
+                case checkWithinBounds(latitude, longitude, cords.waldschmidt.latMin, cords.waldschmidt.latMax, cords.waldschmidt.longMin, cords.waldschmidt.longMax):
+                    locationName = "Waldschmidt Hall";
+                    break;
+                default: 
+                    locationName = "";
+                    break;
+
+            }
 
             // update the popup text 
             updateDisplay(locationName);
@@ -89,21 +106,8 @@ function getUserCords() {
     });
 }
 
-function findLocation(lat, long) {
-    for (const building in buildingsData) {
-        const buildingData = buildingsData[building];
-
-        let latMin = buildingData.latMin;
-        let latMax = buildingData.latMax;
-        let longMin = buildingData.longMin;
-        let longMax = buildingData.longMax;
-
-        if (lat >= latMin && lat <= latMax && long >= longMin && long <= longMax) {
-            return building; // Return the raw building name as in JSON
-        }
-    }
-
-    return "Unknown Location";
+function checkBounds(lat, long, latMin, latMax, longMin, longMax) {
+    return (lat >= latMin && lat <= latMax && long >= longMin && long <= longMax);
 }
 
 
