@@ -9,10 +9,10 @@ var mysql = require('mysql');
 // Endpoint to get coordinates for all buildings
 router.get('/coordinates', async (req, res) => {
     try {
-      const query = 'SELECT * FROM Geo';  // Assuming your table name is 'Geo'
-      const result = await db.dbquery(query);  // Use the query method from your DBMS file
+      const query = 'SELECT * FROM Geo';  
+      const result = await db.dbquery(query); 
   
-       // Map the result into a structured response
+       //Map the result into a structured response
        const coordinates = result.map(row => ({
         name: row.buildingName,
         latMin: row.latMin,
