@@ -4,23 +4,19 @@
  * This file contains functions for accessing the MySQL database
  * which contains the Cheesecake order data.
  *
- * Edited by Emma Jeppesen
- * 
  */
-
 require('dotenv').config();
 exports.version = '0.0.1';
 
 
 var mysql = require('mysql'),
     async = require('async');
-    
-//Changed so it's more secure and uses environment vars
-var host = process.env.DB_HOST;
-var database = process.env.DB_DATABASE;
-var user = process.env.DB_USER;
-var password = process.env.DB_PASSWORD;
 
+//The safer way. This is here because Emma is testing something.
+var host = process.env.DB_HOST;    
+var database = process.env.DB_USER;  
+var user = process.env.DB_PASSWORD;         
+var password = process.env.DB_DATABASE;  
 
 /**
  * dbquery
@@ -43,11 +39,11 @@ exports.dbquery = function (query_str, callback) {
         //Step 1: Connect to the database
         function (callback) {
             console.log("\n** creating connection.");
-            dbclient = mysql.createConnection({
-                host: host,
-                user: user,
-                password: password,
-                database: database,
+            const dbclient = mysql.createConnection({
+                host: process.env.DB_HOST,
+                user: process.env.DB_USER,
+                password: process.env.DB_PASSWORD,
+                database: process.env.DB_DATABASE,
             });
 
             dbclient.connect(callback);
