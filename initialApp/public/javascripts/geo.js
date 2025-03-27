@@ -150,7 +150,7 @@ function formatBuildingName(dbName) {
         lund: "Lund Family Hall",
         phouse: "Pilot House",
         chiles: "Chiles Center",
-        buckley: "Cuckley Center",
+        buckley: "Buckley Center",
         swindels: "Swindels hall",
         romanaggi: "Romanaggi Hall"
     };
