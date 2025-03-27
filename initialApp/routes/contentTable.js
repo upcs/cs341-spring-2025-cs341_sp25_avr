@@ -4,8 +4,9 @@ var express = require('express');
 var router = express.Router();
 var dbms = require("./dbms");
 
-router.post('/', function (req, res, next) {
 
+router.post('/', function (req, res, next) {
+    
     const dbRequest = req.body.dbRequest
     //`SELECT * FROM Geo where buildingName=${buildingName};`
 
@@ -17,11 +18,6 @@ router.post('/', function (req, res, next) {
             res.json(results)
         }
     })
-
-
-
-
-
 
 });
 module.exports = router;
