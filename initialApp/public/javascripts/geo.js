@@ -122,6 +122,21 @@ function isUserNearBuilding(userLat, userLong, building) {
     );
 }
 
+//EMMA TEST
+function displayBuildingContent(building, data) {
+    let contentContainer = document.getElementById("building-content");
+    contentContainer.innerHTML = `<h2>${formatBuildingName(building)}</h2>`;
+
+    if (data.length > 0) {
+        data.forEach(record => {
+            contentContainer.innerHTML += `<p>${record.description}</p>`;
+        });
+    } else {
+        contentContainer.innerHTML += "<p>No additional information available.</p>";
+    }
+}
+
+
 // check all building bounds
 function checkAllBuildings(userLat, userLong) {
     buildingNames.forEach(building => {
@@ -132,14 +147,31 @@ function checkAllBuildings(userLat, userLong) {
 
                 updateDisplay(displayName);
 
-                popups[0].addEventListener('click', ()=> {
-                    if (window.selectedBuilding) {
-                        document.getElementById("phone-container2").style.display = 'none';
-                        document.getElementById("phone-container3").style.display = 'flex';
-                        selectedBuilding(building);
-                    }
-                    
-                });
+                    //Fetch building content from database
+                    fetch('/contentTable', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ dbRequest: `SELECT * FROM Geo WHERE buildingName='${building}';` })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Fetched content:", data);
+                        window.currentBuildingData = data; // Store content globally
+
+
+                    popups[0].addEventListener('click', ()=> {
+                        if (window.selectedBuilding) {
+                            document.getElementById("phone-container2").style.display = 'none';
+                            document.getElementById("phone-container3").style.display = 'flex';
+                            selectedBuilding(building);
+                        }
+                        
+                    });
+
+                })
+                .catch(error => console.error("Error fetching building content:", error));
             }
         });
     })
