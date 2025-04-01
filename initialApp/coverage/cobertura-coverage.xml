@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage lines-valid="330" lines-covered="31" line-rate="0.09390000000000001" branches-valid="156" branches-covered="5" branch-rate="0.032" timestamp="1743543942905" complexity="0" version="0.1">
+<coverage lines-valid="330" lines-covered="40" line-rate="0.12119999999999999" branches-valid="156" branches-covered="9" branch-rate="0.0576" timestamp="1743544825400" complexity="0" version="0.1">
   <sources>
     <source>C:\Users\emma_\Desktop\AVR\initialApp</source>
   </sources>
   <packages>
-    <package name="main" line-rate="0.09390000000000001" branch-rate="0.032">
+    <package name="main" line-rate="0.12119999999999999" branch-rate="0.0576">
       <classes>
         <class name="geo copy 2.js" filename="public\javascripts\geo copy 2.js" line-rate="0" branch-rate="0">
           <methods>
@@ -562,34 +562,34 @@
             <line number="348" hits="1" branch="false"/>
           </lines>
         </class>
-        <class name="location.js" filename="public\javascripts\location.js" line-rate="0" branch-rate="0">
+        <class name="location.js" filename="public\javascripts\location.js" line-rate="1" branch-rate="1">
           <methods>
-            <method name="getUserCoords" hits="0" signature="()V">
+            <method name="getUserCoords" hits="5" signature="()V">
               <lines>
-                <line number="3" hits="0"/>
+                <line number="3" hits="5"/>
               </lines>
             </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
+            <method name="(anonymous_1)" hits="3" signature="()V">
               <lines>
-                <line number="6" hits="0"/>
+                <line number="6" hits="3"/>
               </lines>
             </method>
-            <method name="(anonymous_2)" hits="0" signature="()V">
+            <method name="(anonymous_2)" hits="1" signature="()V">
               <lines>
-                <line number="13" hits="0"/>
+                <line number="13" hits="1"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="4" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="5" hits="0" branch="false"/>
-            <line number="7" hits="0" branch="false"/>
-            <line number="8" hits="0" branch="false"/>
-            <line number="9" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="10" hits="0" branch="false"/>
-            <line number="14" hits="0" branch="false"/>
-            <line number="18" hits="0" branch="false"/>
-            <line number="23" hits="0" branch="false"/>
+            <line number="4" hits="5" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="5" hits="4" branch="false"/>
+            <line number="7" hits="3" branch="false"/>
+            <line number="8" hits="3" branch="false"/>
+            <line number="9" hits="3" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="10" hits="1" branch="false"/>
+            <line number="14" hits="1" branch="false"/>
+            <line number="18" hits="1" branch="false"/>
+            <line number="23" hits="1" branch="false"/>
           </lines>
         </class>
         <class name="timeline.js" filename="public\javascripts\timeline.js" line-rate="0" branch-rate="0">
