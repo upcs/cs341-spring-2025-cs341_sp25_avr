@@ -80,21 +80,21 @@ function error() {
 
 
 
-// devButton.addEventListener('click', () => {
-//    // Check if all popups are currently displayed
-//    const allVisible = Array.from(popups).some((popup, index) => 
-//        index != 0 && popup.style.display === "flex"
-//    );
+ devButton.addEventListener('click', () => {
+    // Check if all popups are currently displayed
+    const allVisible = Array.from(popups).some((popup, index) => 
+        index != 0 && popup.style.display === "flex"
+    );
 
-//     // Toggle display based on current state
-//     popups.forEach((popup, index) => {
-//         if (index != 0) {
-//             popup.style.display = allVisible ? "none" : "flex";
-//         }
+     // Toggle display based on current state
+     popups.forEach((popup, index) => {
+         if (index != 0) {
+             popup.style.display = allVisible ? "none" : "flex";
+         }
        
-//     });
+     });
 
-// });
+ });
 
 //store JSON data globally
 let buildingsData = {}; 
