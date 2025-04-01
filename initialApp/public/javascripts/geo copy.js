@@ -1,100 +1,36 @@
-let map, marker, circle, zoomed;
 
-
-const buildingNames = ["shiley", "margo", "merlo", "chapel", "commons", "waldschmidt", 
-    "db", "shiley marcos", "fields and sho", "beauchamp", "lund", 
-    "chiles", "baseball", "library", "phouse", "plaze", "franz", 
-    "buckley", "swindels", "romanaggi"];
+// reference the HTML elements 
+let map;
+let marker;
 
 const message = document.querySelectorAll(".default-message");
 const loader = document.querySelector(".loader");
 const popups = document.querySelectorAll(".welcome-pop-up");
 const devButton = document.getElementById("debug-btn");
 
-document.getElementById("startButton").onclick = function () {
-    document.getElementById("phone-container").style.display = 'none';
-    document.getElementById("phone-container2").style.display = 'flex';
-
-    // only load the map when 'start button' is pressed or map is not present
-    if (!map) {
-        initMap();
-    }
-};
+const buildingNames = ["shiley", "margo", "merlo", "chapel", "commons", "waldschmidt", 
+                        "db", "shiley marcos", "fields and sho", "beauchamp", "lund", 
+                        "chiles", "baseball", "library", "phouse", "plaze", "franz", 
+                        "buckley", "swindels", "romanaggi"];
 
 
-function initMap() {
-    // defines the map 
-    map = L.map('map', {
-        center: [51.505, -0.09], 
-        zoom: 13,
-        zoomControl: false // This disables the zoom buttons
+devButton.addEventListener('click', () => {
+   // Check if all popups are currently displayed
+   const allVisible = Array.from(popups).some((popup, index) => 
+       index != 0 && popup.style.display === "flex"
+   );
+
+    // Toggle display based on current state
+    popups.forEach((popup, index) => {
+        if (index != 0) {
+            popup.style.display = allVisible ? "none" : "flex";
+        }
+        
+
+       
     });
 
-
-    // gets the openStreetMap source
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    // access brower geolocation API 
-    // watchPosition() sends back a new set of coords if user moves
-    navigator.geolocation.watchPosition(success, error);
-}
-
-
-function success(pos) {
-    const lat = pos.coords.latitude; 
-    const lng = pos.coords.longitude;
-    const accuracy = pos.coords.accuracy; // tracks the accuracy of the coords
-
-    // if a circle exists then remove the previous one if user moves to new location
-    // remove deplicate markers
-    if (marker) {
-        map.removeLayer(marker);
-        map.removeLayer(circle);
-    }
-    marker = L.marker([lat, lng]).addTo(map);
-    circle = L.circle([lat, lng], { radius: accuracy }).addTo(map); 
-
-    // keep the map at the changed zoom level if user is moving
-    if (!zoomed) {
-        zoomed = map.fitBounds(circle.getBounds());
-    }
-
-    // change center of map dynammically based on current marker
-    map.setView([lat, lng]);
-
-    checkAllBuildings(lat, lng);
-}
-
-// hand errors if user location can't be found
-function error() {
-    if (err.code === 1) {
-        alert("Please allow geolocation access");
-    } else {
-        alert("Cannot get current location");
-    }
-}
-
-
-
-
-// devButton.addEventListener('click', () => {
-//    // Check if all popups are currently displayed
-//    const allVisible = Array.from(popups).some((popup, index) => 
-//        index != 0 && popup.style.display === "flex"
-//    );
-
-//     // Toggle display based on current state
-//     popups.forEach((popup, index) => {
-//         if (index != 0) {
-//             popup.style.display = allVisible ? "none" : "flex";
-//         }
-       
-//     });
-
-// });
+});
 
 
 //gets coords from database
@@ -112,14 +48,54 @@ function getBuildingBounds(building, callback) {
 
 
 // hide the 'tap icon' message at the beginning
-function hideTapIconMessage() {
-    message[1].style.display = 'none';
-    message[1].style.color = 'gray';
-    message[0].style.fontSize = '24px';
+message[1].style.display = 'none';
+message[1].style.color = 'gray';
+message[0].style.fontSize = '24px';
+
+
+// initiate the google maps with marker
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 45.572, lng: -122.727 }, // Default center
+        zoom: 18,
+        disableDefaultUI: true, // Disable all default UI elements
+        zoomControl: false,     // Disable zoom controls
+        streetViewControl: false, // Disable street view controls
+        mapTypeControl: false,  // Disable map type controls (satellite, terrain, etc.)
+        fullscreenControl: false // Disable fullscreen button
+    });
+    marker = new google.maps.Marker({
+        position: { lat: 45.572, lng: -122.727 },
+        map: map,
+        title: "Your Location",
+    });
+
+    getUserCoords(); // Get initial user location
 }
 
+// get the user's coordinates and check if they're near a building
+function getUserCoords() {
+    navigator.geolocation.getCurrentPosition(position => {
+        const { latitude, longitude } = position.coords;
+
+        console.log(`coords: ${latitude}, ${longitude}`);
+
+        // Update the map's center
+        map.setCenter({ lat: latitude, lng: longitude });
+
+        // Move markter to new location
+        marker.setPosition({ lat: latitude, lng: longitude });
 
 
+        // update the cordinates in HTML
+        // details.innerHTML = `Latitude: ${latitude} <br> Longitude: ${longitude} <br>`;
+        
+        checkAllBuildings(latitude, longitude);
+
+    }, error => {
+        console.error("Error getting location: ", error);
+    });
+}
 
 // check if user is within the rectangle radius of a building
 function isUserNearBuilding(userLat, userLong, building) {
@@ -131,15 +107,7 @@ function isUserNearBuilding(userLat, userLong, building) {
     );
 }
 
-
-
-/**
- * checks if user is near any building 
- * updates popup button name and information 
- * 
- * @param userLat 
- * @param userLong 
- */
+// check all building bounds
 function checkAllBuildings(userLat, userLong) {
     buildingNames.forEach(building => {
         getBuildingBounds(building, (bounds) => {
@@ -163,6 +131,8 @@ function checkAllBuildings(userLat, userLong) {
 }
 
 
+// const { selectedBuilding } = await import("./timeline.js");
+
 // changes the name of the info buttons based on the passed in string
 function updateDisplay(building) {
     message[0].style.display = 'flex';
@@ -174,13 +144,7 @@ function updateDisplay(building) {
 
 }
 
-/**
- * formats name of bulding 
- * 
- * @param buildingName
- * @returns 
- */
-function formatBuildingName(buildingName) {
+function formatBuildingName(dbName) {
     const names = {
         shiley: "Shiley School of Engineering",
         lund: "Lund Family Hall",
@@ -190,7 +154,7 @@ function formatBuildingName(buildingName) {
         swindels: "Swindels hall",
         romanaggi: "Romanaggi Hall"
     };
-    return names[buildingName] || buildingName;
+    return names[dbName] || dbName;
 }
 
 
@@ -213,9 +177,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+document.getElementById("startButton").onclick = function () {
+    document.getElementById("phone-container").style.display = 'none';
+    document.getElementById("phone-container2").style.display = 'flex';
 
+};
 
+// document.querySelector(".welcome-pop-up").onclick = function () {
+//     document.getElementById("phone-container2").style.display = 'none';
+//     document.getElementById("phone-container3").style.display = 'flex';
+    
+// };
 
+// document.getElementById("aboutButton").onclick = function () {
+//     window.location.href = "about.html";
+// };
 
 
 const btn = document.getElementById("fullScreenButton");
@@ -249,7 +225,7 @@ function toggleFullscreen() {
     }
 }
 
-// // Listen for fullscreen changes and update the button text
+// Listen for fullscreen changes and update the button text
 document.addEventListener("fullscreenchange", updateButton);
 document.addEventListener("webkitfullscreenchange", updateButton);
 document.addEventListener("mozfullscreenchange", updateButton);
@@ -262,17 +238,17 @@ function updateButton() {
         btn.textContent = "Fullscreen";
     }
 }
+
 btn.addEventListener("click", toggleFullscreen);
 
 
-// // Chengen: main function was unnessary but I thought it was good for modularity 
-// function main() {
-    
-//     hideTapIconMessage()
+// Chengen: main function was unnessary but I thought it was good for modularity 
+function main() {
+    // calls the function every 5 seconds to check user has moved
+    // setInterval(getUserCords, 5000);
+    // bug: it keeps asking for the user's lociation
+    getUserCoords();
+}
+main();
 
-// }
-
-hideTapIconMessage()
-
-
-// module.exports = { getUserCoords, toggleFullscreen, updateButton, updateDisplay, isUserNearBuilding, checkAllBuildings };
+module.exports = { getUserCoords, toggleFullscreen, updateButton, updateDisplay, isUserNearBuilding, checkAllBuildings };
