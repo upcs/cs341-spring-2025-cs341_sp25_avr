@@ -16,7 +16,7 @@ test('test selectEvent', () => {
     const $ = require('jquery');
 
     $(function() {
-        expect($('h1').html()).toBe("Cheesecake Order Form");
+        expect($('h1').html()).toBe("125th Anniversary");
     });
 });
 

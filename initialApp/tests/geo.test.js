@@ -1,9 +1,9 @@
 const { JSDOM } = require("jsdom");
-const {
-  getUserCords,
-  checkWithinBounds,
-  updateDisplay,
-} = require("../public/javascripts/geo");
+// const {
+//   getUserCoords,
+//   checkWithinBounds,
+//   updateDisplay,
+// } = require("../public/javascripts/geo");
 
 describe("Geo.js Tests", () => {
   let map, details, message, loader, popups, devButton;
@@ -26,6 +26,10 @@ describe("Geo.js Tests", () => {
       </html>`;
     const dom = new JSDOM(html);
     global.document = dom.window.document;
+    global.window = dom.window;
+
+     //Mock event listeners
+     global.document.addEventListener = jest.fn();
 
     // Reference DOM elements
     map = document.getElementById("map");
@@ -34,6 +38,14 @@ describe("Geo.js Tests", () => {
     message = document.querySelectorAll(".default-message");
     popups = document.querySelectorAll(".welcome-pop-up");
     devButton = document.getElementById("debug-btn");
+
+    const {
+      getUserCoords,
+      checkWithinBounds,
+      updateDisplay,
+    } = require("../public/javascripts/geo.js");
+    const geo = require("../public/javascripts/geo.js");
+
   });
 
   afterEach(() => {

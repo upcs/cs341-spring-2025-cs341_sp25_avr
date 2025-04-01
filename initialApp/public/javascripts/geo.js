@@ -25,11 +25,31 @@ devButton.addEventListener('click', () => {
         if (index != 0) {
             popup.style.display = allVisible ? "none" : "flex";
         }
-        
 
-       
     });
 
+});
+
+//EMMA TEST
+document.addEventListener("DOMContentLoaded", () => {
+    const devButton = document.getElementById("debug-btn");
+    const popups = document.querySelectorAll(".welcome-pop-up");
+
+    if (!devButton) {
+        console.error("Debug button (debug-btn) not found.");
+        return;
+    }
+
+    devButton.addEventListener("click", () => {
+        // Check if all popups are currently displayed
+        const allVisible = Array.from(popups).some((popup, index) =>
+            index != 0 && popup.style.display === "flex"
+        );
+
+        popups.forEach((popup, index) => {
+            popup.style.display = allVisible ? "none" : "flex";
+        });
+    });
 });
 
 //store JSON data globally
