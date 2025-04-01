@@ -96,22 +96,39 @@ function error() {
 
 // });
 
+//store JSON data globally
+let buildingsData = {}; 
+
+//retreive the coordinates from JSON file (Written by Emma)
+fetch('/geoTable/coordinates') 
+    .then(response => response.json())
+    .then(data => {
+        buildingsData = data; 
+        getUserCords();   
+    })
+
+    .catch(error => console.error("Error fetching building coordinates: ", error));
+
 
 //gets coords from database
 function getBuildingBounds(building, callback) {
-    console.log("test");
-    $.post("/geoTable", { buildingName: building }).done((response) => {
-        console.log(response);
-        const bounds = response[0];
-        callback(bounds);
-    }).fail(() => {
-        console.error("Error fetching orders. Please try again");
-        callback(null);
-    });
+    console.log("Fetching bounds from JSON for:", building);
+
+    const bounds = buildingsData.find(b => b.name.toLowerCase() === building.toLowerCase());
+
+    if (bounds) {
+        //Return found building bounds
+        callback(bounds);  
+    } else {
+        console.error("Building not found in JSON:", building);
+        //Return null if the building isn't found
+        callback(null);  
+    }
 }
 
 
 // hide the 'tap icon' message at the beginning
+
 function hideTapIconMessage() {
     message[1].style.display = 'none';
     message[1].style.color = 'gray';
