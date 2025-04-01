@@ -1,15 +1,11 @@
 const { JSDOM } = require("jsdom");
-// const {
-//   getUserCoords,
-//   checkWithinBounds,
-//   updateDisplay,
-// } = require("../public/javascripts/geo");
 
 describe("Geo.js Tests", () => {
   let map, details, message, loader, popups, devButton;
 
+
   beforeEach(() => {
-    // Set up the mock DOM structure
+    //Set up the mock DOM structure
     const html = `
       <!DOCTYPE html>
       <html>
@@ -22,8 +18,41 @@ describe("Geo.js Tests", () => {
           <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
           <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
           <button id="debug-btn">Debug</button>
+          <button id="fullScreenButton">Fullscreen</button>
+          <button id="startButton">Start</button>
+          <div id="phone-container"></div>
+          <div id="phone-container2" style="display: none;"></div>
         </body>
       </html>`;
+
+    //Mock the fetch function
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+            json: () => Promise.resolve([{ name: "Shiley", latMin: 45.571, latMax: 45.573, longMin: -122.728, longMax: -122.726 }]),
+        })
+      );
+
+    //Set up the required HTML structure for the test
+    document.body.innerHTML = `
+    <!DOCTYPE html>
+      <html>
+        <body>
+          <div id="map"></div>
+          <div id="details"></div>
+          <div class="loader"></div>
+          <div class="default-message"></div>
+          <div class="default-message"></div>
+          <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
+          <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
+          <button id="debug-btn">Debug</button>
+          <button id="startButton">Start</button>
+          <button id="fullScreenButton">Fullscreen</button>
+          <div id="phone-container"></div>
+          <div id="phone-container2" style="display: none;"></div>
+        </body>
+      </html>
+    `;
+    
     const dom = new JSDOM(html);
     global.document = dom.window.document;
     global.window = dom.window;
@@ -40,11 +69,10 @@ describe("Geo.js Tests", () => {
     devButton = document.getElementById("debug-btn");
 
     const {
-      getUserCoords,
+      success,
       checkWithinBounds,
-      updateDisplay,
+      updateDisplay
     } = require("../public/javascripts/geo.js");
-    const geo = require("../public/javascripts/geo.js");
 
   });
 
@@ -52,7 +80,7 @@ describe("Geo.js Tests", () => {
     jest.clearAllMocks();
   });
 
-  // Mock geolocation
+  //Mock geolocation
   const mockGeolocation = (success, error) => {
     global.navigator.geolocation = {
       getCurrentPosition: jest.fn((successCallback, errorCallback) =>
@@ -99,7 +127,7 @@ describe("Geo.js Tests", () => {
     };
     mockGeolocation(mockPosition, null);
 
-    getUserCords();
+    success();
 
     expect(map.innerHTML).toContain(
       `https://maps.google.com/maps?q=${mockPosition.coords.latitude},${mockPosition.coords.longitude}`
@@ -118,7 +146,7 @@ describe("Geo.js Tests", () => {
 
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    getUserCords();
+    success();
 
     expect(consoleSpy).toHaveBeenCalledWith(
       "Error getting location: ",
@@ -134,7 +162,7 @@ describe("Geo.js Tests", () => {
 
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    getUserCords();
+    success();
 
     expect(consoleSpy).toHaveBeenCalledWith("Element with id 'map' not found.");
     consoleSpy.mockRestore();

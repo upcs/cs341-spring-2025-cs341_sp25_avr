@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -89,49 +89,49 @@
 <a name='L24'></a><a href='#L24'>24</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// public/javascripts/geo.js
 &nbsp;
-function getUserCoords() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) =&gt; {
-                const { latitude, longitude } = position.coords;
-                const details = document.getElementById("details");
-                if (details) {
-                    details.innerHTML = `Latitude: ${latitude}, Longitude: ${longitude}`;
+function <span class="fstat-no" title="function not covered" >getUserCoords(</span>) {
+<span class="cstat-no" title="statement not covered" >    if (navigator.geolocation) {</span>
+<span class="cstat-no" title="statement not covered" >        navigator.geolocation.getCurrentPosition(</span>
+<span class="fstat-no" title="function not covered" >            (p</span>osition) =&gt; {
+                const { latitude, longitude } = <span class="cstat-no" title="statement not covered" >position.coords;</span>
+                const details = <span class="cstat-no" title="statement not covered" >document.getElementById("details");</span>
+<span class="cstat-no" title="statement not covered" >                if (details) {</span>
+<span class="cstat-no" title="statement not covered" >                    details.innerHTML = `Latitude: ${latitude}, Longitude: ${longitude}`;</span>
                 }
             },
-            (error) =&gt; {
-                console.error("Geolocation error:", error);
+<span class="fstat-no" title="function not covered" >            (e</span>rror) =&gt; {
+<span class="cstat-no" title="statement not covered" >                console.error("Geolocation error:", error);</span>
             }
         );
     } else {
-        console.error("Geolocation is not supported by this browser.");
+<span class="cstat-no" title="statement not covered" >        console.error("Geolocation is not supported by this browser.");</span>
     }
 }
 &nbsp;
 // Export for Jest testing
-module.exports = { getUserCoords };
+<span class="cstat-no" title="statement not covered" >module.exports = { getUserCoords };</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -139,7 +139,7 @@ module.exports = { getUserCoords };
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-01T19:44:35.933Z
+                at 2025-04-01T21:45:42.919Z
             </div>
         <script src="prettify.js"></script>
         <script>

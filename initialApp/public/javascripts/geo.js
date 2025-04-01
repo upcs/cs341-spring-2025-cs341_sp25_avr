@@ -22,18 +22,6 @@ document.getElementById("startButton").onclick = function () {
 };
 
 
-devButton.addEventListener('click', () => {
-   // Check if all popups are currently displayed
-   const allVisible = Array.from(popups).some((popup, index) => 
-       index != 0 && popup.style.display === "flex"
-   );
-
-    // Toggle display based on current state
-    popups.forEach((popup, index) => {
-        if (index != 0) {
-            popup.style.display = allVisible ? "none" : "flex";
-        }
-
 function initMap() {
     // defines the map 
     map = L.map('map', {
@@ -90,23 +78,21 @@ function error() {
 }
 
 
+devButton.addEventListener('click', () => {
+   // Check if all popups are currently displayed
+   const allVisible = Array.from(popups).some((popup, index) => 
+       index != 0 && popup.style.display === "flex"
+   );
 
-
-// devButton.addEventListener('click', () => {
-//    // Check if all popups are currently displayed
-//    const allVisible = Array.from(popups).some((popup, index) => 
-//        index != 0 && popup.style.display === "flex"
-//    );
-
-//     // Toggle display based on current state
-//     popups.forEach((popup, index) => {
-//         if (index != 0) {
-//             popup.style.display = allVisible ? "none" : "flex";
-//         }
+    // Toggle display based on current state
+    popups.forEach((popup, index) => {
+        if (index != 0) {
+            popup.style.display = allVisible ? "none" : "flex";
+        }
        
-//     });
+    });
 
-// });
+});
 
 //EMMA TEST
 document.addEventListener("DOMContentLoaded", () => {
@@ -182,7 +168,6 @@ function isUserNearBuilding(userLat, userLong, building) {
     );
 }
 
-<<<<<<< HEAD
 //EMMA TEST
 function displayBuildingContent(building, data) {
     let contentContainer = document.getElementById("building-content");
@@ -199,7 +184,6 @@ function displayBuildingContent(building, data) {
 
 
 // check all building bounds
-=======
 
 
 /**
@@ -209,7 +193,6 @@ function displayBuildingContent(building, data) {
  * @param userLat 
  * @param userLong 
  */
->>>>>>> main
 function checkAllBuildings(userLat, userLong) {
     buildingNames.forEach(building => {
         getBuildingBounds(building, (bounds) => {
@@ -362,4 +345,11 @@ btn.addEventListener("click", toggleFullscreen);
 hideTapIconMessage()
 
 
-// module.exports = { getUserCoords, toggleFullscreen, updateButton, updateDisplay, isUserNearBuilding, checkAllBuildings };
+module.exports = { 
+    success, 
+    toggleFullscreen, 
+    updateButton, 
+    updateDisplay, 
+    isUserNearBuilding, 
+    checkAllBuildings 
+ };

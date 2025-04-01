@@ -1,13 +1,13 @@
-const { getUserCoords, checkAllBuildings } = require('..public/javascripts/geo.js');
+const { getUserCoords, checkAllBuildings } = require('../public/javascripts/geo.js');
 
 // Mock navigator.geolocation
 global.navigator.geolocation = {
   getCurrentPosition: jest.fn()
 };
 
-// Mock dependencies
-jest.mock('../geo.js', () => {
-  const originalModule = jest.requireActual('../geo.js');
+//Mock dependencies
+jest.mock('../public/javascripts/geo.js', () => {
+  const originalModule = jest.requireActual('../public/javascripts/geo.js');
   return {
     ...originalModule,
     checkAllBuildings: jest.fn()
