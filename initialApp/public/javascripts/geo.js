@@ -172,6 +172,7 @@ devButton.addEventListener('click', () => {
 
 
 // hide the 'tap icon' message at the beginning
+
 function hideTapIconMessage() {
     message[1].style.display = 'none';
     message[1].style.color = 'gray';
