@@ -2,7 +2,7 @@
 let map, marker, userCircle, zoomed;
 
 const buildings = [
-    { name: "shiley", lat: 45.571873864875734, long: -122.72794184135778, radius: 30 },
+    { name: "shiley", lat: 45.571873864875734, long: -122.72794184135778, radius: 45 },
     { name: "mago", lat: 45.57331, long: -122.72814, radius: 30 },
     { name: "merlo", lat: 45.574691857551194, long: -122.72736804819188, radius: 60 },
     { name: "chapel", lat: 45.57118703901212, long: -122.7264409613001, radius: 30 },
@@ -15,9 +15,9 @@ const buildings = [
     { name: "lund", lat: 45.57604110730614, long: -122.72961827161971, radius: 60 },
     { name: "chiles", lat: 45.575106641718605, long: -122.72849170246482, radius: 60 },  
     { name: "baseball", lat: 45.57399546899834, long: -122.72950172424201, radius: 80 },
-    { name: "library", lat: 45.5727862031439, long: -122.72673322150519, radius: 30 },
+    { name: "library", lat: 45.5727862031439, long: -122.72673322150519, radius: 40 },
     { name: "phouse", lat: 45.57309068265263, long: -122.72558883489508, radius: 30 },
-    { name: "franz", lat: 45.572660826406874, long: -122.72771208733339, radius: 30 },  
+    { name: "franz", lat: 45.572660826406874, long: -122.72771208733339, radius: 35 },  
     { name: "buckley", lat: 45.572048180689166, long: -122.72603884019847, radius: 55 },
     { name: "swindels", lat: 45.571190951614135, long: -122.72523084877547, radius: 30 },
     { name: "romanaggi", lat: 45.57184274643443, long: -122.72562621977794, radius: 30 },
