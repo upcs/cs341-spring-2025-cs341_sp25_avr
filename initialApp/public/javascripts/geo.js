@@ -1,16 +1,37 @@
-let map, marker, circle, zoomed;
+//Global Variables for map
+let map, marker, userCircle, zoomed;
 
+const buildings = [
+    { name: "shiley", lat: 45.571873864875734, long: -122.72794184135778, radius: 30 },
+    { name: "mago", lat: 45.57331, long: -122.72814, radius: 30 },
+    { name: "merlo", lat: 45.574691857551194, long: -122.72736804819188, radius: 60 },
+    { name: "chapel", lat: 45.57118703901212, long: -122.7264409613001, radius: 30 },
+    { name: "commons", lat: 45.570988740190316, long: -122.72718436706296, radius: 50 },
+    { name: "waldschmidt", lat: 45.57179775808421, long: -122.72453264579713, radius: 30 },
+    { name: "db", lat: 45.57248530060549, long: -122.72485586136415, radius: 50 },
+    { name: "shiley marcos", lat: 45.57190748329964, long: -122.72902599935568, radius: 30 },
+    { name: "fields and sho", lat: 45.57587409580648, long: -122.73199424973225, radius: 60 },
+    { name: "beauchamp", lat: 45.57524932809868, long: -122.73030501111376, radius: 60 },
+    { name: "lund", lat: 45.57604110730614, long: -122.72961827161971, radius: 60 },
+    { name: "chiles", lat: 45.575106641718605, long: -122.72849170246482, radius: 60 },  
+    { name: "baseball", lat: 45.57399546899834, long: -122.72950172424201, radius: 80 },
+    { name: "library", lat: 45.5727862031439, long: -122.72673322150519, radius: 30 },
+    { name: "phouse", lat: 45.57309068265263, long: -122.72558883489508, radius: 30 },
+    { name: "franz", lat: 45.572660826406874, long: -122.72771208733339, radius: 30 },  
+    { name: "buckley", lat: 45.572048180689166, long: -122.72603884019847, radius: 55 },
+    { name: "swindels", lat: 45.571190951614135, long: -122.72523084877547, radius: 30 },
+    { name: "romanaggi", lat: 45.57184274643443, long: -122.72562621977794, radius: 30 },
+    { name: "kenna", lat: 45.572863768825215, long: -122.72306821624528, radius: 50 },
+    { name: "christie", lat: 45.572271114493795, long: -122.72378158347465, radius: 40 }
+];
 
-const buildingNames = ["shiley", "margo", "merlo", "chapel", "commons", "waldschmidt", 
-    "db", "shiley marcos", "fields and sho", "beauchamp", "lund", 
-    "chiles", "baseball", "library", "phouse", "plaze", "franz", 
-    "buckley", "swindels", "romanaggi"];
 
 const message = document.querySelectorAll(".default-message");
 const loader = document.querySelector(".loader");
-const popups = document.querySelectorAll(".welcome-pop-up");
+const popups = document.querySelectorAll(".welcome-pop-up"); // gets all the popups for each building
 const devButton = document.getElementById("debug-btn");
 
+// ------ START BUTTON ------
 document.getElementById("startButton").onclick = function () {
     document.getElementById("phone-container").style.display = 'none';
     document.getElementById("phone-container2").style.display = 'flex';
@@ -21,15 +42,14 @@ document.getElementById("startButton").onclick = function () {
     }
 };
 
-
+// ------ CREATE MAP ------
 function initMap() {
     // defines the map 
     map = L.map('map', {
-        center: [51.505, -0.09], 
+        center: [45.57190748329964, -122.72902599935568], 
         zoom: 13,
         zoomControl: false // This disables the zoom buttons
     });
-
 
     // gets the openStreetMap source
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -43,29 +63,69 @@ function initMap() {
 }
 
 
+// if map was created 
 function success(pos) {
-    const lat = pos.coords.latitude; 
-    const lng = pos.coords.longitude;
-    const accuracy = pos.coords.accuracy; // tracks the accuracy of the coords
+    let userLat = pos.coords.latitude; 
+    let userLng = pos.coords.longitude;
+    let accuracy = pos.coords.accuracy; // tracks the accuracy of the coords
 
     // if a circle exists then remove the previous one if user moves to new location
     // remove deplicate markers
     if (marker) {
         map.removeLayer(marker);
-        map.removeLayer(circle);
+        map.removeLayer(userCircle);
     }
-    marker = L.marker([lat, lng]).addTo(map);
-    circle = L.circle([lat, lng], { radius: accuracy }).addTo(map); 
+    // marker is set to user's current location
+    marker = L.marker([userLat, userLng]).addTo(map);
+    // circle to see the accuracy of the coordinate
+    userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map); 
+
+    // used to store each circle's name so we know which circle belongs to which building
+    let circles = {};
+
+    // iterate through each building in the buildings array (line 3)
+    buildings.forEach(building => {
+        // make a new circle for each building 
+        let circle = L.circle([building.lat, building.long], {radius: building.radius}).addTo(map);
+
+        // add the building name to each circle
+        circle.buildingName = building.name;
+
+        // store circles in the object using building name as key
+        // Ex: {"shiley", circle}
+        circles[building.name] = circle;
+    });
+
+    // store the nearest building name as a variable 
+    let nearbyBuilding = getBuildingName(userLat, userLng, circles);
+
+    // if there is a building near by
+    if (nearbyBuilding) {
+
+        updateDisplay(formatBuildingName(nearbyBuilding)); // Only update for the nearby building
+
+        // popup button, when clicked/tapped it will take user to timeline page 
+        popups[0].addEventListener('click', () => { 
+            if (window.selectedBuilding) {
+                // close the map page
+                document.getElementById("phone-container2").style.display = 'none';
+                // opens the timeline page
+                document.getElementById("phone-container3").style.display = 'flex';
+
+                // function from timeline.js, gets the appropriate content for each builiding
+                window.selectedBuilding(nearbyBuilding);
+            }
+        });
+    }
+    // console.log("User is near:", nearbyBuilding ? nearbyBuilding : "No building");
+    // console.log(circles);
 
     // keep the map at the changed zoom level if user is moving
     if (!zoomed) {
-        zoomed = map.fitBounds(circle.getBounds());
+        zoomed = map.fitBounds(userCircle.getBounds());
     }
-
     // change center of map dynammically based on current marker
-    map.setView([lat, lng]);
-
-    checkAllBuildings(lat, lng);
+    map.setView([userLat, userLng]);
 }
 
 // hand errors if user location can't be found
@@ -79,36 +139,36 @@ function error() {
 
 
 
+// ------ SHOW ALL LOCATIONS BUTTON ------
+devButton.addEventListener('click', () => {
+   // Check if all popups are currently displayed
+   const allVisible = Array.from(popups).some((popup, index) => 
+       index != 0 && popup.style.display === "flex"
+   );
 
-// devButton.addEventListener('click', () => {
-//    // Check if all popups are currently displayed
-//    const allVisible = Array.from(popups).some((popup, index) => 
-//        index != 0 && popup.style.display === "flex"
-//    );
-
-//     // Toggle display based on current state
-//     popups.forEach((popup, index) => {
-//         if (index != 0) {
-//             popup.style.display = allVisible ? "none" : "flex";
-//         }
+    // Toggle display based on current state
+    popups.forEach((popup, index) => {
+        if (index != 0) {
+            popup.style.display = allVisible ? "none" : "flex";
+        }
        
-//     });
-
-// });
-
-
-//gets coords from database
-function getBuildingBounds(building, callback) {
-    console.log("test");
-    $.post("/geoTable", { buildingName: building }).done((response) => {
-        console.log(response);
-        const bounds = response[0];
-        callback(bounds);
-    }).fail(() => {
-        console.error("Error fetching orders. Please try again");
-        callback(null);
     });
-}
+
+});
+
+// IMPORTANT: DON'T DELETE in case we want to move coords to data base
+//gets coords from database
+// function getBuildingBounds(building, callback) {
+//     console.log("test");
+//     $.post("/geoTable", { buildingName: building }).done((response) => {
+//         console.log(response);
+//         const bounds = response[0];
+//         callback(bounds);
+//     }).fail(() => {
+//         console.error("Error fetching orders. Please try again");
+//         callback(null);
+//     });
+// }
 
 
 // hide the 'tap icon' message at the beginning
@@ -119,48 +179,34 @@ function hideTapIconMessage() {
 }
 
 
+// checks if user is inside the radius of a building
+function isUserNearBuilding(userLat, userLng, circle) {
+    let circleCenter = circle.getLatLng(); // gets the center coord of each building
+    let radius = circle.getRadius(); // gets the radius of a the circle
+    let distance = map.distance([userLat, userLng], circleCenter); // checks distance from circle center to user
 
-
-// check if user is within the rectangle radius of a building
-function isUserNearBuilding(userLat, userLong, building) {
-    return (
-        userLat >= building.latMin &&
-        userLat <= building.latMax && 
-        userLong >= building.longMin && 
-        userLong <= building.longMax
-    );
+    return distance <= radius; // true if user is inside radius 
 }
-
-
 
 /**
- * checks if user is near any building 
- * updates popup button name and information 
+ * checks which building's circle a user is in
  * 
- * @param userLat 
- * @param userLong 
+ * @param {int} userLat 
+ * @param {int} userLng 
+ * @param {Object} circles 
+ * @returns name of a building
  */
-function checkAllBuildings(userLat, userLong) {
-    buildingNames.forEach(building => {
-        getBuildingBounds(building, (bounds) => {
-            if (bounds && isUserNearBuilding(userLat, userLong, bounds)) {
-
-                let displayName = formatBuildingName(building);
-
-                updateDisplay(displayName);
-
-                popups[0].addEventListener('click', ()=> {
-                    if (window.selectedBuilding) {
-                        document.getElementById("phone-container2").style.display = 'none';
-                        document.getElementById("phone-container3").style.display = 'flex';
-                        selectedBuilding(building);
-                    }
-                    
-                });
-            }
-        });
-    })
+function getBuildingName(userLat, userLng, circles) {
+    for (let buildingName in circles) {
+        let circle = circles[buildingName];
+        if (isUserNearBuilding(userLat, userLng, circle)) {
+            return buildingName; // Return the first matching building
+        }
+    }
+    return null; // No matching building found
 }
+
+
 
 
 // changes the name of the info buttons based on the passed in string
@@ -171,14 +217,11 @@ function updateDisplay(building) {
     loader.style.display = 'none';
     popups[0].style.display = 'flex';
     popups[0].innerHTML = `${building}`;
-
 }
 
 /**
  * formats name of bulding 
  * 
- * @param buildingName
- * @returns 
  */
 function formatBuildingName(buildingName) {
     const names = {
@@ -194,85 +237,7 @@ function formatBuildingName(buildingName) {
 }
 
 
-function goFullscreen() {
-    let elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-        elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    if (sessionStorage.getItem("fullscreen") === "true") {
-        goFullscreen();
-    }
-});
-
-
-
-
-
-
-const btn = document.getElementById("fullScreenButton");
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // Enter fullscreen
-        let elem = document.documentElement;
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) {
-            elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) {
-            elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) {
-            elem.msRequestFullscreen();
-        }
-        btn.textContent = "Minimize";
-    } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
-        btn.textContent = "Fullscreen";
-    }
-}
-
-// // Listen for fullscreen changes and update the button text
-document.addEventListener("fullscreenchange", updateButton);
-document.addEventListener("webkitfullscreenchange", updateButton);
-document.addEventListener("mozfullscreenchange", updateButton);
-document.addEventListener("MSFullscreenChange", updateButton);
-
-function updateButton() {
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        btn.textContent = "Minimize";
-    } else {
-        btn.textContent = "Fullscreen";
-    }
-}
-btn.addEventListener("click", toggleFullscreen);
-
-
-// // Chengen: main function was unnessary but I thought it was good for modularity 
-// function main() {
-    
-//     hideTapIconMessage()
-
-// }
-
 hideTapIconMessage()
 
 
-// module.exports = { getUserCoords, toggleFullscreen, updateButton, updateDisplay, isUserNearBuilding, checkAllBuildings };
+module.exports = {initMap, updateDisplay, isUserNearBuilding, getBuildingName };
