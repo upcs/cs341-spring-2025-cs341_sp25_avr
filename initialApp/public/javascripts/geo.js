@@ -150,9 +150,27 @@ function formatBuildingName(dbName) {
         lund: "Lund Family Hall",
         phouse: "Pilot House",
         chiles: "Chiles Center",
-        buckley: "Cuckley Center",
-        swindels: "Swindels hall",
-        romanaggi: "Romanaggi Hall"
+        buckley: "Buckley Center",
+        swindels: "Swindels Hall",
+        romanaggi: "Romanaggi Hall",
+        christie: "Christie Hall",
+        mago: "Mago Hunt Center",
+        chapel: "The Chapel of Christ the Teacher",
+        commons: "Bauccio Commons",
+        db: "Dundon-Berchtold Hall",
+        library: "Clark Library",
+        kenna: "Kenna Hall",
+        mehling: "Mehling Hall",
+        corrado: "Corrado Hall",
+        fields: "Fields and Schoenfeldt Halls",
+        beauchamp: "Beauchamp Recreation & Wellness Center",
+        waldschmidt: "Beauchamp Recreation & Wellness Center",
+        shipstad: "Shipstad Hall",
+        merlo: "Harry A. Merlo Field",
+        franz: "Franz Hall",
+        swindels: "Swindell Hall",
+        villa: "Villa Maria",
+        phouse: "Pilot House"
     };
     return names[dbName] || dbName;
 }

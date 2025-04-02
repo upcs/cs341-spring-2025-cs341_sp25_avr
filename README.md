@@ -1,14 +1,12 @@
+# AVR 125th Anniversary - Campus History Web Application
 
-#AVR 125th UP Anniversary
-The Campus History Web Application is an interactive web-based tool designed to showcase the University of Portland’s rich history. 
-As part of the university’s 125th-anniversary celebration, this application provides users with historical images, facts, and 
-stories about key campus locations. Using geolocation, users can receive contextual pop-ups as they explore the campus, 
-offering an immersive journey through time.
+The **Campus History Web Application** is an interactive, web-based tool designed to showcase the rich history of the University of Portland. Developed as part of the university's 125th-anniversary celebration, this application offers users access to historical images, facts, and stories about key campus locations. By leveraging geolocation, users receive contextual pop-ups as they explore the campus, creating an immersive journey through time.
 
 =======
-Website Link: https://upcs.github.io/cs341-spring-2025-cs341_sp25_avr/initialApp/public/index.html
+### Website Link:
+[Campus History Web Application](http://cs341avr.campus.up.edu/)
 
-# Geo Database README
+# Geo Database
 
 ## Table of Contents
 
@@ -21,7 +19,7 @@ Website Link: https://upcs.github.io/cs341-spring-2025-cs341_sp25_avr/initialApp
 
 ## Introduction
 
-This README provides instructions on how to add a new row to the `Geo` database. The `Geo` database stores geographic information about buildings on a university campus.
+This provides instructions on how to add a new row to the `Geo` database. The `Geo` database stores geographic information about buildings on a university campus.
 
 ## Table Structure
 
@@ -64,7 +62,7 @@ VALUES ('New Building', 45.12345, 45.12340, -122.12345, -122.12350);
 * **Error: Out of range values**: If you receive an error message indicating out of range values, check that the latitude and longitude values are within the valid range (-90 to 90 for latitude and -180 to 180 for longitude).
 * **Data inconsistencies**: If you notice data inconsistencies, such as mismatched building names or coordinates, verify the data against other sources and correct any errors.
 
-# Content Table SQL File
+# Content Database
 
 ## Table of Contents
 
@@ -77,7 +75,7 @@ VALUES ('New Building', 45.12345, 45.12340, -122.12345, -122.12350);
 
 ## Introduction
 
-This README provides instructions on how to use the `content_table.sql` file to create and populate the `Content` table. The `Content` table stores information about buildings on a university campus.
+This provides instructions on how to use the `content_table.sql` file to create and populate the `Content` table. The `Content` table stores information about buildings on a university campus.
 
 ## Table Structure
 
