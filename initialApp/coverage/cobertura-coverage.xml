@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage lines-valid="161" lines-covered="74" line-rate="0.4596" branches-valid="71" branches-covered="30" branch-rate="0.4225" timestamp="1743707274348" complexity="0" version="0.1">
+<coverage lines-valid="161" lines-covered="60" line-rate="0.3726" branches-valid="71" branches-covered="21" branch-rate="0.2957" timestamp="1743709535084" complexity="0" version="0.1">
   <sources>
     <source>C:\Users\emma_\Desktop\AVR\initialApp</source>
   </sources>
   <packages>
-    <package name="main" line-rate="0.4596" branch-rate="0.4225">
+    <package name="main" line-rate="0.3726" branch-rate="0.2957">
       <classes>
-        <class name="geo.js" filename="public\javascripts\geo.js" line-rate="0.8332999999999999" branch-rate="0.6046">
+        <class name="geo.js" filename="public\javascripts\geo.js" line-rate="0.7692" branch-rate="0.48829999999999996">
           <methods>
             <method name="(anonymous_0)" hits="1" signature="()V">
               <lines>
@@ -39,24 +39,24 @@
                 <line number="159" hits="1"/>
               </lines>
             </method>
-            <method name="(anonymous_6)" hits="1" signature="()V">
+            <method name="(anonymous_6)" hits="0" signature="()V">
               <lines>
-                <line number="170" hits="1"/>
+                <line number="170" hits="0"/>
               </lines>
             </method>
-            <method name="(anonymous_7)" hits="2" signature="()V">
+            <method name="(anonymous_7)" hits="0" signature="()V">
               <lines>
-                <line number="172" hits="2"/>
+                <line number="172" hits="0"/>
               </lines>
             </method>
-            <method name="(anonymous_8)" hits="2" signature="()V">
+            <method name="(anonymous_8)" hits="0" signature="()V">
               <lines>
-                <line number="177" hits="2"/>
+                <line number="177" hits="0"/>
               </lines>
             </method>
-            <method name="hideTapIconMessage" hits="3" signature="()V">
+            <method name="hideTapIconMessage" hits="2" signature="()V">
               <lines>
-                <line number="203" hits="3"/>
+                <line number="203" hits="2"/>
               </lines>
             </method>
             <method name="isUserNearBuilding" hits="8" signature="()V">
@@ -81,12 +81,12 @@
             </method>
           </methods>
           <lines>
-            <line number="4" hits="3" branch="false"/>
-            <line number="29" hits="3" branch="false"/>
-            <line number="30" hits="3" branch="false"/>
-            <line number="31" hits="3" branch="false"/>
-            <line number="32" hits="3" branch="false"/>
-            <line number="35" hits="3" branch="false"/>
+            <line number="4" hits="2" branch="false"/>
+            <line number="29" hits="2" branch="false"/>
+            <line number="30" hits="2" branch="false"/>
+            <line number="31" hits="2" branch="false"/>
+            <line number="32" hits="2" branch="false"/>
+            <line number="35" hits="2" branch="false"/>
             <line number="36" hits="1" branch="false"/>
             <line number="37" hits="1" branch="false"/>
             <line number="40" hits="1" branch="true" condition-coverage="50% (1/2)"/>
@@ -130,15 +130,15 @@
             <line number="160" hits="1" branch="true" condition-coverage="50% (1/2)"/>
             <line number="161" hits="1" branch="false"/>
             <line number="163" hits="0" branch="false"/>
-            <line number="170" hits="3" branch="false"/>
-            <line number="172" hits="1" branch="false"/>
-            <line number="173" hits="2" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="177" hits="1" branch="false"/>
-            <line number="178" hits="2" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="179" hits="1" branch="true" condition-coverage="50% (1/2)"/>
-            <line number="204" hits="3" branch="false"/>
-            <line number="205" hits="3" branch="false"/>
-            <line number="206" hits="3" branch="false"/>
+            <line number="170" hits="2" branch="false"/>
+            <line number="172" hits="0" branch="false"/>
+            <line number="173" hits="0" branch="true" condition-coverage="0% (0/2)"/>
+            <line number="177" hits="0" branch="false"/>
+            <line number="178" hits="0" branch="true" condition-coverage="0% (0/2)"/>
+            <line number="179" hits="0" branch="true" condition-coverage="0% (0/2)"/>
+            <line number="204" hits="2" branch="false"/>
+            <line number="205" hits="2" branch="false"/>
+            <line number="206" hits="2" branch="false"/>
             <line number="212" hits="8" branch="false"/>
             <line number="213" hits="8" branch="false"/>
             <line number="214" hits="8" branch="false"/>
@@ -156,39 +156,39 @@
             <line number="247" hits="1" branch="false"/>
             <line number="255" hits="1" branch="false"/>
             <line number="264" hits="1" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="268" hits="3" branch="false"/>
-            <line number="271" hits="3" branch="false"/>
-            <line number="272" hits="3" branch="false"/>
+            <line number="268" hits="2" branch="false"/>
+            <line number="271" hits="2" branch="false"/>
+            <line number="272" hits="2" branch="false"/>
           </lines>
         </class>
-        <class name="location.js" filename="public\javascripts\location.js" line-rate="1" branch-rate="1">
+        <class name="location.js" filename="public\javascripts\location.js" line-rate="0" branch-rate="0">
           <methods>
-            <method name="getUserCoords" hits="5" signature="()V">
+            <method name="getUserCoords" hits="0" signature="()V">
               <lines>
-                <line number="3" hits="5"/>
+                <line number="3" hits="0"/>
               </lines>
             </method>
-            <method name="(anonymous_1)" hits="3" signature="()V">
+            <method name="(anonymous_1)" hits="0" signature="()V">
               <lines>
-                <line number="6" hits="3"/>
+                <line number="6" hits="0"/>
               </lines>
             </method>
-            <method name="(anonymous_2)" hits="1" signature="()V">
+            <method name="(anonymous_2)" hits="0" signature="()V">
               <lines>
-                <line number="13" hits="1"/>
+                <line number="13" hits="0"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="4" hits="5" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="5" hits="4" branch="false"/>
-            <line number="7" hits="3" branch="false"/>
-            <line number="8" hits="3" branch="false"/>
-            <line number="9" hits="3" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="10" hits="1" branch="false"/>
-            <line number="14" hits="1" branch="false"/>
-            <line number="18" hits="1" branch="false"/>
-            <line number="23" hits="1" branch="false"/>
+            <line number="4" hits="0" branch="true" condition-coverage="0% (0/2)"/>
+            <line number="5" hits="0" branch="false"/>
+            <line number="7" hits="0" branch="false"/>
+            <line number="8" hits="0" branch="false"/>
+            <line number="9" hits="0" branch="true" condition-coverage="0% (0/2)"/>
+            <line number="10" hits="0" branch="false"/>
+            <line number="14" hits="0" branch="false"/>
+            <line number="18" hits="0" branch="false"/>
+            <line number="23" hits="0" branch="false"/>
           </lines>
         </class>
         <class name="timeline.js" filename="public\javascripts\timeline.js" line-rate="0" branch-rate="0">

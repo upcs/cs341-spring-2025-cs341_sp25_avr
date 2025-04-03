@@ -147,6 +147,8 @@ describe("Geo.js Additional Tests", () => {
 
   
   test("Clicking debug button should toggle popups", () => {
+    const $ = require("jquery");
+    
     const devButton = $('#debug-btn');
     const popups = $('.welcome-pop-up');
     
