@@ -146,15 +146,6 @@ devButton.addEventListener('click', () => {
        index != 0 && popup.style.display === "flex"
    );
 
-    // Toggle display based on current state
-    popups.forEach((popup, index) => {
-        if (index != 0) {
-            popup.style.display = allVisible ? "none" : "flex";
-        }
-       
-    });
-
-});
 
 // IMPORTANT: DON'T DELETE in case we want to move coords to data base
 //gets coords from database
@@ -231,6 +222,26 @@ function formatBuildingName(buildingName) {
         phouse: "Pilot House",
         chiles: "Chiles Center",
         buckley: "Buckley Center",
+        swindels: "Swindels Hall",
+        romanaggi: "Romanaggi Hall",
+        christie: "Christie Hall",
+        mago: "Mago Hunt Center",
+        chapel: "The Chapel of Christ the Teacher",
+        commons: "Bauccio Commons",
+        db: "Dundon-Berchtold Hall",
+        library: "Clark Library",
+        kenna: "Kenna Hall",
+        mehling: "Mehling Hall",
+        corrado: "Corrado Hall",
+        fields: "Fields and Schoenfeldt Halls",
+        beauchamp: "Beauchamp Recreation & Wellness Center",
+        waldschmidt: "Beauchamp Recreation & Wellness Center",
+        shipstad: "Shipstad Hall",
+        merlo: "Harry A. Merlo Field",
+        franz: "Franz Hall",
+        swindels: "Swindell Hall",
+        villa: "Villa Maria",
+        phouse: "Pilot House"
         swindels: "Swindels hall",
         romanaggi: "Romanaggi Hall"
     };
