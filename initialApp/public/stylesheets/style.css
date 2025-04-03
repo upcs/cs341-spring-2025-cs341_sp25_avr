@@ -162,6 +162,20 @@ body {
     flex-direction: column;
 }
 
+#phone-container1 img {
+    width: 35vw;
+    margin-bottom: 20px;
+}
+
+#creditBox {
+    padding: 10px;
+}
+
+.creditTitle {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
 #phone-container video {
     position: absolute;
     top: 50%;
