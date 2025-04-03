@@ -53,6 +53,7 @@ describe("Geo.js Tests", () => {
       </html>
     `;
     
+    
     const dom = new JSDOM(html);
     global.document = dom.window.document;
     global.window = dom.window;
@@ -69,9 +70,13 @@ describe("Geo.js Tests", () => {
     devButton = document.getElementById("debug-btn");
 
     const {
-      success,
-      checkWithinBounds,
-      updateDisplay
+      success, 
+    toggleFullscreen, 
+    updateButton, 
+    updateDisplay, 
+    isUserNearBuilding, 
+    checkAllBuildings,
+    initMap
     } = require("../public/javascripts/geo.js");
 
   });
@@ -127,7 +132,7 @@ describe("Geo.js Tests", () => {
     };
     mockGeolocation(mockPosition, null);
 
-    success();
+    initMap();
 
     expect(map.innerHTML).toContain(
       `https://maps.google.com/maps?q=${mockPosition.coords.latitude},${mockPosition.coords.longitude}`
@@ -146,7 +151,7 @@ describe("Geo.js Tests", () => {
 
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    success();
+    initMap();
 
     expect(consoleSpy).toHaveBeenCalledWith(
       "Error getting location: ",
@@ -162,7 +167,7 @@ describe("Geo.js Tests", () => {
 
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    success();
+    initMap();
 
     expect(consoleSpy).toHaveBeenCalledWith("Element with id 'map' not found.");
     consoleSpy.mockRestore();
