@@ -144,8 +144,7 @@ devButton.addEventListener('click', () => {
    // Check if all popups are currently displayed
    const allVisible = Array.from(popups).some((popup, index) => 
        index != 0 && popup.style.display === "flex"
-   );
-
+)});
 
 // IMPORTANT: DON'T DELETE in case we want to move coords to data base
 //gets coords from database
@@ -241,7 +240,7 @@ function formatBuildingName(buildingName) {
         franz: "Franz Hall",
         swindels: "Swindell Hall",
         villa: "Villa Maria",
-        phouse: "Pilot House"
+        phouse: "Pilot House",
         swindels: "Swindels hall",
         romanaggi: "Romanaggi Hall"
     };
@@ -249,7 +248,7 @@ function formatBuildingName(buildingName) {
 }
 
 
-hideTapIconMessage()
+hideTapIconMessage();
 
 
 module.exports = {initMap, updateDisplay, isUserNearBuilding, getBuildingName };
