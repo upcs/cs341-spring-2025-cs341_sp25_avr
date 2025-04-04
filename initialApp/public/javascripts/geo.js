@@ -145,6 +145,15 @@ devButton.addEventListener('click', () => {
    const allVisible = Array.from(popups).some((popup, index) => 
        index != 0 && popup.style.display === "flex"
    );
+    // Toggle display based on current state
+    popups.forEach((popup, index) => {
+        if (index != 0) {
+            popup.style.display = allVisible ? "none" : "flex";
+        }
+        
+
+       
+    });
 });
 
 
