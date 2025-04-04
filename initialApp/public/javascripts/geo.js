@@ -2,7 +2,7 @@
 let map, marker, userCircle, zoomed;
 
 const buildings = [
-    { name: "shiley", lat: 45.571873864875734, long: -122.72794184135778, radius: 30 },
+    { name: "shiley", lat: 45.571873864875734, long: -122.72794184135778, radius: 45 },
     { name: "mago", lat: 45.57331, long: -122.72814, radius: 30 },
     { name: "merlo", lat: 45.574691857551194, long: -122.72736804819188, radius: 60 },
     { name: "chapel", lat: 45.57118703901212, long: -122.7264409613001, radius: 30 },
@@ -15,9 +15,9 @@ const buildings = [
     { name: "lund", lat: 45.57604110730614, long: -122.72961827161971, radius: 60 },
     { name: "chiles", lat: 45.575106641718605, long: -122.72849170246482, radius: 60 },  
     { name: "baseball", lat: 45.57399546899834, long: -122.72950172424201, radius: 80 },
-    { name: "library", lat: 45.5727862031439, long: -122.72673322150519, radius: 30 },
+    { name: "library", lat: 45.5727862031439, long: -122.72673322150519, radius: 40 },
     { name: "phouse", lat: 45.57309068265263, long: -122.72558883489508, radius: 30 },
-    { name: "franz", lat: 45.572660826406874, long: -122.72771208733339, radius: 30 },  
+    { name: "franz", lat: 45.572660826406874, long: -122.72771208733339, radius: 35 },  
     { name: "buckley", lat: 45.572048180689166, long: -122.72603884019847, radius: 55 },
     { name: "swindels", lat: 45.571190951614135, long: -122.72523084877547, radius: 30 },
     { name: "romanaggi", lat: 45.57184274643443, long: -122.72562621977794, radius: 30 },
@@ -48,9 +48,9 @@ function initMap() {
         // defines the map 
         map = L.map('map', {
             center: [45.57190748329964, -122.72902599935568], 
-            zoom: 13,
+            zoom: 16,
             zoomControl: false, // This disables the zoom buttons
-            preferCanvas: !L.Browser.svg && !L.Browser.vml // Fix rendering issue
+            preferCanvas: !L.Browser.svg && !L.Browser.vml //Fix rendering issue
         });
 
         // gets the openStreetMap source
@@ -68,6 +68,24 @@ function initMap() {
         }
         
     }
+//ORIGINAL
+//     // defines the map 
+//     map = L.map('map', {
+//         center: [45.57190748329964, -122.72902599935568], 
+//         zoom: 13,
+//         zoomControl: false // This disables the zoom buttons
+//     });
+
+//     // gets the openStreetMap source
+//     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//         maxZoom: 19,
+//         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+//     }).addTo(map);
+
+//     // access brower geolocation API 
+//     // watchPosition() sends back a new set of coords if user moves
+//     navigator.geolocation.watchPosition(success, error);
+// >>>>>>> main
 }
 
 
@@ -81,6 +99,7 @@ function success(pos) {
     // remove deplicate markers
     if (marker) {
         map.removeLayer(marker);
+
     }
     if (userCircle) {  // Check if userCircle exists before removing it
         map.removeLayer(userCircle);
@@ -96,6 +115,14 @@ function success(pos) {
         console.error("Invalid user location, accuracy values, or no map.");
     }
     
+//ORIGINAL
+//         map.removeLayer(userCircle);
+//     }
+//     // marker is set to user's current location
+//     marker = L.marker([userLat, userLng]).addTo(map);
+//     // circle to see the accuracy of the coordinate
+//     userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map); 
+// >>>>>>> main
 
     // used to store each circle's name so we know which circle belongs to which building
     let circles = {};
@@ -149,9 +176,7 @@ function success(pos) {
         }
     }
     
-    
-    
-    // change center of map dynammically based on current marker
+    //change center of map dynammically based on current marker
     map.setView([userLat, userLng]);
 }
 
@@ -163,8 +188,6 @@ function error(err) {
         alert("Cannot get current location");
     }
 }
-
-
 
 // ------ SHOW ALL LOCATIONS BUTTON ------
 devButton.addEventListener('click', () => {
@@ -182,6 +205,9 @@ devButton.addEventListener('click', () => {
     });
 
 });
+
+//ORIGINAL
+// )});
 
 // IMPORTANT: DON'T DELETE in case we want to move coords to data base
 //gets coords from database
@@ -212,6 +238,9 @@ function isUserNearBuilding(userLat, userLng, circle) {
     let circleCenter = circle.getLatLng(); // gets the center coord of each building
     let radius = circle.getRadius(); // gets the radius of a the circle
     let distance = L.latLng(userLat, userLng).distanceTo(circleCenter); // checks distance from circle center to user
+    
+    //Original
+    // let distance = map.distance([userLat, userLng], circleCenter); // checks distance from circle center to user
 
     return distance <= radius; // true if user is inside radius 
 }
@@ -258,6 +287,26 @@ function formatBuildingName(buildingName) {
         phouse: "Pilot House",
         chiles: "Chiles Center",
         buckley: "Buckley Center",
+        swindels: "Swindels Hall",
+        romanaggi: "Romanaggi Hall",
+        christie: "Christie Hall",
+        mago: "Mago Hunt Center",
+        chapel: "The Chapel of Christ the Teacher",
+        commons: "Bauccio Commons",
+        db: "Dundon-Berchtold Hall",
+        library: "Clark Library",
+        kenna: "Kenna Hall",
+        mehling: "Mehling Hall",
+        corrado: "Corrado Hall",
+        fields: "Fields and Schoenfeldt Halls",
+        beauchamp: "Beauchamp Recreation & Wellness Center",
+        waldschmidt: "Beauchamp Recreation & Wellness Center",
+        shipstad: "Shipstad Hall",
+        merlo: "Harry A. Merlo Field",
+        franz: "Franz Hall",
+        swindels: "Swindell Hall",
+        villa: "Villa Maria",
+        phouse: "Pilot House",
         swindels: "Swindels hall",
         romanaggi: "Romanaggi Hall"
     };
@@ -265,7 +314,7 @@ function formatBuildingName(buildingName) {
 }
 
 
-hideTapIconMessage()
+hideTapIconMessage();
 
 //Attach it globally for testing
 window.error = error;
