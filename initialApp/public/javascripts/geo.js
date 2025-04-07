@@ -13,11 +13,11 @@ const buildings = [
     { name: "fields and sho", lat: 45.57587409580648, long: -122.73199424973225, radius: 60 },
     { name: "beauchamp", lat: 45.57524932809868, long: -122.73030501111376, radius: 60 },
     { name: "lund", lat: 45.57604110730614, long: -122.72961827161971, radius: 60 },
-    { name: "chiles", lat: 45.575106641718605, long: -122.72849170246482, radius: 60 },  
+    { name: "chiles", lat: 45.575106641718605, long: -122.72849170246482, radius: 60 },
     { name: "baseball", lat: 45.57399546899834, long: -122.72950172424201, radius: 80 },
     { name: "library", lat: 45.5727862031439, long: -122.72673322150519, radius: 40 },
     { name: "phouse", lat: 45.57309068265263, long: -122.72558883489508, radius: 30 },
-    { name: "franz", lat: 45.572660826406874, long: -122.72771208733339, radius: 35 },  
+    { name: "franz", lat: 45.572660826406874, long: -122.72771208733339, radius: 35 },
     { name: "buckley", lat: 45.572048180689166, long: -122.72603884019847, radius: 55 },
     { name: "swindels", lat: 45.571190951614135, long: -122.72523084877547, radius: 30 },
     { name: "romanaggi", lat: 45.57184274643443, long: -122.72562621977794, radius: 30 },
@@ -46,7 +46,7 @@ document.getElementById("startButton").onclick = function () {
 function initMap() {
     // defines the map 
     map = L.map('map', {
-        center: [45.57190748329964, -122.72902599935568], 
+        center: [45.57190748329964, -122.72902599935568],
         zoom: 13,
         zoomControl: false // This disables the zoom buttons
     });
@@ -65,7 +65,7 @@ function initMap() {
 
 // if map was created 
 function success(pos) {
-    let userLat = pos.coords.latitude; 
+    let userLat = pos.coords.latitude;
     let userLng = pos.coords.longitude;
     let accuracy = pos.coords.accuracy; // tracks the accuracy of the coords
 
@@ -78,7 +78,7 @@ function success(pos) {
     // marker is set to user's current location
     marker = L.marker([userLat, userLng]).addTo(map);
     // circle to see the accuracy of the coordinate
-    userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map); 
+    userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map);
 
     // used to store each circle's name so we know which circle belongs to which building
     let circles = {};
@@ -86,7 +86,7 @@ function success(pos) {
     // iterate through each building in the buildings array (line 3)
     buildings.forEach(building => {
         // make a new circle for each building 
-        let circle = L.circle([building.lat, building.long], {radius: building.radius}).addTo(map);
+        let circle = L.circle([building.lat, building.long], { radius: building.radius }).addTo(map);
 
         // add the building name to each circle
         circle.buildingName = building.name;
@@ -105,7 +105,7 @@ function success(pos) {
         updateDisplay(formatBuildingName(nearbyBuilding)); // Only update for the nearby building
 
         // popup button, when clicked/tapped it will take user to timeline page 
-        popups[0].addEventListener('click', () => { 
+        popups[0].addEventListener('click', () => {
             if (window.selectedBuilding) {
                 // close the map page
                 document.getElementById("phone-container2").style.display = 'none';
@@ -140,11 +140,28 @@ function error() {
 
 
 // ------ SHOW ALL LOCATIONS BUTTON ------
+// devButton.addEventListener('click', () => {
+//    // Check if all popups are currently displayed
+//    const allVisible = Array.from(popups).some((popup, index) => 
+//        index != 0 && popup.style.display === "flex"
+// )});
+
 devButton.addEventListener('click', () => {
-   // Check if all popups are currently displayed
-   const allVisible = Array.from(popups).some((popup, index) => 
-       index != 0 && popup.style.display === "flex"
-)});
+    // Check if all popups are currently displayed
+    const allVisible = Array.from(popups).some((popup, index) =>
+        index != 0 && popup.style.display === "flex"
+    );
+
+    // Toggle display based on current state
+    popups.forEach((popup, index) => {
+        if (index != 0) {
+            popup.style.display = allVisible ? "none" : "flex";
+        }
+
+    });
+
+});
+
 
 // IMPORTANT: DON'T DELETE in case we want to move coords to data base
 //gets coords from database
@@ -251,4 +268,4 @@ function formatBuildingName(buildingName) {
 hideTapIconMessage();
 
 
-module.exports = {initMap, updateDisplay, isUserNearBuilding, getBuildingName };
+module.exports = { initMap, updateDisplay, isUserNearBuilding, getBuildingName };
