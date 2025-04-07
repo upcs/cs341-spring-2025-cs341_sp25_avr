@@ -153,6 +153,39 @@ function toHomeScreen() {
 }
 
 
+//zoom in/enlarging photos
+$(document).click(function (event) {
+    //when clicking off of zoomed in image 
+    if (!$(event.target).is("#buildingImage")) {
+        document.getElementById("buildingImage").style.maxHeight = "90%"
+        document.getElementById("buildingImage").style.scale = 0.95
+        document.getElementById("menu-button").style.filter = "blur(0px)"
+        document.getElementById("buildingText").style.filter = "blur(0px)"
+        document.getElementById("yearText").style.filter = "blur(0px)"
+        document.getElementById("descriptionText").style.filter = "blur(0px)"
+        document.getElementById("read-button").style.filter = "blur(0px)"
+        document.getElementById("past-button").style.filter = "blur(0px)"
+        document.getElementById("future-button").style.filter = "blur(0px)"
+
+        //when clicking on image to zoom in    
+    } else if ($(event.target).is("#buildingImage")) {
+        document.getElementById("buildingImage").style.scale = 1.03
+        document.getElementById("buildingImage").style.maxHeight = "100%"
+        document.getElementById("menu-button").style.filter = "blur(3px)"
+        document.getElementById("buildingText").style.filter = "blur(3px)"
+        document.getElementById("yearText").style.filter = "blur(3px)"
+        document.getElementById("descriptionText").style.filter = "blur(3px)"
+        document.getElementById("read-button").style.filter = "blur(3px)"
+        document.getElementById("past-button").style.filter = "blur(3px)"
+        document.getElementById("future-button").style.filter = "blur(3px)"
+        //if dropdown is toggled, untoggles to hide it
+        if (document.getElementById("myDropdown").className == "dropdown-content show") {
+            document.getElementById("myDropdown").classList.toggle("show")
+        }
+    }
+});
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
     updateInfo(currentBuilding, '2009');
