@@ -27,19 +27,21 @@ body {
     border: solid 3px#ffffff;
     color: white;
     background-color: #1E1656;
-    padding: 15px 40px 15px 40px;
+    padding: 2vh 40px 2vh 40px;
 
 }
 
 .logo-container {
     display: flex;
-    margin-top: 15vh;
+    margin-top: 7vh;
     border-radius: 10px;
 }
 
 .logo-container img {
-    width: 85vw;
-    max-width: 500px;
+    /* width: 85vw; */
+    max-width: 90vw;
+    max-height: 20vh;
+    align-items: center;
     filter: drop-shadow(2px 1px 0px #ffffff);
 }
 
@@ -47,7 +49,8 @@ body {
 #map {
     height: 100vh;
     width: 100%;
-    position: absolute; /* Make sure the map fills the container */
+    position: absolute;
+    /* Make sure the map fills the container */
     top: 0;
     left: 0;
     z-index: 0;
@@ -209,15 +212,15 @@ body {
     font-size: 20px;
     font-weight: bold;
     text-align: center;
-    margin-bottom: 20px;
-    margin-top: 20px;
+    margin-bottom: 2vh;
+    margin-top: 2vh;
     color: #1E1656;
 }
 
 
 h1 {
     text-align: center;
-    margin-bottom: 5vh;
+    margin-bottom: 2vh;
     margin-top: 4vhpx;
     color: #ffffff;
     filter: drop-shadow(1px 1px 1px #1E1656);
