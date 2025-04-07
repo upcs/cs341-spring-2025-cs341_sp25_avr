@@ -1,3 +1,4 @@
+
 const { isUserNearBuilding } = require('../public/javascripts/geo.js');
 
 describe('Boundary Check Functions', () => {

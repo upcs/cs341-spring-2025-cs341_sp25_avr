@@ -227,9 +227,14 @@ devButton.addEventListener('click', () => {
 // hide the 'tap icon' message at the beginning
 
 function hideTapIconMessage() {
-    message[1].style.display = 'none';
-    message[1].style.color = 'gray';
-    message[0].style.fontSize = '24px';
+    const messages = document.querySelectorAll(".default-message");
+    if (messages[1]) {
+        messages[1].style.display = "none";
+        messages[1].style.color = "gray";
+    }
+    if (messages[0]) {
+        messages[0].style.fontSize = "24px";
+    }
 }
 
 
@@ -318,4 +323,4 @@ hideTapIconMessage();
 
 //Attach it globally for testing
 window.error = error;
-module.exports = { initMap, updateDisplay, isUserNearBuilding, getBuildingName, error };
+module.exports = { initMap, updateDisplay, isUserNearBuilding, getBuildingName, hideTapIconMessage, error };

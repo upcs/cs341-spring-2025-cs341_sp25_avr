@@ -1,3 +1,4 @@
+
 /**
  * @jest-environment jsdom
  */
@@ -5,7 +6,7 @@
 const { initMap, map, marker } = require('../public/javascripts/geo.js');
 
 // Mock Google Maps
-// jest.mock('../__mocks__/google.js');
+jest.mock('../__mocks__/google.js');
 
 describe('Map Functions', () => {
   beforeAll(() => {

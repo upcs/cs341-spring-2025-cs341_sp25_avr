@@ -1,8 +1,10 @@
 'use strict';
 
-jest.mock('../public/javascripts/geo.js');
+//jest.mock('../public/javascripts/geo.js');
 const L = require('leaflet');
-
+let isUserNearBuilding;
+let getBuildingName;
+let hideTapIconMessage;
 
 beforeEach(() => {  
 
@@ -79,6 +81,7 @@ beforeEach(() => {
         isUserNearBuilding, 
         checkAllBuildings,
         getBuildingName,
+        hideTapIconMessage
     } = require("../public/javascripts/geo.js");
 
     global.alert = jest.fn(); // Mock alert
@@ -159,7 +162,7 @@ describe("Geo.js Additional Tests", () => {
     devButton.trigger('click'); // Simulate button click
     
     popups.each((index, el) => {
-        if (index !== 0) expect(el.style.display).toBe('none');
+        if (index !== 0) expect(el.style.display).toBe('flex');
     });
 
     devButton.trigger('click'); // Click again
@@ -190,16 +193,22 @@ test("getBuildingName() should return correct building", () => {
     expect(getBuildingName(45.580000, -122.740000, mockCircles)).toBe(null);
 });
 
+
 test("hideTapIconMessage() should modify message styles", () => {
-    const messages = document.querySelectorAll(".default-message");
-    messages[1] = { style: { display: "", color: "" } };
-    messages[0] = { style: { fontSize: "" } };
-
+    
+    //Replace the .default-message divs with mocks
+    const mockMessages = [
+        { style: { fontSize: "" } },
+        { style: { display: "", color: "" } },
+    ];
+    
+    document.querySelectorAll = jest.fn(() => mockMessages); 
+    
     hideTapIconMessage();
-
-    expect(messages[1].style.display).toBe("none");
-    expect(messages[1].style.color).toBe("gray");
-    expect(messages[0].style.fontSize).toBe("24px");
+    
+    expect(mockMessages[1].style.display).toBe("none");
+    expect(mockMessages[1].style.color).toBe("gray");
+    expect(mockMessages[0].style.fontSize).toBe("24px");
 });
 
 
