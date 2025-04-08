@@ -57,7 +57,7 @@ body {
 
 }
 
-.welcome-pop-up {
+.building-info-btn {
     display: none;
     width: 250px;
     margin-bottom: 30px;
@@ -75,7 +75,7 @@ body {
     cursor: pointer;
 }
 
-.welcome-pop-up:hover {
+.building-info-btn:hover {
     opacity: 0.8;
 }
 
