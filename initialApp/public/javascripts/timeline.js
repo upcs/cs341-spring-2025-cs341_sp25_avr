@@ -190,3 +190,5 @@ $(document).click(function (event) {
 document.addEventListener("DOMContentLoaded", () => {
     updateInfo(currentBuilding, '2009');
 });
+
+module.exports = { selectedBuilding, updateYear, updateInfo };

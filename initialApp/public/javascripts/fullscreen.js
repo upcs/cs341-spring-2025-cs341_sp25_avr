@@ -1,66 +1,61 @@
-// ------- FULL SCREEN BUTTON STUFF --------
-function goFullscreen() {
-    let elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-        elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
-    }
-}
+/**
+ * @jest-environment jsdom
+ */
 
-document.addEventListener("DOMContentLoaded", function () {
-    if (sessionStorage.getItem("fullscreen") === "true") {
-        goFullscreen();
-    }
+describe("Fullscreen functionality", () => {
+    let button;
+
+    beforeEach(() => {
+        //Set up a fake fullscreen button in the DOM
+        document.body.innerHTML = `<button id="fullScreenButton">Fullscreen</button>`;
+
+        //Mock all the fullscreen methods
+        document.documentElement.requestFullscreen = jest.fn();
+        document.exitFullscreen = jest.fn();
+
+        //Re-require the script so the event listeners bind
+        require("../public/javascripts/fullscreen");
+
+        button = document.getElementById("fullScreenButton");
+    });
+
+    afterEach(() => {
+        jest.resetModules(); // Clear the require cache
+    });
+
+    test("clicking the button should request fullscreen if not in fullscreen", () => {
+        //Fake not being in fullscreen
+        document.fullscreenElement = null;
+
+        //Simulate a click
+        button.click();
+
+        expect(document.documentElement.requestFullscreen).toHaveBeenCalled();
+        expect(button.textContent).toBe("Minimize");
+    });
+
+    test("clicking the button should exit fullscreen if already in fullscreen", () => {
+        //Fake being in fullscreen
+        document.fullscreenElement = true;
+
+        //Simulate a click
+        button.click();
+
+        expect(document.exitFullscreen).toHaveBeenCalled();
+        expect(button.textContent).toBe("Fullscreen");
+    });
+
+    test("updateButton() sets button text based on fullscreen state", () => {
+        const event = new Event("fullscreenchange");
+
+        //Simulate entering fullscreen
+        document.fullscreenElement = true;
+        document.dispatchEvent(event);
+        expect(button.textContent).toBe("Minimize");
+
+        //Simulate exiting fullscreen
+        document.fullscreenElement = null;
+        document.dispatchEvent(event);
+        expect(button.textContent).toBe("Fullscreen");
+    });
 });
-
-const btn = document.getElementById("fullScreenButton");
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // Enter fullscreen
-        let elem = document.documentElement;
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) {
-            elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) {
-            elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) {
-            elem.msRequestFullscreen();
-        }
-        btn.textContent = "Minimize";
-    } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
-        btn.textContent = "Fullscreen";
-    }
-}
-
-// // Listen for fullscreen changes and update the button text
-document.addEventListener("fullscreenchange", updateButton);
-document.addEventListener("webkitfullscreenchange", updateButton);
-document.addEventListener("mozfullscreenchange", updateButton);
-document.addEventListener("MSFullscreenChange", updateButton);
-
-function updateButton() {
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        btn.textContent = "Minimize";
-    } else {
-        btn.textContent = "Fullscreen";
-    }
-}
-
-btn.addEventListener("click", toggleFullscreen);

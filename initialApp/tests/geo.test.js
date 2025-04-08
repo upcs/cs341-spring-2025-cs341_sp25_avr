@@ -70,7 +70,7 @@ describe("Geo.js Tests", () => {
     devButton = document.getElementById("debug-btn");
 
     const {
-      success, 
+    success, 
     toggleFullscreen, 
     updateButton, 
     updateDisplay, 
