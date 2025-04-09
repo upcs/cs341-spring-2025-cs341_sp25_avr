@@ -77,10 +77,15 @@
     <!-- map screen -->
     <div id="phone-container2">
 
+
         <div id="map"></div>
         <button id="home-toggle" class="app-button" onclick="toHomeScreen()"><i class="fa fa-bars"></i> Menu</button>
+        <div id="additional-btns-container">
+            <button id="help-btn">?</button>
+        </div>
 
         <div class="popup-container">
+
             <div class="loading-message">
                 <p class="default-message">Walk to a nearby building</p>
                 <p class="default-message">Tap icon to learn more</p>
@@ -115,6 +120,15 @@
             <button id="debug-btn">Show all locations</button>
         </div>
 
+        <div class="overlay">
+            <div class="welcome-popup">
+                <h1>Welcome to the Time Machine</h1>
+                <p>blah blah blah</p> <br>
+                <img src="images/wally.png" alt="">
+                <button id="close-popup-btn">OK</button>
+            </div>
+            
+        </div>
         
     </div>
 
@@ -155,8 +169,10 @@
 
 
     <script src="javascripts/geo.js"></script>
+    <!-- <script src="javascripts/popup.js"></script> -->
     <script src="javascripts/fullscreen.js"></script>
     <script src="javascripts/timeline.js"></script>
+
 
     <script>
        

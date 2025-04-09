@@ -26,10 +26,16 @@ const buildings = [
 ];
 
 
+
+const okBtn = document.getElementById("close-popup-btn");
+const overlay= document.querySelector(".overlay");
+const helpBtn = document.getElementById("help-btn");
 const message = document.querySelectorAll(".default-message");
 const loader = document.querySelector(".loader");
 const popups = document.querySelectorAll(".building-info-btn"); // gets all the popups for each building
 const devButton = document.getElementById("debug-btn");
+
+
 
 // ------ START BUTTON ------
 document.getElementById("startButton").onclick = function () {
@@ -41,6 +47,16 @@ document.getElementById("startButton").onclick = function () {
         initMap();
     }
 };
+
+// ------ WELCOME POPUP & HELP BUTTON-------
+okBtn.addEventListener('click', () => {
+    overlay.classList.add('hide');
+});
+
+helpBtn.addEventListener('click', () => {
+    overlay.classList.remove('hide');
+});
+
 
 // ------ CREATE MAP ------
 function initMap() {
