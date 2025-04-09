@@ -52,6 +52,8 @@ describe("Geo.js Additional Tests", () => {
             <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
             <button id="debug-btn">Debug</button>
             <button id="startButton">Start</button>
+            <button id="nextButton">Start</button>
+            <button id="backButton">Start</button>
             <button id="fullScreenButton">Fullscreen</button>
             
             <div id="phone-container"></div>
