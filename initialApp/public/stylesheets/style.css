@@ -66,9 +66,9 @@ body {
     /* animation: pulse 5s infinite; */
     color: white;
     background-color: #1E1656;
-    padding: 10px 20px 10px 20px;
+    padding: 10px 10px 10px 10px;
     border-radius: 20px;
-    font-size: 24px;
+    font-size: 28px;
     -moz-animation: bounce 2s;
     -webkit-animation: bounce 2s;
     animation: bounce 2s;
@@ -338,4 +338,14 @@ h1 {
     background-color: #1E1656;
     position: fixed;
     cursor: pointer;
+}
+
+#captureButton {
+    width: 128px;
+    height: 64px;
+    margin-top: 48px;
+    font-size: 36px;
+    color: white;
+    border-radius: 10px;
+    background-color: #1E1656;
 }
