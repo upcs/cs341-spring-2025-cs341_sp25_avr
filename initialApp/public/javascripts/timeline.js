@@ -112,6 +112,10 @@ document.getElementById("menu-button").onclick = function () {
 }
 
 document.getElementById("map-toggle").onclick = function () {
+    if (document.getElementById("mapDropdown").className == "dropdown-content show") {
+        document.getElementById("mapDropdown").classList.toggle("show")
+    }
+
     document.getElementById("myDropdown").classList.toggle("show")
     document.getElementById("phone-container2").style.display = 'flex';
     document.getElementById("phone-container3").style.display = 'none';
@@ -151,6 +155,11 @@ document.getElementById('read-button').onclick = function () {
 
 //navigation function for menu home
 function toHomeScreen() {
+    //hides dropdown menu if open
+    if (document.getElementById("myDropdown").className == "dropdown-content show") {
+        document.getElementById("myDropdown").classList.toggle("show")
+    }
+
     document.getElementById("phone-container").style.display = 'flex';
     document.getElementById("phone-container1").style.display = 'none';
     document.getElementById("phone-container2").style.display = 'none';
