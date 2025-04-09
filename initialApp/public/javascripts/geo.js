@@ -1,6 +1,5 @@
 //Global Variables for map
 let map, marker, userCircle, zoomed;
-let circles = {};
 
 const buildings = [
     { name: "shiley", lat: 45.571873864875734, long: -122.72794184135778, radius: 45 },
@@ -67,22 +66,8 @@ function initMap() {
         } else {
             console.error("Geolocation is not supported by this browser.");
         }
-
-        //iterate through each building in the buildings array
-        buildings.forEach(building => {
-
-        //make a new circle for each building 
-        let circle = L.circle([building.lat, building.long], { radius: building.radius }).addTo(map);
-
-        //add the building name to each circle
-        circle.buildingName = building.name;
-
-        //store circles in the object using building name as key
-        circles[building.name] = circle;
-    });
         
     }
-
 //ORIGINAL
 //     // defines the map 
 //     map = L.map('map', {
@@ -130,7 +115,32 @@ function success(pos) {
         console.error("Invalid user location, accuracy values, or no map.");
     }
     
-    //store the nearest building name as a variable 
+//ORIGINAL
+//         map.removeLayer(userCircle);
+//     }
+//     // marker is set to user's current location
+//     marker = L.marker([userLat, userLng]).addTo(map);
+//     // circle to see the accuracy of the coordinate
+//     userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map); 
+// >>>>>>> main
+
+    // used to store each circle's name so we know which circle belongs to which building
+    let circles = {};
+
+    // iterate through each building in the buildings array (line 3)
+    buildings.forEach(building => {
+        // make a new circle for each building 
+        let circle = L.circle([building.lat, building.long], { radius: building.radius }).addTo(map);
+
+        // add the building name to each circle
+        circle.buildingName = building.name;
+
+        // store circles in the object using building name as key
+        // Ex: {"shiley", circle}
+        circles[building.name] = circle;
+    });
+
+    // store the nearest building name as a variable 
     let nearbyBuilding = getBuildingName(userLat, userLng, circles);
 
     // if there is a building near by
