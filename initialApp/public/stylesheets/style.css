@@ -15,6 +15,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
+    width: 100%;
 }
 
 
@@ -24,7 +26,7 @@ body {
     font-size: 24px;
     font-weight: bold;
     border-radius: 20px;
-    border: solid 3px#ffffff;
+    border: solid 3px #ffffff;
     color: white;
     background-color: #1E1656;
     padding: 2vh 40px 2vh 40px;
@@ -130,7 +132,7 @@ body {
 
 
 .loading-message {
-    visibility: none;
+    visibility: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -221,7 +223,7 @@ body {
 h1 {
     text-align: center;
     margin-bottom: 2vh;
-    margin-top: 4vhpx;
+    margin-top: 4vh;
     color: #ffffff;
     filter: drop-shadow(1px 1px 1px #1E1656);
 }
@@ -232,7 +234,7 @@ h1 {
     font-size: 24px;
     font-weight: bold;
     border-radius: 20px;
-    border: solid 3px#ffffff;
+    border: solid 3px #ffffff;
     color: white;
     background-color: #1E1656;
     padding: 15px 40px 15px 40px;
