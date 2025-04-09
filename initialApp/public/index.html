@@ -12,12 +12,10 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 </head>
 
@@ -53,14 +51,14 @@
                 <img src="images/wally.png" alt="">
 
 
-                <h3 class="creditText">  Thank you to the Marketing Team for helping make this possible.
+                <h3 class="creditText"> Thank you to the Marketing Team for helping make this possible.
                 </h3>
 
                 <h3 class="creditText"> Thank you to the Archives for providing the images and
                     information for each of the building locations.
                 </h3>
 
-                <p class="creditText">  The Clark Library Digital Collections can be found by clicking
+                <p class="creditText"> The Clark Library Digital Collections can be found by clicking
                     <a href="https://digital.up.edu/" target=”_blank”>this</a>
                     link
                 </p>
@@ -78,7 +76,15 @@
     <div id="phone-container2">
 
         <div id="map"></div>
-        <button id="home-toggle" class="app-button" onclick="toHomeScreen()"><i class="fa fa-bars"></i> Menu</button>
+        <div class="dropdown">
+            <button id="map-menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
+
+            <div id="mapDropdown" class="dropdown-content">
+                <button class="link" id="home-toggle" onclick="toHomeScreen()">Home</button>
+                <button class="link" id="debug-btn">Show all locations</button>
+            </div>
+
+        </div>
 
         <div class="popup-container">
             <div class="loading-message">
@@ -90,21 +96,25 @@
             <div class="welcome-pop-up"> </div>
 
             <div id="waldschmidt" class="welcome-pop-up" onclick="selectedBuilding('waldschmidt')">Waldschmidt Hall
-            </div> 
-            <div id="shiley" class="welcome-pop-up" onclick="selectedBuilding('shiley')">Shiley School of Engineering</div>
+            </div>
+            <div id="shiley" class="welcome-pop-up" onclick="selectedBuilding('shiley')">Shiley School of Engineering
+            </div>
             <div id="chiles" class="welcome-pop-up" onclick="selectedBuilding('chiles')">Chiles Center</div>
             <div id="christie" class="welcome-pop-up" onclick="selectedBuilding('christie')">Christie Hall</div>
             <div id="mago" class="welcome-pop-up" onclick="selectedBuilding('mago')">Mago Hunt Center</div>
-            <div id="chapel" class="welcome-pop-up" onclick="selectedBuilding('chapel')">The Chapel of Christ the Teacher</div>
+            <div id="chapel" class="welcome-pop-up" onclick="selectedBuilding('chapel')">The Chapel of Christ the
+                Teacher</div>
             <div id="commons" class="welcome-pop-up" onclick="selectedBuilding('commons')">Bauccio Commons</div>
             <div id="db" class="welcome-pop-up" onclick="selectedBuilding('db')">Dundon-Berchtold Hall</div>
             <div id="library" class="welcome-pop-up" onclick="selectedBuilding('library')">Clark Library</div>
             <div id="kenna" class="welcome-pop-up" onclick="selectedBuilding('kenna')">Kenna Hall</div>
             <div id="mehling" class="welcome-pop-up" onclick="selectedBuilding('mehling')">Mehling Hall</div>
             <div id="corrado" class="welcome-pop-up" onclick="selectedBuilding('corrado')">Corrado Hall</div>
-            <div id="fields" class="welcome-pop-up" onclick="selectedBuilding('fields')">Fields and Schoenfeldt Halls</div>
+            <div id="fields" class="welcome-pop-up" onclick="selectedBuilding('fields')">Fields and Schoenfeldt Halls
+            </div>
             <div id="lund" class="welcome-pop-up" onclick="selectedBuilding('lund')">Lund Family Hall</div>
-            <div id="beauchamp" class="welcome-pop-up" onclick="selectedBuilding('beauchamp')">Beauchamp Recreation & Wellness Center</div>
+            <div id="beauchamp" class="welcome-pop-up" onclick="selectedBuilding('beauchamp')">Beauchamp Recreation &
+                Wellness Center</div>
             <div id="shipstad" class="welcome-pop-up" onclick="selectedBuilding('shipstad')">Shipstad Hall</div>
             <div id="merlo" class="welcome-pop-up" onclick="selectedBuilding('merlo')">Harry A. Merlo Field</div>
             <div id="franz" class="welcome-pop-up" onclick="selectedBuilding('franz')">Franz Hall</div>
@@ -113,10 +123,9 @@
             <div id="buckley" class="welcome-pop-up" onclick="selectedBuilding('buckley')">Buckley Center</div>
             <div id="phouse" class="welcome-pop-up" onclick="selectedBuilding('phouse')">Pilot House</div>
 
-            <button id="debug-btn">Show all locations</button>
         </div>
 
-        
+
     </div>
 
     <!-- timeline screen -->
@@ -160,7 +169,7 @@
     <script src="javascripts/timeline.js"></script>
 
     <script>
-       
+
     </script>
 
 </body>

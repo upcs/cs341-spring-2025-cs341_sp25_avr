@@ -108,6 +108,7 @@ document.getElementById("menu-button").onclick = function () {
 }
 
 document.getElementById("map-toggle").onclick = function () {
+    document.getElementById("myDropdown").classList.toggle("show")
     document.getElementById("phone-container2").style.display = 'flex';
     document.getElementById("phone-container3").style.display = 'none';
 }

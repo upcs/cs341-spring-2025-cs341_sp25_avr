@@ -239,14 +239,3 @@ h1 {
     position: fixed;
 
 }
-
-#debug-btn {
-    width: 100px;
-    height: 20px;
-    font-size: 10px;
-    padding: none;
-    background-color: grey;
-    border: solid 1px white;
-    border-radius: 10px;
-    color: white;
-}
