@@ -21,7 +21,7 @@ function selectedBuilding(building) {
 //building for database and forward boolean for future(true) or past(false) in timeline
 function updateYear(building, forward) {
     //if year is null, returns array of years from building
-    contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "';"
+    const contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "';"
 
     $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
         const years = [];

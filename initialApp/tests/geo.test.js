@@ -161,6 +161,10 @@ describe("Geo.js Tests", () => {
   });
 
   test("should handle missing map element gracefully", () => {
+    
+    const {initMap} = require ('../public/javascripts/geo.js');
+
+    
     jest.spyOn(global.document, "getElementById").mockImplementation((id) =>
       id === "map" ? null : {}
     );
@@ -174,6 +178,10 @@ describe("Geo.js Tests", () => {
   });
 
   test("should verify user is within bounds", () => {
+    
+    const {checkWithinBounds} = require ('../public/javascripts/geo.js');
+
+    
     const result = checkWithinBounds(
       45.5723,
       -122.7275,
@@ -187,6 +195,9 @@ describe("Geo.js Tests", () => {
   });
 
   test("should return false if user is outside bounds", () => {
+    
+    const {checkWithinBounds} = require ('../public/javascripts/geo.js');
+    
     const result = checkWithinBounds(
       45.5700,
       -122.7300,
@@ -200,6 +211,9 @@ describe("Geo.js Tests", () => {
   });
 
   test("should update display with building name", () => {
+    
+    const {updateDisplay} = require ('../public/javascripts/geo.js');
+    
     updateDisplay("Shiley School of Engineering");
 
     expect(message[0].style.display).toBe("flex");
@@ -211,6 +225,9 @@ describe("Geo.js Tests", () => {
   });
 
   test("should handle undefined message elements gracefully", () => {
+    
+    const {updateDisplay} = require ('../public/javascripts/geo.js');
+    
     jest.spyOn(global.document, "querySelectorAll").mockImplementation((selector) =>
       selector === ".default-message" ? null : []
     );
