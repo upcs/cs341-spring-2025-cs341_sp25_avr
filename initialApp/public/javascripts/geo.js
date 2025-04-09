@@ -40,7 +40,22 @@ document.getElementById("startButton").onclick = function () {
     // only load the map when 'start button' is pressed or map is not present
     if (!map) {
         initMap();
+    } else {
+        setTimeout(() => map.invalidateSize(), 300);
     }
+};
+
+document.getElementById("nextButton").onclick = function () {
+    document.getElementById("phone-container2").style.display = 'none';
+    document.getElementById("phone-container3").style.display = 'flex';
+};
+
+document.getElementById("backButton").onclick = function () {
+    document.getElementById("phone-container3").style.display = 'none';
+    document.getElementById("phone-container2").style.display = 'flex';
+
+    // Resize map again when returning to container 2
+    setTimeout(() => map.invalidateSize(), 300);
 };
 
 // ------ CREATE MAP ------
