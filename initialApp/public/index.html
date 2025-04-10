@@ -16,6 +16,38 @@
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        // Function to scroll to the top of the page
+        function scrollToTop() {
+            window.scrollTo(0, 0);
+        }
+
+        // Function to handle the Past button click
+        function goToPast() {
+            scrollToTop();
+            // Add your logic to navigate to the past content here
+            console.log("Navigating to Past content...");
+        }
+
+        // Function to handle the Future button click
+        function goToFuture() {
+            scrollToTop();
+            // Add your logic to navigate to the future content here
+            console.log("Navigating to Future content...");
+        }
+
+        // Call the function when the window loads
+        window.onload = scrollToTop;
+
+        // Add event listeners to buttons to scroll to the top when clicked
+        document.addEventListener("DOMContentLoaded", function() {
+            // Add event listeners to the Past and Future buttons
+            document.getElementById('past-button').addEventListener('click', goToPast);
+            document.getElementById('future-button').addEventListener('click', goToFuture);
+        });
+    </script>
+
 </head>
 
 <body>
@@ -137,8 +169,8 @@
         <button class="link" id="read-button">Read more</button>
 
         <div class="timeline-btn-container">
-            <button id="past-button"><i class="fa fa-step-backward"></i> Past </button>
-            <button id="future-button" style=color:gray;> Future <i class="fa fa-step-forward"></i></button>
+            <button id="past-button"><i class="goToPast"></i> Past </button>
+            <button id="future-button" style=color:gray;> Future <i class="goToFuture"></i></button>
         </div>
 
         <script src="javascripts/geo.js"></script>
