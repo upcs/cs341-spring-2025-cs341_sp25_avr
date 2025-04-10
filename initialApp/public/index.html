@@ -56,16 +56,22 @@
     <div id="phone-container2">
 
         <div id="map"></div>
-        <button id="home-toggle" class="app-button" onclick="toHomeScreen()"><i class="fa fa-bars"></i> Menu</button>
+        <div class="dropdown">
+            <button id="map-menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
+
+            <div id="mapDropdown" class="dropdown-content">
+                <button class="link" id="home-toggle" onclick="toHomeScreen()">Home</button>
+                <button class="link" id="debug-btn">Show all locations</button>
+            </div>
+
+        </div>
 
         <div id="additional-btns-container">
             <button id="help-btn">?</button>
+            <button id="map-fullscreen-btn"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
         </div>
 
-
-
         <div class="popup-container">
-
             <div class="loading-message">
                 <p class="default-message">Walk to a nearby building</p>
                 <p class="default-message">Tap icon to learn more</p>
@@ -95,7 +101,6 @@
             <div id="buckley" class="building-info-btn" onclick="selectedBuilding('buckley')">Buckley Center</div>
             <div id="phouse" class="building-info-btn" onclick="selectedBuilding('phouse')">Pilot House</div>
             <div id="rigley" class="building-info-btn" onclick="selectedBuilding('rigley')">Rigley Field</div>
-            <button id="debug-btn">Show all locations</button>
         </div>
 
         <div class="overlay">
@@ -105,7 +110,6 @@
                 <img src="images/wally.png" alt="">
                 <button id="close-popup-btn">OK</button>
             </div>
-            
         </div>
 
     </div>
@@ -141,19 +145,21 @@
             <button id="future-button" style=color:gray;> Future <i class="fa fa-step-forward"></i></button>
         </div>
 
-        <script src="javascripts/geo.js"></script>
-        <script src="javascripts/fullscreen.js"></script>
-        <script src="javascripts/timeline.js"></script>
 
-    <!-- Capture Input -->
-    <div class="capture-container" style="display: flex; flex-direction: column; align-items: center;">
-        <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;" onchange="handlePhotoCapture(event)">
-        <button id="captureButton" onclick="document.getElementById('captureInput').click();" style="margin-bottom: 10px;"><i class="fa-solid fa-camera"></i></button>
-        <div id="photoStamp" style="display: none;">
-            <img src="images/checkmark.png" alt="Photo Taken" style="width: 50px; height: 50px;">
+        <!-- Capture Input -->
+        <div class="capture-container" style="display: flex; flex-direction: column; align-items: center;">
+            <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;" onchange="handlePhotoCapture(event)">
+            <button id="captureButton" onclick="document.getElementById('captureInput').click();" style="margin-bottom: 10px;"><i class="fa-solid fa-camera"></i></button>
+            <div id="photoStamp" style="display: none;">
+                <img src="images/checkmark.png" alt="Photo Taken" style="width: 50px; height: 50px;">
         </div>
         <p id="photoCount" style="text-align: center; margin-top: 0;">Photos Taken: 0</p>
     </div>
+
+
+    <script src="javascripts/geo.js"></script>
+    <script src="javascripts/fullscreen.js"></script>
+    <script src="javascripts/timeline.js"></script>
 
 </body>
 

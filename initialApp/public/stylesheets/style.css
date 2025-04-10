@@ -240,16 +240,6 @@ h1 {
 
 }
 
-#debug-btn {
-    width: 100px;
-    height: 20px;
-    font-size: 10px;
-    padding: none;
-    background-color: grey;
-    border: solid 1px white;
-    border-radius: 10px;
-    color: white;
-}
 
 /* Starting Popup */
 
@@ -337,6 +327,20 @@ h1 {
     color: white;
     background-color: #1E1656;
     position: fixed;
+    cursor: pointer;
+}
+
+#map-fullscreen-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 100%;
+    border: solid 3px#ffffff;
+    color: white;
+    background-color: #1E1656;
+    position: fixed;
+    margin-top: 60px;
     cursor: pointer;
 }
 
