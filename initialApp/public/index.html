@@ -103,10 +103,7 @@
             <button id="map-fullscreen-btn"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
         </div>
 
-
-
         <div class="popup-container">
-
             <div class="loading-message">
                 <p class="default-message">Walk to a nearby building</p>
                 <p class="default-message">Tap icon to learn more</p>
@@ -138,6 +135,7 @@
             <div id="rigley" class="building-info-btn" onclick="selectedBuilding('rigley')">Rigley Field</div>
             <div id="baseball" class="building-info-btn" onclick="selectedBuilding('baseball')">Joe Etzel Field</div>
             <div id="romanaggi" class="building-info-btn" onclick="selectedBuilding('romanaggi')">Romanaggi Hall</div>
+          
         </div>
 
         <div class="overlay">
@@ -147,7 +145,6 @@
                 <img src="images/wally.png" alt="">
                 <button id="close-popup-btn">OK</button>
             </div>
-            
         </div>
 
     </div>
@@ -183,7 +180,7 @@
             <button id="past-button"><i class="goToPast"></i> Past </button>
             <button id="future-button" style=color:gray;> Future <i class="goToFuture"></i></button>
         </div>
-
+  
         <!-- Capture Input -->
         <div class="capture-container" style="display: flex; flex-direction: column; align-items: center;">
             <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;" onchange="handlePhotoCapture(event)">

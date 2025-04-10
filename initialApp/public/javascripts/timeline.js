@@ -1,10 +1,3 @@
-
-
-//keeps track of selected location button selected
-var currentBuilding = "shiley"
-let photoCount = 0; // Initialize photo count
-const capturedPhotos = {}; // Object to track captured photos by building name
-
 //functions for timeline 
 
 function selectedBuilding(building) {
@@ -42,6 +35,10 @@ function updateYear(building, forward) {
             updateInfo(building, years[p.length - 1])
             document.getElementById("future-button").style = "color:gray;"
             document.getElementById("past-button").style = "color:floralwhite;"
+
+            if (years.length - 1 == 0) {
+                document.getElementById("past-button").style = "color:gray;"
+            }
             return;
         }
 
@@ -62,7 +59,7 @@ function updateYear(building, forward) {
         //grays or whites out future and past buttons if event is possible
         document.getElementById("future-button").style = "color:floralwhite;"
         document.getElementById("past-button").style = "color:floralwhite;"
-        if (currentIndex == 0) {
+        if (currentIndex == 0 || years.length - 1 == 0) {
             document.getElementById("past-button").style = "color:gray;"
         }
         if (currentIndex == years.length - 1) {
@@ -108,6 +105,11 @@ document.getElementById("menu-button").onclick = function () {
 }
 
 document.getElementById("map-toggle").onclick = function () {
+    if (document.getElementById("mapDropdown").className == "dropdown-content show") {
+        document.getElementById("mapDropdown").classList.toggle("show")
+    }
+
+    document.getElementById("myDropdown").classList.toggle("show")
     document.getElementById("phone-container2").style.display = 'flex';
     document.getElementById("phone-container3").style.display = 'none';
 }
@@ -146,6 +148,11 @@ document.getElementById('read-button').onclick = function () {
 
 //navigation function for menu home
 function toHomeScreen() {
+    //hides dropdown menu if open
+    if (document.getElementById("myDropdown").className == "dropdown-content show") {
+        document.getElementById("myDropdown").classList.toggle("show")
+    }
+
     document.getElementById("phone-container").style.display = 'flex';
     document.getElementById("phone-container1").style.display = 'none';
     document.getElementById("phone-container2").style.display = 'none';
@@ -191,6 +198,12 @@ document.addEventListener("DOMContentLoaded", () => {
     updateInfo(currentBuilding, '2009');
 });
 
+// Keeps track of selected location button selected
+var currentBuilding = "shiley";
+let photoCount = 0; // Initialize photo count
+const capturedPhotos = {}; // Object to track captured photos by building name
+const totalBuildings = 23; // Total number of buildings
+const buildingsWithPhotos = new Set(); // Set to track buildings with photos taken
 
 // Function to handle photo capture
 function handlePhotoCapture(event) {
@@ -199,13 +212,22 @@ function handlePhotoCapture(event) {
     if (file) {
         // Check if a photo has already been taken for the current building
         if (capturedPhotos[currentBuilding]) {
-            alert(`You have already taken a photo for ${currentBuilding}.`);
+            // Mark the camera button with a checkmark
+            const captureButton = document.getElementById('captureButton');
+            captureButton.style.display = 'none'; // Hide the button
+            const checkmark = document.createElement('img');
+            checkmark.src = 'images/checkmark.png'; // Path to your checkmark image
+            checkmark.style.width = '50px';
+            checkmark.style.height = '50px';
+            checkmark.id = 'checkmarkImage'; // Give it an ID for future reference
+            document.querySelector('.capture-container').appendChild(checkmark); // Add checkmark to the container
             return; // Exit the function if a photo has already been taken
         }
 
         // Increment the photo count
         photoCount++;
         capturedPhotos[currentBuilding] = true; // Mark this building as having a photo taken
+        buildingsWithPhotos.add(currentBuilding); // Add to the set of buildings with photos
         document.getElementById('photoCount').innerText = `Photos Taken: ${photoCount}`;
 
         // Change the button to a checkmark
@@ -219,12 +241,23 @@ function handlePhotoCapture(event) {
         document.querySelector('.capture-container').appendChild(checkmark); // Add checkmark to the container
 
         // Check if all buildings have been photographed
-        if (Object.keys(capturedPhotos).length === 25) {
-            // Add confetti
+        if (buildingsWithPhotos.size === totalBuildings) {
+            // Add confetti with more exciting effects
             confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { x: 0.5, y: 0.5 }
+                particleCount: 200,
+                spread: 100,
+                origin: { x: 0.5, y: 0.5 },
+                colors: ['#FF69B4', '#FFC67D', '#8BC34A'],
+                shapes: ['circle', 'square', 'triangle'],
+                gravity: 0.5,
+                drift: 0.5,
+                speed: 100,
+                decay: 0.9,
+                rotate: true,
+                tilt: 90,
+                wobble: true,
+                opacity: 0.5,
+                zIndex: 1000,
             });
         }
     }
@@ -234,12 +267,6 @@ function handlePhotoCapture(event) {
 function changeBuilding(newBuilding) {
     // Check if the building is changing
     if (currentBuilding !== newBuilding) {
-        // If a photo was taken for the current building, do not decrement the count
-        if (capturedPhotos[currentBuilding]) {
-            // Just mark the previous building as not having a photo taken
-            capturedPhotos[currentBuilding] = false; 
-        }
-
         // Update the building name
         currentBuilding = newBuilding; // Update the current building
         document.getElementById('buildingText').innerText = newBuilding;
