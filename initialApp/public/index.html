@@ -105,6 +105,7 @@
         </div>
 
         <div class="popup-container">
+
             <div class="loading-message">
                 <p class="default-message">Walk to a nearby building</p>
                 <p class="default-message">Tap icon to learn more</p>
@@ -136,7 +137,7 @@
             <div id="rigley" class="building-info-btn" onclick="selectedBuilding('rigley')">Rigley Field</div>
             <div id="baseball" class="building-info-btn" onclick="selectedBuilding('baseball')">Joe Etzel Field</div>
             <div id="romanaggi" class="building-info-btn" onclick="selectedBuilding('romanaggi')">Romanaggi Hall</div>
-          
+            <button id="debug-btn">Show all locations</button>
         </div>
 
         <div class="overlay">
@@ -146,6 +147,7 @@
                 <img src="images/wally.png" alt="">
                 <button id="close-popup-btn">OK</button>
             </div>
+            
         </div>
 
         
@@ -183,21 +185,20 @@
             <button id="past-button"><i class="goToPast"></i> Past </button>
             <button id="future-button" style=color:gray;> Future <i class="goToFuture"></i></button>
         </div>
-  
-        <!-- Capture Input -->
-        <div class="capture-container" style="display: flex; flex-direction: column; align-items: center;">
-            <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;" onchange="handlePhotoCapture(event)">
-            <button id="captureButton" onclick="document.getElementById('captureInput').click();" style="margin-bottom: 10px;"><i class="fa-solid fa-camera"></i></button>
-            <div id="photoStamp" style="display: none;">
-                <img src="images/checkmark.png" alt="Photo Taken" style="width: 50px; height: 50px;">
+
+        <script src="javascripts/geo.js"></script>
+        <script src="javascripts/fullscreen.js"></script>
+        <script src="javascripts/timeline.js"></script>
+
+    <!-- Capture Input -->
+    <div class="capture-container" style="display: flex; flex-direction: column; align-items: center;">
+        <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;" onchange="handlePhotoCapture(event)">
+        <button id="captureButton" onclick="document.getElementById('captureInput').click();" style="margin-bottom: 10px;"><i class="fa-solid fa-camera"></i></button>
+        <div id="photoStamp" style="display: none;">
+            <img src="images/checkmark.png" alt="Photo Taken" style="width: 50px; height: 50px;">
         </div>
         <p id="photoCount" style="text-align: center; margin-top: 0;">Photos Taken: 0</p>
     </div>
-
-
-    <script src="javascripts/geo.js"></script>
-    <script src="javascripts/fullscreen.js"></script>
-    <script src="javascripts/timeline.js"></script>
 
 </body>
 
