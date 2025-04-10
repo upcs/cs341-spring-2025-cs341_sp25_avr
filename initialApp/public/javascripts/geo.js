@@ -216,17 +216,9 @@ function error(err) {
 devButton.addEventListener('click', () => {
   
     popups.forEach((popup, index) => {
-<<<<<<< HEAD
+
         popup.style.display = 'flex';
-=======
-<<<<<<< HEAD
-        if (index != 0) {
-            popup.style.display = allVisible ? "none" : "flex";
-        }
-=======
-        popup.style.display = 'flex';
->>>>>>> main
->>>>>>> b5985fc0d5d7895a4cff872eb4111b29a3a504ba
+
     });
 });
 
@@ -307,16 +299,6 @@ function hideLoader() {
 
 hideTapIconMessage();
 
-<<<<<<< HEAD
 //Attach it globally for testing
 window.error = error;
 module.exports = { initMap, updateDisplay, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader };
-=======
-<<<<<<< HEAD
-//Attach it globally for testing
-window.error = error;
-module.exports = { initMap, updateDisplay, isUserNearBuilding, getBuildingName, hideTapIconMessage, error };
-=======
-module.exports = {initMap, hideLoader, isUserNearBuilding, getBuildingName }
->>>>>>> main
->>>>>>> b5985fc0d5d7895a4cff872eb4111b29a3a504ba
