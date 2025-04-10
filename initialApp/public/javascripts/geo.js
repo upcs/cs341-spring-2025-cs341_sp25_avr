@@ -168,11 +168,15 @@ function error() {
 
 // ------ SHOW ALL LOCATIONS BUTTON ------
 
+let showingAll = false; // track the toggle state
+
 devButton.addEventListener('click', () => {
-  
     popups.forEach((popup, index) => {
-        popup.style.display = 'flex';
+        popup.style.display = showingAll ? 'none' : 'flex';
     });
+
+    devButton.textContent = showingAll ? 'Show All Locations' : 'Hide Locations';
+    showingAll = !showingAll;
 });
 
 
