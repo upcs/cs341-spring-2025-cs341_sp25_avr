@@ -49,7 +49,7 @@ body {
 #map {
     height: 100vh;
     width: 100%;
-    position: absolute;
+    position: relative;
     /* Make sure the map fills the container */
     top: 0;
     left: 0;
@@ -352,4 +352,19 @@ h1 {
     color: white;
     border-radius: 10px;
     background-color: #1E1656;
+}
+
+.image-container {
+    width: 500px;
+    height: 400px;
+    overflow: hidden; /* Hide overflow */
+    display: flex; /* Use flexbox to center the image */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+.image-container embed {
+    width: 100%; /* Make the embed take the full width of the container */
+    height: auto; /* Maintain aspect ratio */
+    object-fit: cover; /* Cover the container while maintaining aspect ratio */
 }
