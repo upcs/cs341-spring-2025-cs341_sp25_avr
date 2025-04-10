@@ -59,6 +59,11 @@ helpBtn.addEventListener('click', () => {
 });
 
 
+// ------ MAP MENU BUTTON ------
+document.getElementById("map-menu-button").onclick = function () {
+    document.getElementById("mapDropdown").classList.toggle("show")
+}
+
 // ------ CREATE MAP ------
 function initMap() {
     // defines the map 
