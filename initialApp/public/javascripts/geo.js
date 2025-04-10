@@ -27,10 +27,16 @@ const buildings = [
 ];
 
 
+
+const okBtn = document.getElementById("close-popup-btn");
+const overlay= document.querySelector(".overlay");
+const helpBtn = document.getElementById("help-btn");
 const message = document.querySelectorAll(".default-message");
 const loader = document.querySelector(".loader");
-const popups = document.querySelectorAll(".welcome-pop-up"); // gets all the popups for each building
+const popups = document.querySelectorAll(".building-info-btn"); // gets all the popups for each building
 const devButton = document.getElementById("debug-btn");
+
+
 
 // ------ START BUTTON ------
 document.getElementById("startButton").onclick = function () {
@@ -42,6 +48,16 @@ document.getElementById("startButton").onclick = function () {
         initMap();
     }
 };
+
+// ------ WELCOME POPUP & HELP BUTTON-------
+okBtn.addEventListener('click', () => {
+    overlay.classList.add('hide');
+});
+
+helpBtn.addEventListener('click', () => {
+    overlay.classList.remove('hide');
+});
+
 
 // ------ CREATE MAP ------
 function initMap() {
@@ -103,19 +119,24 @@ function success(pos) {
     // if there is a building near by
     if (nearbyBuilding) {
 
-        updateDisplay(formatBuildingName(nearbyBuilding)); // Only update for the nearby building
+        hideLoader(); // Only update for the nearby building
 
-        // popup button, when clicked/tapped it will take user to timeline page 
-        popups[0].addEventListener('click', () => {
-            if (window.selectedBuilding) {
-                // close the map page
-                document.getElementById("phone-container2").style.display = 'none';
-                // opens the timeline page
-                document.getElementById("phone-container3").style.display = 'flex';
+        const matchedPopup = document.getElementById(nearbyBuilding);
+        
+        if (matchedPopup) {
+            matchedPopup.style.display = 'flex';
 
-                // function from timeline.js, gets the appropriate content for each builiding
-                window.selectedBuilding(nearbyBuilding);
-            }
+            matchedPopup.addEventListener('click', ()=> {
+                if (window.selectedBuilding) {
+                    document.getElementById("phone-container2").style.display = 'none';
+                    document.getElementById("phone-container3").style.display = 'flex';
+                    window.selectedBuilding(nearbyBuilding);
+                }
+            })
+        }
+    } else {
+        popups.forEach(popup => {
+            popup.style.display = 'none';
         });
     }
     // console.log("User is near:", nearbyBuilding ? nearbyBuilding : "No building");
@@ -141,27 +162,15 @@ function error() {
 
 
 // ------ SHOW ALL LOCATIONS BUTTON ------
-// devButton.addEventListener('click', () => {
-//    // Check if all popups are currently displayed
-//    const allVisible = Array.from(popups).some((popup, index) => 
-//        index != 0 && popup.style.display === "flex"
-// )});
 
 devButton.addEventListener('click', () => {
-    // Check if all popups are currently displayed
-    const allVisible = Array.from(popups).some((popup, index) =>
-        index != 0 && popup.style.display === "flex"
-    );
-
-    // Toggle display based on current state
+  
     popups.forEach((popup, index) => {
-        if (index != 0) {
-            popup.style.display = allVisible ? "none" : "flex";
-        }
-
+        popup.style.display = 'flex';
     });
-
 });
+
+
 
 
 // IMPORTANT: DON'T DELETE in case we want to move coords to data base
@@ -216,54 +225,16 @@ function getBuildingName(userLat, userLng, circles) {
 }
 
 
-
-
-// changes the name of the info buttons based on the passed in string
-function updateDisplay(building) {
+// hides the loading effect and updates display infomation 
+function hideLoader() {
     message[0].style.display = 'flex';
     message[0].innerHTML = 'Near by buildings:';
     message[1].style.display = 'flex';
     loader.style.display = 'none';
-    popups[0].style.display = 'flex';
-    popups[0].innerHTML = `${building}`;
 }
 
-/**
- * formats name of bulding 
- * 
- */
-function formatBuildingName(buildingName) {
-    const names = {
-        shiley: "Shiley School of Engineering",
-        lund: "Lund Family Hall",
-        phouse: "Pilot House",
-        chiles: "Chiles Center",
-        buckley: "Buckley Center",
-        swindels: "Swindels Hall",
-        romanaggi: "Romanaggi Hall",
-        christie: "Christie Hall",
-        mago: "Mago Hunt Center",
-        chapel: "The Chapel of Christ the Teacher",
-        commons: "Bauccio Commons",
-        db: "Dundon-Berchtold Hall",
-        library: "Clark Library",
-        kenna: "Kenna Hall",
-        mehling: "Mehling Hall",
-        corrado: "Corrado Hall",
-        fields: "Fields and Schoenfeldt Halls",
-        beauchamp: "Beauchamp Recreation & Wellness Center",
-        waldschmidt: "Beauchamp Recreation & Wellness Center",
-        shipstad: "Shipstad Hall",
-        merlo: "Harry A. Merlo Field",
-        franz: "Franz Hall",
-        villa: "Villa Maria",
-        rigley: "Rigley Field"
-    };
-    return names[buildingName] || buildingName;
-}
 
 
 hideTapIconMessage();
 
-
-module.exports = { initMap, updateDisplay, isUserNearBuilding, getBuildingName };
+module.exports = {initMap, hideLoader, isUserNearBuilding, getBuildingName }
