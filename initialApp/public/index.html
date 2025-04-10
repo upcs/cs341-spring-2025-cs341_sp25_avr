@@ -88,13 +88,21 @@
     <div id="phone-container2">
 
         <div id="map"></div>
-        <button id="home-toggle" class="app-button" onclick="toHomeScreen()"><i class="fa fa-bars"></i> Menu</button>
+
+        <div class="dropdown">
+            <button id="map-menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
+
+            <div id="mapDropdown" class="dropdown-content">
+                <button class="link" id="home-toggle" onclick="toHomeScreen()">Home</button>
+                <button class="link" id="debug-btn">Show all locations</button>
+            </div>
+
+        </div>
 
         <div id="additional-btns-container">
             <button id="help-btn">?</button>
+            <button id="map-fullscreen-btn"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
         </div>
-
-
 
         <div class="popup-container">
 
