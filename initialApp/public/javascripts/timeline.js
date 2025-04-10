@@ -2,19 +2,19 @@
 
 //keeps track of selected location button selected
 var currentBuilding = "shiley"
-
+let photoCount = 0; // Initialize photo count
+const capturedPhotos = {}; // Object to track captured photos by building name
 
 //functions for timeline 
 
-//when location button is selected updates screen and timeline info to match
 function selectedBuilding(building) {
-    currentBuilding = building
+    changeBuilding(building); // Call changeBuilding to reset the photo state
     document.getElementById("phone-container2").style.display = 'none';
     document.getElementById("phone-container3").style.display = 'flex';
-    updateYear(building, null)
-    //updates building name & timeline related visuals
-    document.getElementById('buildingText').innerText = document.getElementById(building).innerText
-    updateYear(building, null)
+    updateYear(building, null);
+    // Updates building name & timeline related visuals
+    document.getElementById('buildingText').innerText = document.getElementById(building).innerText;
+    updateYear(building, null);
 }
 
 //determines year of next event/timeline if possible, then calls updateInfo 
@@ -191,4 +191,69 @@ document.addEventListener("DOMContentLoaded", () => {
     updateInfo(currentBuilding, '2009');
 });
 
-module.exports = { selectedBuilding, updateYear, updateInfo };
+// Function to handle photo capture
+function handlePhotoCapture(event) {
+    const file = event.target.files[0];
+
+    if (file) {
+        // Check if a photo has already been taken for the current building
+        if (capturedPhotos[currentBuilding]) {
+            alert(`You have already taken a photo for ${currentBuilding}.`);
+            return; // Exit the function if a photo has already been taken
+        }
+
+        // Increment the photo count
+        photoCount++;
+        capturedPhotos[currentBuilding] = true; // Mark this building as having a photo taken
+        document.getElementById('photoCount').innerText = `Photos Taken: ${photoCount}`;
+
+        // Change the button to a checkmark
+        const captureButton = document.getElementById('captureButton');
+        captureButton.style.display = 'none'; // Hide the button
+        const checkmark = document.createElement('img');
+        checkmark.src = 'images/checkmark.png'; // Path to your checkmark image
+        checkmark.style.width = '50px';
+        checkmark.style.height = '50px';
+        checkmark.id = 'checkmarkImage'; // Give it an ID for future reference
+        document.querySelector('.capture-container').appendChild(checkmark); // Add checkmark to the container
+
+        // Check if all buildings have been photographed
+        if (Object.keys(capturedPhotos).length === 25) {
+            // Add confetti
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { x: 0.5, y: 0.5 }
+            });
+        }
+    }
+}
+
+// Function to change the building and reset photo capture state
+function changeBuilding(newBuilding) {
+    // Check if the building is changing
+    if (currentBuilding !== newBuilding) {
+        // If a photo was taken for the current building, do not decrement the count
+        if (capturedPhotos[currentBuilding]) {
+            // Just mark the previous building as not having a photo taken
+            capturedPhotos[currentBuilding] = false; 
+        }
+
+        // Update the building name
+        currentBuilding = newBuilding; // Update the current building
+        document.getElementById('buildingText').innerText = newBuilding;
+
+        // Update the UI
+        document.getElementById('photoCount').innerText = `Photos Taken: ${photoCount}`;
+        document.getElementById('photoStamp').style.display = 'none'; // Hide the checkmark
+        const checkmarkImage = document.getElementById('checkmarkImage');
+        if (checkmarkImage) {
+            checkmarkImage.remove(); // Remove the checkmark image if it exists
+        }
+
+        // Show the capture button again
+        document.getElementById('captureButton').style.display = 'block';
+    }
+}
+
+module.exports = { selectedBuilding, updateYear, updateInfo, changeBuilding, handlePhotoCapture };
