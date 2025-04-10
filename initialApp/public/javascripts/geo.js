@@ -50,13 +50,17 @@ document.getElementById("startButton").onclick = function () {
 };
 
 // ------ WELCOME POPUP & HELP BUTTON-------
-okBtn.addEventListener('click', () => {
+if (okBtn && overlay) {
+  okBtn.addEventListener('click', () => {
     overlay.classList.add('hide');
-});
+  });
+}
 
-helpBtn.addEventListener('click', () => {
-    overlay.classList.remove('hide');
-});
+if (helpBtn && overlay) {
+    helpBtn.addEventListener('click', () => {
+        overlay.classList.remove('hide');
+    });
+}
 
 
 // ------ MAP MENU BUTTON ------
@@ -308,4 +312,4 @@ hideTapIconMessage();
 
 //Attach it globally for testing
 window.error = error;
-module.exports = { initMap, updateDisplay, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader };
+module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader };

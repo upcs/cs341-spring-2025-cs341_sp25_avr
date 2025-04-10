@@ -51,6 +51,10 @@ describe("Geo.js Additional Tests", () => {
             <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
             <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
             <button id="debug-btn">Debug</button>
+            <button id="map-menu-button"></button>
+            <button id="mapDropdown"></button>
+            <button id="map-menu-button"></button>
+
             <button id="startButton">Start</button>
             <button id="nextButton">Start</button>
             <button id="backButton">Start</button>
@@ -72,7 +76,7 @@ describe("Geo.js Additional Tests", () => {
             isUserNearBuilding, 
             checkAllBuildings,
             getBuildingName,
-            hideTapIconMessage
+            hideTapIconMessage,
         } = require("../public/javascripts/geo.js");
     
         global.alert = jest.fn(); // Mock alert

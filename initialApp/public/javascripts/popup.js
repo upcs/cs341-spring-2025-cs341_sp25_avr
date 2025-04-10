@@ -1,5 +1,7 @@
 const startBtn = document.getElementById("startButton");
 const okBtn = document.getElementById("close-popup");
+const popupDisplay = document.getElementById("popupDisplay");
+
 
 okBtn.addEventListener('click', () => {
     closePopup();
@@ -16,3 +18,5 @@ function openPopup() {
   function closePopup() {
     popupDisplay.classList.remove("open-popup");
   }
+
+  module.exports = { openPopup, closePopup };

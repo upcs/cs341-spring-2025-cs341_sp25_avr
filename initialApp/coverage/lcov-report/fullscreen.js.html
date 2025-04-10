@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>36/42</span>
+                <span class='fraction'>42/48</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.58% </span>
+                <span class="strong">71.05% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>24/34</span>
+                <span class='fraction'>27/38</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">86.95% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>36/42</span>
+                <span class='fraction'>40/46</span>
             </div>
         
             
@@ -130,7 +130,16 @@
 <a name='L65'></a><a href='#L65'>65</a>
 <a name='L66'></a><a href='#L66'>66</a>
 <a name='L67'></a><a href='#L67'>67</a>
-<a name='L68'></a><a href='#L68'>68</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
@@ -149,6 +158,9 @@
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -190,14 +202,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">13x</span></td><td class="text"><pre class="prettyprint lang-js">// ------- FULL SCREEN BUTTON STUFF --------
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// ------- FULL SCREEN BUTTON STUFF --------
 function goFullscreen() {
     let elem = document.documentElement;
     if (elem.requestFullscreen) {
@@ -217,7 +235,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 &nbsp;
+// ------- HOME FULLSCREEN BUTTON ------
 const btn = document.getElementById("fullScreenButton");
+// ------- MAP FULLSCREEN BUTTON -------
+const btn2 = document.getElementById("map-fullscreen-btn");
 &nbsp;
 function toggleFullscreen() {
     if (!document.fullscreenElement &amp;&amp; !document.webkitFullscreenElement) {
@@ -248,7 +269,7 @@ function toggleFullscreen() {
     }
 }
 &nbsp;
-// // Listen for fullscreen changes and update the button text
+//Listen for fullscreen changes and update the button text
 document.addEventListener("fullscreenchange", updateButton);
 document.addEventListener("webkitfullscreenchange", updateButton);
 document.addEventListener("mozfullscreenchange", updateButton);
@@ -257,21 +278,27 @@ document.addEventListener("MSFullscreenChange", updateButton);
 function updateButton() {
     if (document.fullscreenElement || document.webkitFullscreenElement) {
         btn.textContent = "Minimize";
+        btn2.innerHTML = '&lt;i class="fa-solid fa-down-left-and-up-right-to-center"&gt;&lt;/i&gt;';
     } else {
         btn.textContent = "Fullscreen";
+        btn2.innerHTML = '&lt;i class="fa-solid fa-up-right-and-down-left-from-center"&gt;&lt;/i&gt;';
     }
 }
 &nbsp;
-btn.addEventListener("click", toggleFullscreen);
+//Wrapped in if for testing
+<span class="missing-if-branch" title="else path not taken" >E</span>if (btn) btn.addEventListener("click", toggleFullscreen);
+if (btn2) btn2.addEventListener("click", toggleFullscreen);
 &nbsp;
-module.exports = { toggleFullscreen, updateButton }</pre></td></tr></table></pre>
+module.exports = { toggleFullscreen, updateButton }
+&nbsp;
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-09T22:35:00.490Z
+                at 2025-04-10T18:25:27.089Z
             </div>
         <script src="prettify.js"></script>
         <script>

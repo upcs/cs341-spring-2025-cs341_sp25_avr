@@ -4,7 +4,10 @@
  */
 
 beforeEach(() => {
-  document.body.innerHTML = '<div id="fullScreenButton">Minimize</div>';
+  document.body.innerHTML = `
+    <div id="fullScreenButton">Minimize</div>
+    <div id="map-fullscreen-btn"></div>
+  `;
   document.fullscreenElement = null;
   jest.resetModules();
 

@@ -7,7 +7,6 @@ const $ = require('jquery');
 global.$ = $;
 global.jQuery = $;
 
-
 describe("Timeline tests:", () => {
 
     afterEach(() => {
