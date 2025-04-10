@@ -108,7 +108,7 @@ function success(pos) {
     // iterate through each building in the buildings array (line 3)
     buildings.forEach(building => {
         // make a new circle for each building 
-        let circle = L.circle([building.lat, building.long], { radius: building.radius }).addTo(map);
+        let circle = L.circle([building.lat, building.long], { radius: building.radius });
 
         // add the building name to each circle
         circle.buildingName = building.name;
