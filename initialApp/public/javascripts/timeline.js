@@ -42,6 +42,10 @@ function updateYear(building, forward) {
             updateInfo(building, years[p.length - 1])
             document.getElementById("future-button").style = "color:gray;"
             document.getElementById("past-button").style = "color:floralwhite;"
+
+            if (years.length - 1 == 0) {
+                document.getElementById("past-button").style = "color:gray;"
+            }
             return;
         }
 
@@ -62,7 +66,7 @@ function updateYear(building, forward) {
         //grays or whites out future and past buttons if event is possible
         document.getElementById("future-button").style = "color:floralwhite;"
         document.getElementById("past-button").style = "color:floralwhite;"
-        if (currentIndex == 0) {
+        if (currentIndex == 0 || years.length - 1 == 0) {
             document.getElementById("past-button").style = "color:gray;"
         }
         if (currentIndex == years.length - 1) {
@@ -108,6 +112,11 @@ document.getElementById("menu-button").onclick = function () {
 }
 
 document.getElementById("map-toggle").onclick = function () {
+    if (document.getElementById("mapDropdown").className == "dropdown-content show") {
+        document.getElementById("mapDropdown").classList.toggle("show")
+    }
+
+    document.getElementById("myDropdown").classList.toggle("show")
     document.getElementById("phone-container2").style.display = 'flex';
     document.getElementById("phone-container3").style.display = 'none';
 }
@@ -146,6 +155,11 @@ document.getElementById('read-button').onclick = function () {
 
 //navigation function for menu home
 function toHomeScreen() {
+    //hides dropdown menu if open
+    if (document.getElementById("myDropdown").className == "dropdown-content show") {
+        document.getElementById("myDropdown").classList.toggle("show")
+    }
+
     document.getElementById("phone-container").style.display = 'flex';
     document.getElementById("phone-container1").style.display = 'none';
     document.getElementById("phone-container2").style.display = 'none';

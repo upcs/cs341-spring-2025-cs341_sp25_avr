@@ -59,6 +59,11 @@ helpBtn.addEventListener('click', () => {
 });
 
 
+// ------ MAP MENU BUTTON ------
+document.getElementById("map-menu-button").onclick = function () {
+    document.getElementById("mapDropdown").classList.toggle("show")
+}
+
 // ------ CREATE MAP ------
 function initMap() {
     if (!map) {
@@ -147,7 +152,7 @@ function success(pos) {
     // iterate through each building in the buildings array (line 3)
     buildings.forEach(building => {
         // make a new circle for each building 
-        let circle = L.circle([building.lat, building.long], { radius: building.radius }).addTo(map);
+        let circle = L.circle([building.lat, building.long], { radius: building.radius });
 
         // add the building name to each circle
         circle.buildingName = building.name;
@@ -213,13 +218,15 @@ function error(err) {
 
 // ------ SHOW ALL LOCATIONS BUTTON ------
 
+let showingAll = false; // track the toggle state
+
 devButton.addEventListener('click', () => {
-  
     popups.forEach((popup, index) => {
-
-        popup.style.display = 'flex';
-
+        popup.style.display = showingAll ? 'none' : 'flex';
     });
+
+    devButton.textContent = showingAll ? 'Show All Locations' : 'Hide Locations';
+    showingAll = !showingAll;
 });
 
 //ORIGINAL
