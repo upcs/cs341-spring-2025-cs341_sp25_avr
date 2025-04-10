@@ -49,7 +49,7 @@ body {
 #map {
     height: 100vh;
     width: 100%;
-    position: absolute;
+    position: relative;
     /* Make sure the map fills the container */
     top: 0;
     left: 0;
