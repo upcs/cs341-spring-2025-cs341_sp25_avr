@@ -191,6 +191,9 @@ document.addEventListener("DOMContentLoaded", () => {
     updateInfo(currentBuilding, '2009');
 });
 
+
+module.exports = { selectedBuilding, updateYear, updateInfo };
+
 // Function to handle photo capture
 function handlePhotoCapture(event) {
     const file = event.target.files[0];
@@ -256,4 +259,6 @@ function changeBuilding(newBuilding) {
     }
 }
 
+
 module.exports = { selectedBuilding, updateYear, updateInfo, changeBuilding, handlePhotoCapture };
+
