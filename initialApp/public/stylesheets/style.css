@@ -368,3 +368,7 @@ h1 {
     height: auto; /* Maintain aspect ratio */
     object-fit: cover; /* Cover the container while maintaining aspect ratio */
 }
+/* Add margin to the last button */
+.popup-container button:last-child {
+    margin-bottom: 90px;
+}
