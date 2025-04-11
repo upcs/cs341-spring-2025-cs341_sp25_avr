@@ -70,12 +70,12 @@ app.use(function (err, req, res, next) {
 const PORT = process.env.PORT || 4000;
  app.listen(PORT, '0.0.0.0', () => {
    console.log(`Server running at http://cs341avr.campus.up.edu`);
-   console.log(`Server running at http://0.0.0.0:${PORT}`);
+   console.log(`Server running at http://localhost:${PORT}`);
  });
 
 //Create an HTTPS server
-https.createServer(options, app).listen(3001, '0.0.0.0', () => {
-  console.log('HTTPS server running on https://cs341avr.campus.up.edu:3001');
+https.createServer(options, app).listen(4000, '0.0.0.0', () => {
+  console.log('HTTPS server running on https://cs341avr.campus.up.edu:4000');
   
 });
 
