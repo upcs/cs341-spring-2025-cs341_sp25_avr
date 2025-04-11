@@ -68,19 +68,22 @@ app.use(function (err, req, res, next) {
 
 //TEST PORT
 const PORT = process.env.PORT || 4000;
-//  app.listen(PORT, '0.0.0.0', () => {
-//    console.log(`Server running at http://cs341avr.campus.up.edu`);
-//  });
+ app.listen(PORT, '0.0.0.0', () => {
+   console.log(`Server running at http://cs341avr.campus.up.edu`);
+ });
 
 //Create an HTTPS server
 https.createServer(options, app).listen(3001, '0.0.0.0', () => {
-  console.log('Server running on https://cs341avr.campus.up.edu:3001');
-  console.log('Server running on https://0.0.0.0:3001');
+  console.log('HTTPS server running on https://cs341avr.campus.up.edu:3001');
+  
+});
+
+https.createServer(options, app).listen(4000, '0.0.0.0', () => {
+  console.log('HTTPS server running on https://cs341avr.campus.up.edu:4000');
 });
 
 https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
-  console.log('Server running on https://cs341avr.campus.up.edu:3001');
-  console.log('Server running on https://0.0.0.0:3001');
+  console.log('HTTPS server running on https://cs341avr.campus.up.edu');
 });
 
 
