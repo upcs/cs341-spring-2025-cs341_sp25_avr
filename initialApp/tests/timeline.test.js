@@ -34,11 +34,11 @@ describe("Timeline tests:", () => {
             <button id="read-button">Read more</button>
             <div id="shiley">Shiley Hall</div>
             <div id="yearText">2000</div>
-            <div id="future-button" style=""></div>
-            <div id="past-button" style=""></div>
-            <div id="map-toggle"</div>
-            <div id="home-toggle"</div>
-            <div id="aboutButton"</div>
+            <button id="future-button" style=""></button>
+            <button id="past-button" style=""></button>
+            <button id="map-toggle"</button>
+            <button id="home-toggle"</button>
+            <button id="aboutButton"</button>
             <img id="buildingImage" />
             <div id="descriptionText"></div>
             <button id="read-button">Read more</button>
