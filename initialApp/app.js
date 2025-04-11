@@ -73,8 +73,8 @@ const PORT = process.env.PORT || 4000;
  });
 
 //Create an HTTPS server
-https.createServer(options, app).listen(3001, () => {
-  console.log('Server running on https://localhost:3001');
+https.createServer(options, app).listen(3001, '0.0.0.0', () => {
+  console.log('Server running on https://cs341avr.campus.up.edu:3001');
 });
 
 
