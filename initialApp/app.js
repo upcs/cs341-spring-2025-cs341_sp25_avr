@@ -67,7 +67,7 @@ app.use(function (err, req, res, next) {
 });
 
 //TEST PORT
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
  app.listen(PORT, '0.0.0.0', () => {
    console.log(`Server running at http://cs341avr.campus.up.edu`);
  });
