@@ -3,6 +3,7 @@
   padding: 0;
 }
 
+/*sdf*/
 @font-face {
   font-family: 'TheSansOfficeLF-Bold';
   src: url('TheSansOfficeLF-Bold.otf') format('opentype');
@@ -97,7 +98,6 @@ a:link,
 #past-button,
 #future-button,
 #menu-button,
-#map-menu-button,
 #shiley-button {
   width: 90vw;
   max-width: 380px;

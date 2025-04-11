@@ -240,6 +240,16 @@ h1 {
 
 }
 
+#debug-btn {
+    width: 100px;
+    height: 20px;
+    font-size: 10px;
+    padding: none;
+    background-color: grey;
+    border: solid 1px white;
+    border-radius: 10px;
+    color: white;
+}
 
 /* Starting Popup */
 
@@ -330,20 +340,6 @@ h1 {
     cursor: pointer;
 }
 
-#map-fullscreen-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-    font-weight: bold;
-    border-radius: 100%;
-    border: solid 3px#ffffff;
-    color: white;
-    background-color: #1E1656;
-    position: fixed;
-    margin-top: 60px;
-    cursor: pointer;
-}
-
 #captureButton {
     width: 128px;
     height: 64px;
@@ -352,4 +348,24 @@ h1 {
     color: white;
     border-radius: 10px;
     background-color: #1E1656;
+}
+
+
+.image-container {
+    width: 500px;
+    height: 400px;
+    overflow: hidden; /* Hide overflow */
+    display: flex; /* Use flexbox to center the image */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+.image-container embed {
+    width: 100%; /* Make the embed take the full width of the container */
+    height: auto; /* Maintain aspect ratio */
+    object-fit: cover; /* Cover the container while maintaining aspect ratio */
+}
+/* Add margin to the last button */
+.popup-container button:last-child {
+    margin-bottom: 90px;
 }
