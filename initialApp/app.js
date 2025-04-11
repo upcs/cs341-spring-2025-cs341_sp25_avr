@@ -39,8 +39,8 @@ app.get('/test-error', (req, res) => {
 
 //Load SSL certificate and key
 const options = {
-  key: fs.readFileSync('/etc/ssl/cs341avr/selfsigned.key'),
-  cert: fs.readFileSync('/etc/ssl/cs341avr/selfsigned.crt')
+  key: fs.readFileSync('./ssl/server.key'),
+  cert: fs.readFileSync('./ssl/server.cert')
 };
 
 //Test
