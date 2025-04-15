@@ -69,7 +69,7 @@ function initMap() {
         // defines the map 
         map = L.map('map', {
             center: [45.57190748329964, -122.72902599935568], 
-            zoom: 16,
+            zoom: 13,
             zoomControl: false, // This disables the zoom buttons
             preferCanvas: !L.Browser.svg && !L.Browser.vml //Fix rendering issue
         });
@@ -187,21 +187,20 @@ function success(pos) {
             popup.style.display = 'none';
         });
     }
-    // console.log("User is near:", nearbyBuilding ? nearbyBuilding : "No building");
-    // console.log(circles);
 
+       // zoomed = map.fitBounds(userCircle.getBounds());
+    
     // keep the map at the changed zoom level if user is moving
     if (typeof window === "undefined" || process.env.NODE_ENV === "test") {
         // In test environment, skip calling fitBounds
         console.log("Skipping fitBounds call in test environment");
     } else {
-        if (userCircle instanceof L.Circle && userCircle.getBounds && !zoomed ) {
+        if (!zoomed ) {
             zoomed = map.fitBounds(userCircle.getBounds());
         } else {
             console.error("userCircle is undefined or invalid.");
         }
     }
-    
     //change center of map dynammically based on current marker
     map.setView([userLat, userLng]);
 }

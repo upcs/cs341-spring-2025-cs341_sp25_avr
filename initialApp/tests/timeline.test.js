@@ -53,7 +53,10 @@ describe("Timeline tests:", () => {
 
             <!-- Dropdown and Menu Button -->
             <div id="myDropdown" class="dropdown-content show"></div>
+            <div id="mapDropdown" class="dropdown-content show"></div>
             <button id="menu-button" class="show">Menu</button>
+            <button id="map-menu-button" class="show">Menu</button>
+           
 
             <!-- Phone Containers -->
             <div id="phone-container" style="display:flex;"></div>
