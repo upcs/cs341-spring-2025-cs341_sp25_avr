@@ -18,34 +18,34 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Scroll to top on load
-            window.scrollTo(0, 0);
-    
-            // Past and Future button click handlers
-            const pastButton = document.getElementById('past-button');
-            const futureButton = document.getElementById('future-button');
-    
-            if (pastButton) {
-                pastButton.addEventListener('click', function () {
-                    scrollToTop();
-                    console.log("Navigating to Past content...");
-                    // Add your logic here
-                });
-            }
-    
-            if (futureButton) {
-                futureButton.addEventListener('click', function () {
-                    scrollToTop();
-                    console.log("Navigating to Future content...");
-                    // Add your logic here
-                });
-            }
-        });
-    
+        // Function to scroll to the top of the page
         function scrollToTop() {
             window.scrollTo(0, 0);
         }
+
+        // Function to handle the Past button click
+        function goToPast() {
+            scrollToTop();
+            // Add your logic to navigate to the past content here
+            console.log("Navigating to Past content...");
+        }
+
+        // Function to handle the Future button click
+        function goToFuture() {
+            scrollToTop();
+            // Add your logic to navigate to the future content here
+            console.log("Navigating to Future content...");
+        }
+
+        // Call the function when the window loads
+        window.onload = scrollToTop;
+
+        // Add event listeners to buttons to scroll to the top when clicked
+        document.addEventListener("DOMContentLoaded", function() {
+            // Add event listeners to the Past and Future buttons
+            document.getElementById('past-button').addEventListener('click', goToPast);
+            document.getElementById('future-button').addEventListener('click', goToFuture);
+        });
     </script>
 
 </head>
@@ -146,8 +146,7 @@
                 <img src="images/wally.png" alt="">
                 <button id="close-popup-btn">OK</button>
             </div>
-            
-        </div> 
+        </div>
 
     </div>
 
@@ -163,8 +162,10 @@
             </div>
         </div>
 
-        <div class="image-container">
-            <embed id="buildingImage" src="archiveContent/shiley/1948.jpg" alt="Picture of Shiley">
+        <div class="building-photo">
+            <div class="image-container">
+                <embed id="buildingImage" src="archiveContent/shiley/1948.jpg" alt="Picture of Shiley">
+            </div>
         </div>
 
         <h1 id="buildingText">Engineering Hall</h1>
@@ -181,19 +182,20 @@
             <button id="future-button" style=color:gray;> Future <i class="goToFuture"></i></button>
         </div>
 
-        <script src="javascripts/geo.js"></script>
-        <script src="javascripts/fullscreen.js"></script>
-        <script src="javascripts/timeline.js"></script>
-
-    <!-- Capture Input -->
-    <div class="capture-container" style="display: flex; flex-direction: column; align-items: center;">
-        <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;" onchange="handlePhotoCapture(event)">
-        <button id="captureButton" onclick="document.getElementById('captureInput').click();" style="margin-bottom: 10px;"><i class="fa-solid fa-camera"></i></button>
-        <div id="photoStamp" style="display: none;">
-            <img src="images/checkmark.png" alt="Photo Taken" style="width: 50px; height: 50px;">
+        <!-- Capture Input -->
+        <div class="capture-container" style="display: flex; flex-direction: column; align-items: center;">
+            <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;" onchange="handlePhotoCapture(event)">
+            <button id="captureButton" onclick="document.getElementById('captureInput').click();" style="margin-bottom: 10px;"><i class="fa-solid fa-camera"></i></button>
+            <div id="photoStamp" style="display: none;">
+                <img src="images/checkmark.png" alt="Photo Taken" style="width: 50px; height: 50px;">
         </div>
         <p id="photoCount" style="text-align: center; margin-top: 0;">Photos Taken: 0</p>
     </div>
+
+
+    <script src="javascripts/geo.js"></script>
+    <script src="javascripts/fullscreen.js"></script>
+    <script src="javascripts/timeline.js"></script>
 
 </body>
 

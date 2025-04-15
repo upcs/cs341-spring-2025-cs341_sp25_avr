@@ -106,6 +106,9 @@ function updateInfo(building, year) {
 document.getElementById("menu-button").onclick = function () {
     document.getElementById("myDropdown").classList.toggle("show")
 }
+document.getElementById("map-menu-button").onclick = function () {
+    document.getElementById("mapDropdown").classList.toggle("show")
+}
 
 document.getElementById("map-toggle").onclick = function () {
     document.getElementById("phone-container2").style.display = 'flex';
