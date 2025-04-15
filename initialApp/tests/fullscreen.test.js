@@ -84,6 +84,8 @@ describe('Fullscreen Functions', () => {
     expect(document.documentElement.requestFullscreen).toHaveBeenCalled();
   });
 
+  
+
 });
 
  //Check all the fullscreen methods for different browsers
@@ -152,5 +154,110 @@ describe('Check all the exit fullscreen methods for different browsers/vendors',
 
       expect(document[prop]).toHaveBeenCalled();
     }
-  );
+  );  
+});
+
+describe('Check the map fullscreen button', () => {
+
+
+  
+  //Tests for map-fullscreen
+  test('clicking the map-fullscreen-btn calls toggleFullscreen', () => {
+    document.documentElement.requestFullscreen = jest.fn();
+  
+    jest.resetModules();
+    require('../public/javascripts/fullscreen.js');
+  
+    const mapButton = document.getElementById('map-fullscreen-btn');
+    mapButton.click();
+  
+    expect(document.documentElement.requestFullscreen).toHaveBeenCalled();
+  });
+
+  test('updateButton updates map-fullscreen-btn icon based on state', () => {
+    const { updateButton } = require('../public/javascripts/fullscreen.js');
+    const mapButton = document.getElementById('map-fullscreen-btn');
+  
+    // When in fullscreen
+    document.fullscreenElement = true;
+    updateButton();
+    expect(mapButton.innerHTML).toContain('fa-down-left-and-up-right-to-center');
+  
+    // When not in fullscreen
+    document.fullscreenElement = null;
+    updateButton();
+    expect(mapButton.innerHTML).toContain('fa-up-right-and-down-left-from-center');
+  });
+  
+  test('updateButton works with webkitFullscreenElement', () => {
+    const { updateButton } = require('../public/javascripts/fullscreen.js');
+    const button = document.getElementById('fullScreenButton');
+  
+    Object.defineProperty(document, 'webkitFullscreenElement', {
+      configurable: true,
+      get: () => true
+    });
+  
+    updateButton();
+    expect(button.textContent).toBe('Minimize');
+  });
+
+  test('goFullscreen is NOT called on DOMContentLoaded if sessionStorage is false', () => {
+    sessionStorage.setItem("fullscreen", "false");
+    document.documentElement.requestFullscreen = jest.fn();
+  
+    jest.resetModules();
+    require('../public/javascripts/fullscreen.js');
+  
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+  
+    expect(document.documentElement.requestFullscreen).not.toHaveBeenCalled();
+  });
+});
+
+describe('goFullscreen method', () => {
+  test('calls requestFullscreen if available', () => {
+    const { goFullscreen } = require('../public/javascripts/fullscreen.js');
+    document.documentElement.requestFullscreen = jest.fn();
+
+    goFullscreen();
+
+    expect(document.documentElement.requestFullscreen).toHaveBeenCalled();
+  });
+
+  test('calls mozRequestFullScreen if requestFullscreen not available', () => {
+    const { goFullscreen } = require('../public/javascripts/fullscreen.js');
+
+    delete document.documentElement.requestFullscreen;
+    document.documentElement.mozRequestFullScreen = jest.fn();
+
+    goFullscreen();
+
+    expect(document.documentElement.mozRequestFullScreen).toHaveBeenCalled();
+  });
+
+  test('calls webkitRequestFullscreen if others not available', () => {
+    const { goFullscreen } = require('../public/javascripts/fullscreen.js');
+
+    delete document.documentElement.requestFullscreen;
+    delete document.documentElement.mozRequestFullScreen;
+    document.documentElement.webkitRequestFullscreen = jest.fn();
+
+    goFullscreen();
+
+    expect(document.documentElement.webkitRequestFullscreen).toHaveBeenCalled();
+  });
+
+  test('calls msRequestFullscreen as last fallback', () => {
+    const { goFullscreen } = require('../public/javascripts/fullscreen.js');
+
+    delete document.documentElement.requestFullscreen;
+    delete document.documentElement.mozRequestFullScreen;
+    delete document.documentElement.webkitRequestFullscreen;
+    document.documentElement.msRequestFullscreen = jest.fn();
+
+    goFullscreen();
+
+    expect(document.documentElement.msRequestFullscreen).toHaveBeenCalled();
+  });
 });

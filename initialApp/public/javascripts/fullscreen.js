@@ -77,5 +77,5 @@ if (btn) {
     btn2.addEventListener("click", toggleFullscreen);
   }
 
-module.exports = { toggleFullscreen, updateButton }
+module.exports = { toggleFullscreen, updateButton, goFullscreen }
 

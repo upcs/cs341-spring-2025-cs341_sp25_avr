@@ -1,61 +1,61 @@
 <?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage lines-valid="286" lines-covered="209" line-rate="0.7306999999999999" branches-valid="130" branches-covered="83" branch-rate="0.6384000000000001" timestamp="1744755457394" complexity="0" version="0.1">
+<coverage lines-valid="286" lines-covered="215" line-rate="0.7517" branches-valid="130" branches-covered="90" branch-rate="0.6923" timestamp="1744755960712" complexity="0" version="0.1">
   <sources>
     <source>C:\Users\emma_\Desktop\AVR\initialApp</source>
   </sources>
   <packages>
-    <package name="main" line-rate="0.7306999999999999" branch-rate="0.6384000000000001">
+    <package name="main" line-rate="0.7517" branch-rate="0.6923">
       <classes>
-        <class name="fullscreen.js" filename="public\javascripts\fullscreen.js" line-rate="0.875" branch-rate="0.7105">
+        <class name="fullscreen.js" filename="public\javascripts\fullscreen.js" line-rate="1" branch-rate="0.8946999999999999">
           <methods>
-            <method name="goFullscreen" hits="4" signature="()V">
+            <method name="goFullscreen" hits="8" signature="()V">
               <lines>
-                <line number="2" hits="4"/>
+                <line number="2" hits="8"/>
               </lines>
             </method>
-            <method name="(anonymous_1)" hits="4" signature="()V">
+            <method name="(anonymous_1)" hits="21" signature="()V">
               <lines>
-                <line number="15" hits="4"/>
+                <line number="15" hits="21"/>
               </lines>
             </method>
-            <method name="toggleFullscreen" hits="11" signature="()V">
+            <method name="toggleFullscreen" hits="12" signature="()V">
               <lines>
-                <line number="26" hits="11"/>
+                <line number="26" hits="12"/>
               </lines>
             </method>
-            <method name="updateButton" hits="6" signature="()V">
+            <method name="updateButton" hits="9" signature="()V">
               <lines>
-                <line number="61" hits="6"/>
+                <line number="61" hits="9"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="3" hits="4" branch="false"/>
-            <line number="4" hits="4" branch="true" condition-coverage="50% (1/2)"/>
-            <line number="5" hits="4" branch="false"/>
-            <line number="6" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="7" hits="0" branch="false"/>
-            <line number="8" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="9" hits="0" branch="false"/>
-            <line number="10" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="11" hits="0" branch="false"/>
-            <line number="15" hits="13" branch="false"/>
-            <line number="16" hits="4" branch="true" condition-coverage="50% (1/2)"/>
+            <line number="3" hits="8" branch="false"/>
+            <line number="4" hits="8" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="5" hits="5" branch="false"/>
+            <line number="6" hits="3" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="7" hits="1" branch="false"/>
+            <line number="8" hits="2" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="9" hits="1" branch="false"/>
+            <line number="10" hits="1" branch="true" condition-coverage="50% (1/2)"/>
+            <line number="11" hits="1" branch="false"/>
+            <line number="15" hits="21" branch="false"/>
+            <line number="16" hits="21" branch="true" condition-coverage="100% (2/2)"/>
             <line number="17" hits="4" branch="false"/>
-            <line number="22" hits="13" branch="false"/>
-            <line number="24" hits="13" branch="false"/>
-            <line number="27" hits="11" branch="true" condition-coverage="100% (4/4)"/>
-            <line number="29" hits="6" branch="false"/>
-            <line number="30" hits="6" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="31" hits="3" branch="false"/>
+            <line number="22" hits="21" branch="false"/>
+            <line number="24" hits="21" branch="false"/>
+            <line number="27" hits="12" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="29" hits="7" branch="false"/>
+            <line number="30" hits="7" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="31" hits="4" branch="false"/>
             <line number="32" hits="3" branch="true" condition-coverage="100% (2/2)"/>
             <line number="33" hits="1" branch="false"/>
             <line number="34" hits="2" branch="true" condition-coverage="100% (2/2)"/>
             <line number="35" hits="1" branch="false"/>
             <line number="36" hits="1" branch="true" condition-coverage="50% (1/2)"/>
             <line number="37" hits="1" branch="false"/>
-            <line number="39" hits="6" branch="false"/>
+            <line number="39" hits="7" branch="false"/>
             <line number="42" hits="5" branch="true" condition-coverage="100% (2/2)"/>
             <line number="43" hits="2" branch="false"/>
             <line number="44" hits="3" branch="true" condition-coverage="100% (2/2)"/>
@@ -65,20 +65,20 @@
             <line number="48" hits="1" branch="true" condition-coverage="50% (1/2)"/>
             <line number="49" hits="1" branch="false"/>
             <line number="51" hits="5" branch="false"/>
-            <line number="56" hits="13" branch="false"/>
-            <line number="57" hits="13" branch="false"/>
-            <line number="58" hits="13" branch="false"/>
-            <line number="59" hits="13" branch="false"/>
-            <line number="62" hits="6" branch="true" condition-coverage="100% (4/4)"/>
-            <line number="63" hits="3" branch="false"/>
-            <line number="64" hits="3" branch="false"/>
-            <line number="66" hits="3" branch="false"/>
-            <line number="67" hits="3" branch="false"/>
-            <line number="73" hits="13" branch="true" condition-coverage="50% (1/2)"/>
-            <line number="74" hits="13" branch="false"/>
-            <line number="76" hits="13" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="77" hits="9" branch="false"/>
-            <line number="80" hits="13" branch="false"/>
+            <line number="56" hits="21" branch="false"/>
+            <line number="57" hits="21" branch="false"/>
+            <line number="58" hits="21" branch="false"/>
+            <line number="59" hits="21" branch="false"/>
+            <line number="62" hits="9" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="63" hits="5" branch="false"/>
+            <line number="64" hits="5" branch="false"/>
+            <line number="66" hits="4" branch="false"/>
+            <line number="67" hits="4" branch="false"/>
+            <line number="73" hits="21" branch="true" condition-coverage="50% (1/2)"/>
+            <line number="74" hits="21" branch="false"/>
+            <line number="76" hits="21" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="77" hits="17" branch="false"/>
+            <line number="80" hits="21" branch="false"/>
           </lines>
         </class>
         <class name="geo.js" filename="public\javascripts\geo.js" line-rate="0.7613" branch-rate="0.5652">
