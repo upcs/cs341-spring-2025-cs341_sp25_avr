@@ -79,7 +79,7 @@ function updateInfo(building, year) {
 
         //updates image to new current year, only if year changes to avoid flashing/needless update
         if (year != document.getElementById('yearText').innerText) {
-            const imagePath = "archiveContent\\" + building + "\\" + year + ".jpg"
+            const imagePath = `archiveContent/${building}/${year}.jpg`;
             document.getElementById("buildingImage").setAttribute("src", imagePath)
         }
 
@@ -190,9 +190,6 @@ $(document).click(function (event) {
 document.addEventListener("DOMContentLoaded", () => {
     updateInfo(currentBuilding, '2009');
 });
-
-
-module.exports = { selectedBuilding, updateYear, updateInfo };
 
 // Function to handle photo capture
 function handlePhotoCapture(event) {

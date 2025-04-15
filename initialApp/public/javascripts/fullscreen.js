@@ -65,7 +65,7 @@ function updateButton() {
 
 //Wrapped in if for testing
 if (btn) btn.addEventListener("click", toggleFullscreen);
-if (btn2) btn2.addEventListener("click", toggleFullscreen);
+//if (btn2) btn2.addEventListener("click", toggleFullscreen);
 
 module.exports = { toggleFullscreen, updateButton }
 
