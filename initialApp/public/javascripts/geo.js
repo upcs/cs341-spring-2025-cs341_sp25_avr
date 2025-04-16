@@ -291,7 +291,7 @@ function getBuildingName(userLat, userLng, circles) {
 // hides the loading effect and updates display infomation 
 function hideLoader() {
     message[0].style.display = 'flex';
-    message[0].innerHTML = 'Near by buildings:';
+    message[0].innerHTML = 'Nearby buildings:';
     message[1].style.display = 'flex';
     loader.style.display = 'none';
 }
@@ -302,4 +302,4 @@ hideTapIconMessage();
 
 //Attach it globally for testing
 window.error = error;
-module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader };
+module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success };
