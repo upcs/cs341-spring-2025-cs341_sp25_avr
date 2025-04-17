@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/mckinler2/cs341-spring-2025-cs341_sp25_avr/graph/badge.svg?token=9YIMPTQY09)](https://codecov.io/gh/mckinler2/cs341-spring-2025-cs341_sp25_avr)
+
 # Campus History Web Application
 
 The **Campus History Web Application** is an interactive, web-based tool designed to showcase the rich history of the University of Portland. Developed as part of the university's 125th-anniversary celebration, this application offers users access to historical images, facts, and stories about key campus locations. By leveraging geolocation, users receive contextual pop-ups as they explore the campus, creating an immersive journey through time.
