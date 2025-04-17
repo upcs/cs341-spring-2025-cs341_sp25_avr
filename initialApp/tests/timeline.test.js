@@ -215,18 +215,15 @@ test('handlePhotoCapture registers a photo and updates count/UI', () => {
         expect(captureButton.style.display).toBe('block');  // Capture button should be visible again
       });
 
-    //   test('should update the year and change button styles', async () => {
-    //     const{updateYear}=require('../public/javascripts/timeline.js')
+      test('should update the year and change button styles', async () => {
+        const{updateYear}=require('../public/javascripts/timeline.js')
 
-    //     await updateYear('shiley', true);  // Going forward to the next year
+        await updateYear('shiley', true);  // Going forward to the next year
     
-    //     expect(document.getElementById("yearText").innerText).toBe('2000');
-    //     expect(document.getElementById("futureButton").style.color).toBe('gray');
-    //     expect(document.getElementById("pastButton").style.color).toBe('floralwhite');
-    //   });
-
-    
-
+        expect(document.getElementById("yearText").innerText).toBe('2000');
+        expect(document.getElementById("futureButton").style.color).toBe('gray');
+        expect(document.getElementById("pastButton").style.color).toBe('floralwhite');
+      });
 
 
     test('updateInfo sets year and description', async () => {
