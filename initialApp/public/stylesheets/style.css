@@ -272,7 +272,7 @@ h1 {
     border: none;
     position: absolute;
     background: white;
-    top: 20%;
+    top: 10%;
     text-align: center;
     background-color: #1E1656;
 }
@@ -288,6 +288,7 @@ h1 {
 }
 .welcome-popup h1 {
     margin-top: 12px;
+    font-size: 2rem;
 }
    
 .close-popup {
