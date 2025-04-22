@@ -69,7 +69,7 @@ function initMap() {
         // defines the map 
         map = L.map('map', {
             center: [45.57190748329964, -122.72902599935568], 
-            zoom: 13,
+            zoom: 16,
             zoomControl: false, // This disables the zoom buttons
             preferCanvas: !L.Browser.svg && !L.Browser.vml //Fix rendering issue
         });

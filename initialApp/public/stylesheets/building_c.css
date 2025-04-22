@@ -159,7 +159,7 @@ button:hover {
 }
 
 .dropdown {
-  position: relative;
+  position: absolute;
   display: inline-block;
 }
 
@@ -216,6 +216,11 @@ button:hover {
 #buildingText,
 #yearText {
   padding-bottom: 0px;
+  
+}
+
+#buildingImage{
+  margin-top: 80px;
 }
 
 #buildingText {
