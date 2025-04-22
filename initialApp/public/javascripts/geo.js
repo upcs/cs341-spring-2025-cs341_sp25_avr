@@ -121,28 +121,30 @@ function success(pos) {
     // store the nearest building name as a variable 
     let nearbyBuilding = getBuildingName(userLat, userLng, circles);
 
+    let matchedPopup = document.getElementById(nearbyBuilding);
+
+    popups.forEach(popup => {
+        popup.style.display = 'none';
+    });
+
     // if there is a building near by
-    if (nearbyBuilding) {
+    if (nearbyBuilding && matchedPopup) {
 
         hideLoader(); // Only update for the nearby building
-
-        const matchedPopup = document.getElementById(nearbyBuilding);
         
-        if (matchedPopup) {
-            matchedPopup.style.display = 'flex';
+    
+        matchedPopup.style.display = 'flex';
 
-            matchedPopup.addEventListener('click', ()=> {
-                if (window.selectedBuilding) {
-                    document.getElementById("phone-container2").style.display = 'none';
-                    document.getElementById("phone-container3").style.display = 'flex';
-                    window.selectedBuilding(nearbyBuilding);
-                }
-            })
-        }
-    } else {
-        popups.forEach(popup => {
-            popup.style.display = 'none';
+        matchedPopup.addEventListener('click', ()=> {
+            if (window.selectedBuilding) {
+                document.getElementById("phone-container2").style.display = 'none';
+                document.getElementById("phone-container3").style.display = 'flex';
+                window.selectedBuilding(nearbyBuilding);
+            }
         });
+        
+    } else {
+        showLoader();
     }
     // console.log("User is near:", nearbyBuilding ? nearbyBuilding : "No building");
     // console.log(circles);
@@ -237,8 +239,13 @@ function getBuildingName(userLat, userLng, circles) {
 // hides the loading effect and updates display infomation 
 function hideLoader() {
     message[0].style.display = 'flex';
-    message[0].innerHTML = 'Near by buildings:';
+    message[0].innerHTML = 'Nearby buildings:';
     message[1].style.display = 'flex';
+    loader.style.display = 'none';
+}
+
+function showLoader() {
+    message[0].innerHTML = 'Walk to a nearby building';
     loader.style.display = 'none';
 }
 
