@@ -1,3 +1,4 @@
+
 const { JSDOM } = require("jsdom");
 const { navigateTo } = require("../public/javascripts/menu");
 

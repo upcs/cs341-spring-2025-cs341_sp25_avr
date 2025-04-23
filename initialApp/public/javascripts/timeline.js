@@ -21,7 +21,7 @@ function selectedBuilding(building) {
 //building for database and forward boolean for future(true) or past(false) in timeline
 function updateYear(building, forward) {
     //if year is null, returns array of years from building
-    contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "';"
+    const contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "';"
 
     $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
         const years = [];
@@ -79,7 +79,7 @@ function updateInfo(building, year) {
 
         //updates image to new current year, only if year changes to avoid flashing/needless update
         if (year != document.getElementById('yearText').innerText) {
-            const imagePath = "archiveContent\\" + building + "\\" + year + ".jpg"
+            const imagePath = `archiveContent/${building}/${year}.jpg`;
             document.getElementById("buildingImage").setAttribute("src", imagePath)
         }
 
@@ -105,6 +105,9 @@ function updateInfo(building, year) {
 //toggles menu drop down
 document.getElementById("menu-button").onclick = function () {
     document.getElementById("myDropdown").classList.toggle("show")
+}
+document.getElementById("map-menu-button").onclick = function () {
+    document.getElementById("mapDropdown").classList.toggle("show")
 }
 
 document.getElementById("map-toggle").onclick = function () {
@@ -191,7 +194,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateInfo(currentBuilding, '2009');
 });
 
-
 // Function to handle photo capture
 function handlePhotoCapture(event) {
     const file = event.target.files[0];
@@ -256,3 +258,7 @@ function changeBuilding(newBuilding) {
         document.getElementById('captureButton').style.display = 'block';
     }
 }
+
+
+module.exports = { selectedBuilding, updateYear, updateInfo, changeBuilding, handlePhotoCapture };
+

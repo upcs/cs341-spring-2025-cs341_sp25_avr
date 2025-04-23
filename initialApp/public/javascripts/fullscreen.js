@@ -18,7 +18,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+// ------- HOME FULLSCREEN BUTTON ------
 const btn = document.getElementById("fullScreenButton");
+// ------- MAP FULLSCREEN BUTTON -------
+const btn2 = document.getElementById("map-fullscreen-btn");
 
 function toggleFullscreen() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -58,9 +61,21 @@ document.addEventListener("MSFullscreenChange", updateButton);
 function updateButton() {
     if (document.fullscreenElement || document.webkitFullscreenElement) {
         btn.textContent = "Minimize";
+        btn2.innerHTML = '<i class="fa-solid fa-down-left-and-up-right-to-center"></i>';
     } else {
         btn.textContent = "Fullscreen";
+        btn2.innerHTML = '<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
     }
 }
 
-btn.addEventListener("click", toggleFullscreen);
+
+
+if (btn) {
+    btn.addEventListener("click", toggleFullscreen);
+  }
+  if (btn2) {
+    btn2.addEventListener("click", toggleFullscreen);
+  }
+
+module.exports = { toggleFullscreen, updateButton, goFullscreen }
+

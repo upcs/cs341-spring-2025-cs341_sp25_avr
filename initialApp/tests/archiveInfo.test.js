@@ -141,4 +141,3 @@ describe("Archive Info Tests", () => {
     expect(readButton.textContent).toBe("Read less");
   });
 });
-

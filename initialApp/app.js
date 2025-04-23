@@ -66,16 +66,13 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-//TEST PORT
+//Make the server!
 const PORT = process.env.PORT || 4000;
  app.listen(PORT, '0.0.0.0', () => {
    console.log(`Server running at http://cs341avr.campus.up.edu`);
+   console.log(`Server running at http://localhost:${PORT}`);
  });
 
-//Create an HTTPS server
-https.createServer(options, app).listen(3001, () => {
-  console.log('Server running on https://localhost:3001');
-});
 
 
 module.exports = app;

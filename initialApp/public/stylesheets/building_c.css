@@ -3,17 +3,9 @@
   padding: 0;
 }
 
-/*sdf*/
 @font-face {
   font-family: 'TheSansOfficeLF-Bold';
   src: url('TheSansOfficeLF-Bold.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'TheSansOfficeLF-Plain';
-  src: url('TheSansOfficeLF-Plain.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
@@ -98,6 +90,7 @@ a:link,
 #past-button,
 #future-button,
 #menu-button,
+#map-menu-button,
 #shiley-button {
   width: 90vw;
   max-width: 380px;
@@ -115,7 +108,6 @@ a:link,
 #past-button,
 #future-button {
   width: 70%;
-  ;
   padding: 15px 30px 15px 30px;
 }
 
@@ -167,7 +159,7 @@ button:hover {
 }
 
 .dropdown {
-  position: relative;
+  position: absolute;
   display: inline-block;
 }
 
@@ -224,6 +216,11 @@ button:hover {
 #buildingText,
 #yearText {
   padding-bottom: 0px;
+  
+}
+
+#buildingImage{
+  margin-top: 80px;
 }
 
 #buildingText {
