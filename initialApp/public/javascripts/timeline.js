@@ -260,7 +260,5 @@ function changeBuilding(newBuilding) {
 }
 
 
-window.error = error;
+module.exports = { selectedBuilding, updateYear, updateInfo, changeBuilding, handlePhotoCapture };
 
-module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success, showLoader };
- 

@@ -253,4 +253,7 @@ function showLoader() {
 
 hideTapIconMessage();
 
-module.exports = {initMap, hideLoader, isUserNearBuilding, getBuildingName }
+window.error = error;
+
+module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success, showLoader };
+ 
