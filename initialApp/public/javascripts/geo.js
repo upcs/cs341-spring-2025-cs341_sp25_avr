@@ -120,7 +120,6 @@ function success(pos) {
     // remove deplicate markers
     if (marker) {
         map.removeLayer(marker);
-
     }
     if (userCircle) {  // Check if userCircle exists before removing it
         map.removeLayer(userCircle);
@@ -190,24 +189,29 @@ function success(pos) {
         showLoader();
     }
 
-       // zoomed = map.fitBounds(userCircle.getBounds());
-    
+    let hasZoomed = false;    
+
     // keep the map at the changed zoom level if user is moving
     if (typeof window === "undefined" || process.env.NODE_ENV === "test") {
         // In test environment, skip calling fitBounds
         console.log("Skipping fitBounds call in test environment");
     } else {
-        if (!zoomed ) {
-            zoomed = map.fitBounds(userCircle.getBounds());
+        if (!hasZoomed && userCircle) {
+            map.fitBounds(userCircle.getBounds());
+            hasZoomed = true;
         } else {
-            console.error("userCircle is undefined or invalid.");
+             //change center of map dynammically based on current marker
+            map.setView([userLat, userLng]);
+            //console.error("userCircle is undefined or invalid.");
         }
     }
-    //change center of map dynammically based on current marker
-    map.setView([userLat, userLng]);
+    
+
+   
 }
 
 // hand errors if user location can't be found
+//function error(err) 
 function error(err) {
     if (err.code === 1) {
         alert("Please allow geolocation access");
@@ -218,11 +222,15 @@ function error(err) {
 
 // ------ SHOW ALL LOCATIONS BUTTON ------
 
+let showingAll = false; // track the toggle state
+
 devButton.addEventListener('click', () => {
-  
     popups.forEach((popup, index) => {
-        popup.style.display = 'flex';
+        popup.style.display = showingAll ? 'none' : 'flex';
     });
+
+    devButton.textContent = showingAll ? 'Show All Locations' : 'Hide Locations';
+    showingAll = !showingAll;
 });
 
 //ORIGINAL
@@ -264,7 +272,8 @@ function isUserNearBuilding(userLat, userLng, circle) {
     let circleCenter = circle.getLatLng(); // gets the center coord of each building
     let radius = circle.getRadius(); // gets the radius of a the circle
     let distance = L.latLng(userLat, userLng).distanceTo(circleCenter); // checks distance from circle center to user
-    
+    //let distance = map.distance([userLat, userLng], circleCenter);
+
     //Original
     // let distance = map.distance([userLat, userLng], circleCenter); // checks distance from circle center to user
 
@@ -309,4 +318,4 @@ hideTapIconMessage();
 
 //Attach it globally for testing
 window.error = error;
-module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success };
+module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success, showLoader };

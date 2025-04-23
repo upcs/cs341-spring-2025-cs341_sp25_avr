@@ -46,18 +46,15 @@ describe("Geo.js Additional Tests", () => {
         <!DOCTYPE html>
         <html>
             <body>
-            <div id="map"></div>
             <div id="details"></div>
+            <div id="buildingName">bob</div>
             <div id="shiley"></div>
-            <div class="loader"></div>
-            <div class="default-message" style='none'></div>
-            <div class="default-message" style='none'></div>
-            <div class="message"></div>
-            <div class="message"></div>
-            <div id="loader" style="display: block;"></div>
+    
             <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
             <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
             <button id="debug-btn">Debug</button>
+           
+            <div id="map" style="width: 400px; height: 400px;"></div>
             <button id="map-menu-button"></button>
             <button id="mapDropdown"></button>
             <button id="map-menu-button"></button>
@@ -73,7 +70,9 @@ describe("Geo.js Additional Tests", () => {
 
             <div class="message" style="display: none;"></div>
             <div class="message" style="display: none;"></div>
-            <div id="loader" style="display: flex;"></div>
+            <div class="loader"></div>
+            <div class="default-message" style='none'></div>
+            <div class="default-message" style='none'></div>
             </body>
         </html>
         `;
@@ -273,10 +272,11 @@ test("hideTapIconMessage() should modify message styles", () => {
 });
 
 test("initMap sets up the map", () => {
+    jest.spyOn(L, 'map').mockImplementation(() => mapMock);
+    
     const { initMap } = require("../public/javascripts/geo.js");
   
     // Set up fake map container
-    document.body.innerHTML = `<div id="map" style="width: 400px; height: 400px;"></div>`;
   
     // Mock Leaflet
     const setView = jest.fn();
@@ -290,6 +290,7 @@ test("initMap sets up the map", () => {
         getSouthWest: () => ({ lat: 45.5, lng: -122.8 }),
       }),
     };
+    
   
     jest.spyOn(L, "map").mockReturnValue(mapMock);
     jest.spyOn(L, "tileLayer").mockReturnValue({ addTo: jest.fn() });
@@ -312,6 +313,8 @@ test("initMap sets up the map", () => {
   });
 
   test('hideLoader displays message elements and hides loader', () => {
+    const {hideLoader} = require ('../public/javascripts/geo.js');
+    
     document.body.innerHTML = `
       <div class="message" style="display: none;"></div>
       <div class="message" style="display: none;"></div>
@@ -320,8 +323,14 @@ test("initMap sets up the map", () => {
   
     global.message = document.querySelectorAll('.message');
     global.loader = document.getElementById('loader');
+
+    const messages = document.getElementsByClassName('message');
+console.log("Display is", messages[0].style.display);
   
     hideLoader();
+
+console.log("Display is", messages[0].style.display);
+console.log("Display 1 is", messages[1].style.display);
   
     expect(message[0].style.display).toBe('flex');
     expect(message[0].innerHTML).toBe('Nearby buildings:');
@@ -331,7 +340,8 @@ test("initMap sets up the map", () => {
 
 it("Zoomed call fitBounds once when user location is updated", () => {
     const { success } = require('../public/javascripts/geo.js');
-    
+    jest.spyOn(L, 'map').mockImplementation(() => mockMap);
+
     
     const fitBoundsMock = jest.fn();
     L.fitBounds = fitBoundsMock; // Mock the map.fitBounds method
@@ -369,5 +379,123 @@ test("User marker and accuracy circle update on location success", () => {
     expect(mockCircle.addTo).toHaveBeenCalledWith(mockMap);
 });
 
+
+test("initMap sets up the map", () => {
+    const { initMap } = require("../public/javascripts/geo.js");
+  
+    const mockSetView = jest.fn();
+    const mockFitBounds = jest.fn();
+    const mockAddLayer = jest.fn();
+  
+    jest.spyOn(L, "map").mockImplementation(() => ({
+      setView: mockSetView,
+      fitBounds: mockFitBounds,
+      addLayer: mockAddLayer,
+    }));
+  
+    initMap();
+  
+    expect(mockSetView).toHaveBeenCalled();
+    expect(mockAddLayer).toHaveBeenCalled();
+  });
+  
+
+  test("hideLoader displays message elements and hides loader", () => {
+    const { hideLoader } = require("../public/javascripts/geo.js");
+  
+    const messageDivs = document.querySelectorAll('.message');
+    const loader = document.getElementById('loader');
+  
+    messageDivs[0].style.display = '';
+    messageDivs[1].style.display = '';
+    messageDivs[0].innerHTML = '';
+    messageDivs[1].innerHTML = '';
+    loader.style.display = 'block';
+  
+    hideLoader();
+  
+    expect(messageDivs[0].style.display).toBe('flex');
+    expect(messageDivs[0].innerHTML).toBe('Nearby buildings:');
+    expect(messageDivs[1].style.display).toBe('flex');
+    expect(loader.style.display).toBe('none');
+  });
+  
+  test("Zoomed call fitBounds once when user location is updated", () => {
+    const { success } = require("../public/javascripts/geo.js");
+  
+    const fitBoundsMock = jest.fn();
+    const setViewMock = jest.fn();
+  
+    global.map = {
+      fitBounds: fitBoundsMock,
+      setView: setViewMock,
+      removeLayer: jest.fn(),
+      addLayer: jest.fn(),
+    };
+  
+    global.L = {
+      marker: jest.fn(() => ({
+        addTo: jest.fn(),
+      })),
+      circle: jest.fn(() => ({
+        addTo: jest.fn(),
+      })),
+    };
+  
+    success({
+      coords: {
+        latitude: 45.5719,
+        longitude: -122.729,
+        accuracy: 10,
+      },
+    });
+  
+    expect(fitBoundsMock).toHaveBeenCalledTimes(1);
+  });
+  
+  test("User marker and accuracy circle update on location success", () => {
+    const { success } = require("../public/javascripts/geo.js");
+  
+    global.map = {
+      fitBounds: jest.fn(),
+      setView: jest.fn(),
+      removeLayer: jest.fn(),
+      addLayer: jest.fn(),
+    };
+  
+    const mockAddTo = jest.fn();
+    const mockCircle = {
+      addTo: mockAddTo,
+      buildingName: "",
+    };
+    const mockMarker = {
+      addTo: mockAddTo,
+    };
+  
+    global.L = {
+      marker: jest.fn(() => mockMarker),
+      circle: jest.fn(() => mockCircle),
+    };
+  
+    // Define buildings manually here so circle.buildingName doesn't explode
+    const buildingData = [
+      { name: 'shiley', lat: 45.5719, lng: -122.729 },
+      { name: 'library', lat: 45.572, lng: -122.728 },
+    ];
+  
+    global.buildings = buildingData;
+  
+    success({
+      coords: {
+        latitude: 45.5719,
+        longitude: -122.729,
+        accuracy: 10,
+      },
+    });
+  
+    expect(L.marker).toHaveBeenCalled();
+    expect(L.circle).toHaveBeenCalled();
+  });
+  
 
 });

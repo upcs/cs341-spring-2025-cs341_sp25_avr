@@ -3,9 +3,8 @@ const { JSDOM } = require("jsdom");
 describe("Geo.js Tests", () => {
   let map, details, message, loader, popups, devButton;
 
-
   beforeEach(() => {
-    //Set up the mock DOM structure
+    // Set up the mock DOM structure
     const html = `
       <!DOCTYPE html>
       <html>
@@ -25,46 +24,24 @@ describe("Geo.js Tests", () => {
         </body>
       </html>`;
 
-    //Mock the fetch function
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-            json: () => Promise.resolve([{ name: "Shiley", latMin: 45.571, latMax: 45.573, longMin: -122.728, longMax: -122.726 }]),
-        })
-      );
+    // Mock fetch function
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        json: () =>
+          Promise.resolve([
+            { name: "Shiley", latMin: 45.571, latMax: 45.573, longMin: -122.728, longMax: -122.726 },
+          ]),
+      })
+    );
 
-    //Set up the required HTML structure for the test
-    document.body.innerHTML = `
-    <!DOCTYPE html>
-    <html>
-        <body>
-        <div id="map"></div>
-        <div id="details"></div>
-        <div id="shiley"></div>
-        <div class="loader"></div>
-        <div class="default-message"></div>
-        <div class="default-message"></div>
-        <div class="popup welcome-pop-up" style="display: none;">Popup 1</div>
-        <div class="popup welcome-pop-up" style="display: none;">Popup 2</div>
-        <button id="debug-btn">Debug</button>
-        <button id="startButton">Start</button>
-        <button id="nextButton">Start</button>
-        <button id="backButton">Start</button>
-        <button id="fullScreenButton">Fullscreen</button>
-        
-        <div id="phone-container"></div>
-        <div id="phone-container2" style="display: none;"></div>
-        <div id="phone-container3"></div>
-        </body>
-    </html>
-    `;
-    
-    
+    // Set up the DOM for the test
+    document.body.innerHTML = html;
     const dom = new JSDOM(html);
     global.document = dom.window.document;
     global.window = dom.window;
 
-     //Mock event listeners
-     global.document.addEventListener = jest.fn();
+    // Mock event listeners
+    global.document.addEventListener = jest.fn();
 
     // Reference DOM elements
     map = document.getElementById("map");
@@ -74,23 +51,47 @@ describe("Geo.js Tests", () => {
     popups = document.querySelectorAll(".welcome-pop-up");
     devButton = document.getElementById("debug-btn");
 
+    // Mock Leaflet (L)
+    global.L = {
+      map: jest.fn().mockReturnValue({
+        setView: jest.fn(),
+        on: jest.fn(),
+      }),
+      tileLayer: jest.fn().mockReturnValue({
+        addTo: jest.fn(),
+      }),
+    };
+
+    // Import functions from geo.js
     const {
-    success, 
-    toggleFullscreen, 
-    updateButton, 
-    updateDisplay, 
-    isUserNearBuilding, 
-    checkAllBuildings,
-    initMap
+      initMap,
+      isUserNearBuilding,
+      getBuildingName,
+      hideTapIconMessage,
+      error,
+      hideLoader,
+      success,
+      checkWithinBounds,
+      updateDisplay,
     } = require("../public/javascripts/geo.js");
 
+    // Assign functions to the global scope
+    global.initMap = initMap;
+    global.isUserNearBuilding = isUserNearBuilding;
+    global.getBuildingName = getBuildingName;
+    global.hideTapIconMessage = hideTapIconMessage;
+    global.error = error;
+    global.hideLoader = hideLoader;
+    global.success = success;
+    global.checkWithinBounds = checkWithinBounds;
+    global.updateDisplay = updateDisplay;
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  //Mock geolocation
+  // Mock geolocation
   const mockGeolocation = (success, error) => {
     global.navigator.geolocation = {
       getCurrentPosition: jest.fn((successCallback, errorCallback) =>
@@ -166,10 +167,6 @@ describe("Geo.js Tests", () => {
   });
 
   test("should handle missing map element gracefully", () => {
-    
-    const {initMap} = require ('../public/javascripts/geo.js');
-
-    
     jest.spyOn(global.document, "getElementById").mockImplementation((id) =>
       id === "map" ? null : {}
     );
@@ -183,10 +180,6 @@ describe("Geo.js Tests", () => {
   });
 
   test("should verify user is within bounds", () => {
-    
-    const {checkWithinBounds} = require ('../public/javascripts/geo.js');
-
-    
     const result = checkWithinBounds(
       45.5723,
       -122.7275,
@@ -200,9 +193,6 @@ describe("Geo.js Tests", () => {
   });
 
   test("should return false if user is outside bounds", () => {
-    
-    const {checkWithinBounds} = require ('../public/javascripts/geo.js');
-    
     const result = checkWithinBounds(
       45.5700,
       -122.7300,
@@ -216,9 +206,6 @@ describe("Geo.js Tests", () => {
   });
 
   test("should update display with building name", () => {
-    
-    const {updateDisplay} = require ('../public/javascripts/geo.js');
-    
     updateDisplay("Shiley School of Engineering");
 
     expect(message[0].style.display).toBe("flex");
@@ -230,9 +217,6 @@ describe("Geo.js Tests", () => {
   });
 
   test("should handle undefined message elements gracefully", () => {
-    
-    const {updateDisplay} = require ('../public/javascripts/geo.js');
-    
     jest.spyOn(global.document, "querySelectorAll").mockImplementation((selector) =>
       selector === ".default-message" ? null : []
     );
@@ -245,3 +229,91 @@ describe("Geo.js Tests", () => {
   });
 });
 
+describe('geo.js', () => {
+  let mapMock, circleMock, userLat, userLng;
+
+  beforeEach(() => {
+      // Mock the Leaflet map and circle methods
+      mapMock = {
+          distanceTo: jest.fn()
+      };
+      circleMock = {
+          getLatLng: jest.fn().mockReturnValue({ lat: 45.5719, lng: -122.7290 }),
+          getRadius: jest.fn().mockReturnValue(50),
+      };
+
+      userLat = 45.5719;
+      userLng = -122.7290;
+  });
+
+  describe('isUserNearBuilding', () => {
+      it('should return true if the user is within the building radius', () => {
+          // Mock the distance to be less than or equal to the radius
+          mapMock.distanceTo.mockReturnValue(40); // Distance is less than radius
+          expect(isUserNearBuilding(userLat, userLng, circleMock)).toBe(true);
+      });
+
+      it('should return false if the user is outside the building radius', () => {
+          // Mock the distance to be greater than the radius
+          mapMock.distanceTo.mockReturnValue(60); // Distance is greater than radius
+          expect(isUserNearBuilding(userLat, userLng, circleMock)).toBe(false);
+      });
+  });
+
+  describe('getBuildingName', () => {
+      it('should return the building name if the user is inside the building radius', () => {
+          const circles = {
+              "shiley": circleMock
+          };
+          mapMock.distanceTo.mockReturnValue(40); // Inside radius
+
+          const buildingName = getBuildingName(userLat, userLng, circles);
+          expect(buildingName).toBe('shiley');
+      });
+
+      it('should return null if the user is not inside any building radius', () => {
+          const circles = {
+              "shiley": circleMock
+          };
+          mapMock.distanceTo.mockReturnValue(60); // Outside radius
+
+          const buildingName = getBuildingName(userLat, userLng, circles);
+          expect(buildingName).toBeNull();
+      });
+  });
+
+  describe('Loader functionality', () => {
+      let messageMock, loaderMock;
+
+      beforeEach(() => {
+          messageMock = [{ style: {} }, { style: {} }];
+          loaderMock = { style: {} };
+      });
+
+      it('should hide loader and display nearby building information when user is near a building', () => {
+          // Mock elements
+          document.querySelectorAll = jest.fn().mockReturnValue(messageMock);
+          document.querySelector = jest.fn().mockReturnValue(loaderMock);
+
+          hideLoader();
+
+          expect(messageMock[0].style.display).toBe('flex');
+          expect(messageMock[0].innerHTML).toBe('Nearby buildings:');
+          expect(messageMock[1].style.display).toBe('flex');
+          expect(loaderMock.style.display).toBe('none');
+      });
+
+      it('should show loader when no nearby building is found', () => {
+        const {showLoader} = require('../public/javascripts/geo.js')
+        
+        // Mock elements
+          document.querySelectorAll = jest.fn().mockReturnValue(messageMock);
+          document.querySelector = jest.fn().mockReturnValue(loaderMock);
+
+          showLoader();
+
+          expect(messageMock[0].innerHTML).toBe('Walk to a nearby building');
+          expect(loaderMock.style.display).toBe('none');
+      });
+  });
+});
