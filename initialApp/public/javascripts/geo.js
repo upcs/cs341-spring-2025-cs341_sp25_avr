@@ -50,63 +50,38 @@ document.getElementById("startButton").onclick = function () {
 };
 
 // ------ WELCOME POPUP & HELP BUTTON-------
-if (okBtn && overlay) {
-  okBtn.addEventListener('click', () => {
+okBtn.addEventListener('click', () => {
     overlay.classList.add('hide');
-  });
-}
+});
 
-if (helpBtn && overlay) {
-    helpBtn.addEventListener('click', () => {
-        overlay.classList.remove('hide');
-    });
-}
+helpBtn.addEventListener('click', () => {
+    overlay.classList.remove('hide');
+});
 
+
+// ------ MAP MENU BUTTON ------
+document.getElementById("map-menu-button").onclick = function () {
+    document.getElementById("mapDropdown").classList.toggle("show")
+}
 
 // ------ CREATE MAP ------
 function initMap() {
-    if (!map) {
-        // defines the map 
-        map = L.map('map', {
-            center: [45.57190748329964, -122.72902599935568], 
-            zoom: 16,
-            zoomControl: false, // This disables the zoom buttons
-            preferCanvas: !L.Browser.svg && !L.Browser.vml //Fix rendering issue
-        });
+    // defines the map 
+    map = L.map('map', {
+        center: [45.57190748329964, -122.72902599935568],
+        zoom: 13,
+        zoomControl: false // This disables the zoom buttons
+    });
 
-        // gets the openStreetMap source
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+    // gets the openStreetMap source
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
 
-        // access brower geolocation API 
-        // watchPosition() sends back a new set of coords if user moves
-        if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition(success, error);
-        } else {
-            console.error("Geolocation is not supported by this browser.");
-        }
-        
-    }
-//ORIGINAL
-//     // defines the map 
-//     map = L.map('map', {
-//         center: [45.57190748329964, -122.72902599935568], 
-//         zoom: 13,
-//         zoomControl: false // This disables the zoom buttons
-//     });
-
-//     // gets the openStreetMap source
-//     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//         maxZoom: 19,
-//         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-//     }).addTo(map);
-
-//     // access brower geolocation API 
-//     // watchPosition() sends back a new set of coords if user moves
-//     navigator.geolocation.watchPosition(success, error);
-// >>>>>>> main
+    // access brower geolocation API 
+    // watchPosition() sends back a new set of coords if user moves
+    navigator.geolocation.watchPosition(success, error);
 }
 
 
@@ -120,29 +95,12 @@ function success(pos) {
     // remove deplicate markers
     if (marker) {
         map.removeLayer(marker);
-    }
-    if (userCircle) {  // Check if userCircle exists before removing it
         map.removeLayer(userCircle);
     }
-    
     // marker is set to user's current location
     marker = L.marker([userLat, userLng]).addTo(map);
-    
     // circle to see the accuracy of the coordinate
-    if (userLat && userLng && accuracy && map) {
-        userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map);
-    } else {
-        console.error("Invalid user location, accuracy values, or no map.");
-    }
-    
-//ORIGINAL
-//         map.removeLayer(userCircle);
-//     }
-//     // marker is set to user's current location
-//     marker = L.marker([userLat, userLng]).addTo(map);
-//     // circle to see the accuracy of the coordinate
-//     userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map); 
-// >>>>>>> main
+    userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map);
 
     // used to store each circle's name so we know which circle belongs to which building
     let circles = {};
@@ -150,7 +108,7 @@ function success(pos) {
     // iterate through each building in the buildings array (line 3)
     buildings.forEach(building => {
         // make a new circle for each building 
-        let circle = L.circle([building.lat, building.long], { radius: building.radius }).addTo(map);
+        let circle = L.circle([building.lat, building.long], { radius: building.radius });
 
         // add the building name to each circle
         circle.buildingName = building.name;
@@ -188,37 +146,27 @@ function success(pos) {
     } else {
         showLoader();
     }
-
-    let hasZoomed = false;    
+    // console.log("User is near:", nearbyBuilding ? nearbyBuilding : "No building");
+    // console.log(circles);
 
     // keep the map at the changed zoom level if user is moving
-    if (typeof window === "undefined" || process.env.NODE_ENV === "test") {
-        // In test environment, skip calling fitBounds
-        console.log("Skipping fitBounds call in test environment");
-    } else {
-        if (!hasZoomed && userCircle) {
-            map.fitBounds(userCircle.getBounds());
-            hasZoomed = true;
-        } else {
-             //change center of map dynammically based on current marker
-            map.setView([userLat, userLng]);
-            //console.error("userCircle is undefined or invalid.");
-        }
+    if (!zoomed) {
+        zoomed = map.fitBounds(userCircle.getBounds());
     }
-    
-
-   
+    // change center of map dynammically based on current marker
+    map.setView([userLat, userLng]);
 }
 
 // hand errors if user location can't be found
-//function error(err) 
-function error(err) {
+function error() {
     if (err.code === 1) {
         alert("Please allow geolocation access");
     } else {
         alert("Cannot get current location");
     }
 }
+
+
 
 // ------ SHOW ALL LOCATIONS BUTTON ------
 
@@ -233,8 +181,6 @@ devButton.addEventListener('click', () => {
     showingAll = !showingAll;
 });
 
-//ORIGINAL
-// )});
 
 
 
@@ -256,14 +202,9 @@ devButton.addEventListener('click', () => {
 // hide the 'tap icon' message at the beginning
 
 function hideTapIconMessage() {
-    const messages = document.querySelectorAll(".default-message");
-    if (messages[1]) {
-        messages[1].style.display = "none";
-        messages[1].style.color = "gray";
-    }
-    if (messages[0]) {
-        messages[0].style.fontSize = "24px";
-    }
+    message[1].style.display = 'none';
+    message[1].style.color = 'gray';
+    message[0].style.fontSize = '24px';
 }
 
 
@@ -271,11 +212,7 @@ function hideTapIconMessage() {
 function isUserNearBuilding(userLat, userLng, circle) {
     let circleCenter = circle.getLatLng(); // gets the center coord of each building
     let radius = circle.getRadius(); // gets the radius of a the circle
-    let distance = L.latLng(userLat, userLng).distanceTo(circleCenter); // checks distance from circle center to user
-    //let distance = map.distance([userLat, userLng], circleCenter);
-
-    //Original
-    // let distance = map.distance([userLat, userLng], circleCenter); // checks distance from circle center to user
+    let distance = map.distance([userLat, userLng], circleCenter); // checks distance from circle center to user
 
     return distance <= radius; // true if user is inside radius 
 }
@@ -316,6 +253,4 @@ function showLoader() {
 
 hideTapIconMessage();
 
-//Attach it globally for testing
-window.error = error;
-module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success, showLoader };
+module.exports = {initMap, hideLoader, isUserNearBuilding, getBuildingName }
