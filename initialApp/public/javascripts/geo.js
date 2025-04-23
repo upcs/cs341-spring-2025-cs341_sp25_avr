@@ -300,6 +300,7 @@ function hideLoader() {
 
 hideTapIconMessage();
 
-//Attach it globally for testing
 window.error = error;
+
 module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success };
+
