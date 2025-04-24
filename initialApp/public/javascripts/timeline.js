@@ -1,7 +1,7 @@
 
 
 //keeps track of selected location button selected
-var currentBuilding = "chapel"
+var currentBuilding = "shiley"
 let photoCount = 0; // Initialize photo count
 const capturedPhotos = {}; // Object to track captured photos by building name
 
@@ -42,6 +42,10 @@ function updateYear(building, forward) {
             updateInfo(building, years[p.length - 1])
             document.getElementById("future-button").style = "color:gray;"
             document.getElementById("past-button").style = "color:floralwhite;"
+            //if one event/
+            // if (years.length - 1 == 0) {
+            //     document.getElementById("past-button").style = "color:gray;"
+            // }
             return;
         }
 
