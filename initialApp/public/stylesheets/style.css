@@ -54,16 +54,14 @@ body {
     top: 0;
     left: 0;
     z-index: 0;
-
 }
 
 .building-info-btn {
-    display: none;
+    display: none; /* Keep this if you want to hide the buttons initially */
     width: 250px;
-    margin-bottom: 30px;
+    margin-bottom: 30px; /* Space below each button */
     text-align: center;
     justify-content: center;
-    /* animation: pulse 5s infinite; */
     color: white;
     background-color: #1E1656;
     padding: 10px 10px 10px 10px;
@@ -110,24 +108,21 @@ body {
 
 .popup-container {
     width: 350px;
-    padding-bottom: 30px;
+    padding: 10px; /* Add padding to all sides */
+    padding-bottom: 50px; /* Add specific padding to the bottom */
     margin-top: 10px;
     display: flex;
     justify-content: flex-start;
-    /* Ensure content starts from the top */
     align-items: center;
     flex-direction: column;
-    overflow-y: auto;
-    /* Keep scrolling behavior */
-    max-height: 400px;
-    /* Ensure it doesn't cut off content */
+    overflow-y: auto; /* Keep scrolling behavior */
+    max-height: 325px; /* Ensure it doesn't cut off content */
     background-color: darkgray;
     border-radius: 15px;
     position: fixed;
     top: 60vh;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
-
 
 .loading-message {
     visibility: none;
