@@ -1,7 +1,7 @@
 
 
 //keeps track of selected location button selected
-var currentBuilding = "shiley"
+var currentBuilding = "chapel"
 let photoCount = 0; // Initialize photo count
 const capturedPhotos = {}; // Object to track captured photos by building name
 
@@ -79,7 +79,8 @@ function updateInfo(building, year) {
 
         //updates image to new current year, only if year changes to avoid flashing/needless update
         if (year != document.getElementById('yearText').innerText) {
-            const imagePath = `archiveContent/${building}/${year}.jpg`;
+            //gets image path staating at archiveContent for relative pathing
+            const imagePath = p[0].imagePath.slice(18);
             document.getElementById("buildingImage").setAttribute("src", imagePath)
         }
 
@@ -239,7 +240,7 @@ function changeBuilding(newBuilding) {
         // If a photo was taken for the current building, do not decrement the count
         if (capturedPhotos[currentBuilding]) {
             // Just mark the previous building as not having a photo taken
-            capturedPhotos[currentBuilding] = false; 
+            capturedPhotos[currentBuilding] = false;
         }
 
         // Update the building name
