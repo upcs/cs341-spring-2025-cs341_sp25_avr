@@ -89,24 +89,7 @@ function initMap() {
         }
 
     }
-    //ORIGINAL
-    //     // defines the map 
-    //     map = L.map('map', {
-    //         center: [45.57190748329964, -122.72902599935568], 
-    //         zoom: 13,
-    //         zoomControl: false // This disables the zoom buttons
-    //     });
 
-    //     // gets the openStreetMap source
-    //     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    //         maxZoom: 19,
-    //         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    //     }).addTo(map);
-
-    //     // access brower geolocation API 
-    //     // watchPosition() sends back a new set of coords if user moves
-    //     navigator.geolocation.watchPosition(success, error);
-    // >>>>>>> main
 }
 
 
@@ -136,14 +119,7 @@ function success(pos) {
         console.error("Invalid user location, accuracy values, or no map.");
     }
 
-    //ORIGINAL
-    //         map.removeLayer(userCircle);
-    //     }
-    //     // marker is set to user's current location
-    //     marker = L.marker([userLat, userLng]).addTo(map);
-    //     // circle to see the accuracy of the coordinate
-    //     userCircle = L.circle([userLat, userLng], { radius: accuracy }).addTo(map); 
-    // >>>>>>> main
+    
 
     // used to store each circle's name so we know which circle belongs to which building
     let circles = {};
@@ -151,7 +127,7 @@ function success(pos) {
     // iterate through each building in the buildings array (line 3)
     buildings.forEach(building => {
         // make a new circle for each building 
-        let circle = L.circle([building.lat, building.long], { radius: building.radius }).addTo(map);
+        let circle = L.circle([building.lat, building.long], { radius: building.radius });
 
         // add the building name to each circle
         circle.buildingName = building.name;
@@ -164,31 +140,33 @@ function success(pos) {
     // store the nearest building name as a variable 
     let nearbyBuilding = getBuildingName(userLat, userLng, circles);
 
+    let matchedPopup = document.getElementById(nearbyBuilding);
+
+    popups.forEach(popup => {
+        popup.style.display = 'none';
+    });
+
     // if there is a building near by
-    if (nearbyBuilding) {
+    if (nearbyBuilding && matchedPopup) {
 
         hideLoader(); // Only update for the nearby building
+        
+    
+        matchedPopup.style.display = 'flex';
 
-        const matchedPopup = document.getElementById(nearbyBuilding);
-
-        if (matchedPopup) {
-            matchedPopup.style.display = 'flex';
-
-            matchedPopup.addEventListener('click', () => {
-                if (window.selectedBuilding) {
-                    document.getElementById("phone-container2").style.display = 'none';
-                    document.getElementById("phone-container3").style.display = 'flex';
-                    window.selectedBuilding(nearbyBuilding);
-                }
-            })
-        }
-    } else {
-        popups.forEach(popup => {
-            popup.style.display = 'none';
+        matchedPopup.addEventListener('click', ()=> {
+            if (window.selectedBuilding) {
+                document.getElementById("phone-container2").style.display = 'none';
+                document.getElementById("phone-container3").style.display = 'flex';
+                window.selectedBuilding(nearbyBuilding);
+            }
         });
+        
+    } else {
+        showLoader();
     }
 
-    // zoomed = map.fitBounds(userCircle.getBounds());
+    zoomed = map.fitBounds(userCircle.getBounds());
 
     // keep the map at the changed zoom level if user is moving
     if (typeof window === "undefined" || process.env.NODE_ENV === "test") {
@@ -222,10 +200,6 @@ devButton.addEventListener('click', () => {
         popup.style.display = 'flex';
     });
 });
-
-//ORIGINAL
-// )});
-
 
 
 // IMPORTANT: DON'T DELETE in case we want to move coords to data base
@@ -263,9 +237,6 @@ function isUserNearBuilding(userLat, userLng, circle) {
     let radius = circle.getRadius(); // gets the radius of a the circle
     let distance = L.latLng(userLat, userLng).distanceTo(circleCenter); // checks distance from circle center to user
 
-    //Original
-    // let distance = map.distance([userLat, userLng], circleCenter); // checks distance from circle center to user
-
     return distance <= radius; // true if user is inside radius 
 }
 
@@ -293,6 +264,11 @@ function hideLoader() {
     message[0].style.display = 'flex';
     message[0].innerHTML = 'Nearby buildings:';
     message[1].style.display = 'flex';
+    loader.style.display = 'none';
+}
+
+function showLoader() {
+    message[0].innerHTML = 'Walk to a nearby building';
     loader.style.display = 'none';
 }
 
