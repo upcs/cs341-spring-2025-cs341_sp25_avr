@@ -84,8 +84,6 @@ describe('Fullscreen Functions', () => {
     expect(document.documentElement.requestFullscreen).toHaveBeenCalled();
   });
 
-  
-
 });
 
  //Check all the fullscreen methods for different browsers
@@ -159,8 +157,6 @@ describe('Check all the exit fullscreen methods for different browsers/vendors',
 
 describe('Check the map fullscreen button', () => {
 
-
-  
   //Tests for map-fullscreen
   test('clicking the map-fullscreen-btn calls toggleFullscreen', () => {
     document.documentElement.requestFullscreen = jest.fn();
@@ -260,4 +256,5 @@ describe('goFullscreen method', () => {
 
     expect(document.documentElement.msRequestFullscreen).toHaveBeenCalled();
   });
+
 });
