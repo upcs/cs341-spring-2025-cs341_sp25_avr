@@ -1,3 +1,4 @@
+
 const { JSDOM } = require("jsdom");
 
 describe("Geo.js Tests", () => {
@@ -247,13 +248,13 @@ describe('geo.js', () => {
   });
 
   describe('isUserNearBuilding', () => {
-      it('should return true if the user is within the building radius', () => {
+      test('should return true if the user is within the building radius', () => {
           // Mock the distance to be less than or equal to the radius
           mapMock.distanceTo.mockReturnValue(40); // Distance is less than radius
           expect(isUserNearBuilding(userLat, userLng, circleMock)).toBe(true);
       });
 
-      it('should return false if the user is outside the building radius', () => {
+      test('should return false if the user is outside the building radius', () => {
           // Mock the distance to be greater than the radius
           mapMock.distanceTo.mockReturnValue(60); // Distance is greater than radius
           expect(isUserNearBuilding(userLat, userLng, circleMock)).toBe(false);
@@ -261,7 +262,7 @@ describe('geo.js', () => {
   });
 
   describe('getBuildingName', () => {
-      it('should return the building name if the user is inside the building radius', () => {
+      test('should return the building name if the user is inside the building radius', () => {
           const circles = {
               "shiley": circleMock
           };
@@ -271,7 +272,7 @@ describe('geo.js', () => {
           expect(buildingName).toBe('shiley');
       });
 
-      it('should return null if the user is not inside any building radius', () => {
+      test('should return null if the user is not inside any building radius', () => {
           const circles = {
               "shiley": circleMock
           };
@@ -290,7 +291,7 @@ describe('geo.js', () => {
           loaderMock = { style: {} };
       });
 
-      it('should hide loader and display nearby building information when user is near a building', () => {
+      test('should hide loader and display nearby building information when user is near a building', () => {
           // Mock elements
           document.querySelectorAll = jest.fn().mockReturnValue(messageMock);
           document.querySelector = jest.fn().mockReturnValue(loaderMock);
@@ -303,7 +304,7 @@ describe('geo.js', () => {
           expect(loaderMock.style.display).toBe('none');
       });
 
-      it('should show loader when no nearby building is found', () => {
+      test('should show loader when no nearby building is found', () => {
         const {showLoader} = require('../public/javascripts/geo.js')
         
         // Mock elements
