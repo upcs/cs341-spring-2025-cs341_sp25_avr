@@ -10,6 +10,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'TheSansOfficeLF-Plain';
+  src: url('TheSansOfficeLF-Plain.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   font-family: TheSansOfficeLF-Bold;
   display: flex;
@@ -216,10 +223,10 @@ button:hover {
 #buildingText,
 #yearText {
   padding-bottom: 0px;
-  
+
 }
 
-#buildingImage{
+#buildingImage {
   margin-top: 80px;
 }
 
