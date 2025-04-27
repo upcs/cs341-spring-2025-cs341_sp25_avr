@@ -1,204 +1,235 @@
+
 /**
  * @jest-environment jsdom
  */
-const $ = require('jquery');
 
-//make $ global BEFORE loading timeline.js
-global.$ = $;
-global.jQuery = $;
+let selectedBuilding, updateYear, updateInfo, handlePhotoCapture, changeBuilding;
+
+function setupDOM() {
+    document.body.innerHTML = `
+      <div id="menu-button"></div>
+        <div id="map-menu-button"></div>
+        <div id="aboutButton"></div>
+        <div id="past-button"></div>
+        <div id="future-button"></div>
+        <div id="read-button"></div>
+
+        <div id="myDropdown"></div>
+        <div id="mapDropdown"></div>
+        <div id="map-toggle"></div>
+        <div id="home-toggle"></div>
+       
+        <div id="yearText">2009</div>
+        <div id="buildingText"></div>
+        <div id="descriptionText"></div>
+        <img id="buildingImage" class="building-img" style="scale:1;" />
+        <div id="shiley">Shiley Hall</div>
+
+        <div id="phone-container"></div>
+        <div id="phone-container1"></div>
+        <div id="phone-container2"></div>
+        <div id="phone-container3"></div>
+      
+        <div id="timelineContainer" class="d-none"></div>
+        <div id="photoCountText">0</div>
+        <div id="photoCount">0</div>
+        <div id="photoStamp"></div>
+        <div id="captureButton"></div>
+        <button onclick="selectedBuilding('shiley')">Shiley</button>
+       
+
+
+        <!-- Building Image -->
+        
+
+        <!-- Building Text -->
+        <div id="buildingText"></div>
+
+        <!-- Read More Button -->
+        <button id="read-button">Read more</button>
+
+        <!-- Dropdown and Menu Button -->
+        <div id="myDropdown" class="dropdown-content show"></div>
+        <div id="mapDropdown" class="dropdown-content show"></div>
+        <button id="menu-button" class="show">Menu</button>
+        <button id="map-menu-button" class="show">Menu</button>
+       
+
+        <!-- Phone Containers -->
+        <div id="phone-container" style="display:flex;"></div>
+        <div id="phone-container1" style="display:flex;"></div>
+        <div id="phone-container2" style="display:flex;"></div>
+        <div id="phone-container3" style="display: flex;"></div>
+
+
+        <!-- Toggle Buttons -->
+        <button id="home-toggle">Home</button>
+        <button id="aboutButton">About</button>
+        <button id="map-toggle" style="display:flex;">Map</button>
+        <button id="future-button" filter: blur(5px)></button>
+        <button id="past-button" filter: blur(5px)></button>
+         <button id="futureButton" filter: blur(5px)></button>
+        <button id="pastButton" filter: blur(5px)></button>
+
+
+        <div id="info-pane" class="hidden">
+        <div class="info-text"></div>
+        </div>
+        <div class="buildings">
+        <div class="building" id="building1">Building 1</div>
+        </div>
+   
+    `;
+  }
+
+  function mockPost(returnData) {
+    $.post.mockImplementation(() => ({
+      done: cb => {
+        cb(returnData);
+        return { fail: () => {} };
+      }
+    }));
+  }
+const $ = require('jquery');
+afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+beforeEach(() => {  
+
+    jest.resetModules();
+
+    //Mock a post request
+    $.post = jest.fn().mockReturnValue({
+        done: (cb) => {
+            cb([
+                { year: "2000", description: "Test description", imageURL: "test.jpg" }
+            ]);
+            return { fail: () => {} };
+        }
+    });
+      
+    global.capturedPhotos = { shiley: false };
+
+    //Set up the required HTML structure for the test
+    setupDOM();
+
+    //make $ global BEFORE loading timeline.js
+    global.$ = $;
+    global.jQuery = $;
+
+    global.buildings = {
+        shiley: {
+          name: "Shiley Hall",
+          description: "Test description"
+        }
+      };
+    
+      global.currentBuilding = null;
+
+      ({ selectedBuilding, updateYear, updateInfo, handlePhotoCapture, changeBuilding } = require('../public/javascripts/timeline.js'));
+
+});
+
 
 describe("Timeline tests:", () => {
 
+    //The ones that don't work yet :(
+    test('should update building and UI elements when a building is selected', () => {
+        const { selectedBuilding, updateInfo } = require('../public/javascripts/timeline.js');
+        const building = 'shiley';
+        updateInfo('shiley');
 
-    const $ = require('jquery');
-    afterEach(() => {
-        jest.clearAllMocks();
-      });
+        const buildingText = document.getElementById('buildingText');
+        console.log(buildingText.innerText);  // Debugging line
+        expect(buildingText).toBeTruthy();
+        expect(buildingText.innerText).toBe('Shiley');
+    });
 
-    beforeEach(() => {  
+    test('should update the timeline year when going forward or backward', async () => {
+        const { updateYear } = require('../public/javascripts/timeline.js');
 
-        //Mock a post request
-        $.post = jest.fn().mockReturnValue({
-            done: (cb) => {
-                cb([
-                    { year: "2000", description: "Test description", imageURL: "test.jpg" }
-                ]);
-                return { fail: () => {} };
-            }
+        const mockPost = jest.spyOn($, 'post').mockImplementation((url, data) => {
+            return { 
+                done: jest.fn((cb) => cb([
+                    { year: '2009', description: 'Test 2009' },
+                    { year: '2010', description: 'Test 2010' },
+                    { year: '2011', description: 'Test 2011' }
+                ])) 
+            };
         });
-          
-        //global.capturedPhotos = { shiley: false };
-    
-        //Set up the required HTML structure for the test
-        document.body.innerHTML = `
-            
-            <div id="shiley">Shiley Hall</div>
-            <div id="yearText">2009</div>
-            <div id="descriptionText">Test description</div>
-            <div id="timelineContainer" class="d-none"></div>
-            <div id="photoCountText">0</div>
-            <div id="photoCount">0</div>
-            <div id="photoStamp"></div>
-            <div id="captureButton"></div>
-            <button onclick="selectedBuilding('shiley')">Shiley</button>
 
-
-            <!-- Building Image -->
-            <img id="buildingImage" class="building-img" style="scale:1;" />
-
-            <!-- Building Text -->
-            <div id="buildingText"></div>
-
-            <!-- Read More Button -->
-            <button id="read-button">Read more</button>
-
-            <!-- Dropdown and Menu Button -->
-            <div id="myDropdown" class="dropdown-content show"></div>
-            <div id="mapDropdown" class="dropdown-content show"></div>
-            <button id="menu-button" class="show">Menu</button>
-            <button id="map-menu-button" class="show">Menu</button>
-           
-
-            <!-- Phone Containers -->
-            <div id="phone-container" style="display:flex;"></div>
-            <div id="phone-container1" style="display:flex;"></div>
-            <div id="phone-container2" style="display:flex;"></div>
-            <div id="phone-container3" style="display: flex;"></div>
-
-
-            <!-- Toggle Buttons -->
-            <button id="home-toggle">Home</button>
-            <button id="aboutButton">About</button>
-            <button id="map-toggle" style="display:lex;">Map</button>
-            <button id="future-button" style="blur"></button>
-            <button id="past-button" style="blur"></button>
-
-            <div id="info-pane" class="hidden">
-      <div class="info-text"></div>
-    </div>
-    <div class="buildings">
-      <div class="building" id="building1">Building 1</div>
-    </div>
-       
-        `;
-
-        global.buildings = {
-            shiley: {
-              name: "Shiley Hall",
-              description: "Test description"
-            }
-          };
+        const building = 'shiley';
         
-          global.currentBuilding = null;
+        // Simulate calling updateYear for next year
+        await updateYear(building, true);
+        
+        // Check UI updates and mock call
+        expect(mockPost).toHaveBeenCalledWith(expect.stringContaining("shiley"));
+        expect(document.getElementById('yearText').innerText).toBe('2010');
 
-        const {
-            selectedBuilding,
-            updateYear,
-            updateInfo,
-            handlePhotoCapture,
-            changeBuilding
-          } = require('../public/javascripts/timeline.js');
+        // Now simulate going back to previous year
+        await updateYear(building, false);
+        expect(document.getElementById('yearText').innerText).toBe('2009');
+    });
+        
+    test('read-button toggles text and calls updateInfo', () => {
+        const { updateInfo } = require('../public/javascripts/timeline.js');
+        const spy = jest.spyOn(timeline, 'updateInfo');
 
+        const button = document.getElementById('read-button');
+        button.click();
+
+        // Ensure the button text has been updated
+        expect(button.innerText).toBe('Read less');
+        expect(spy).toHaveBeenCalledWith("shiley", "2009");
     });
 
+    test('menu-button toggles dropdown visibility', () => {
+        const dropdown = document.getElementById('myDropdown');
+        const button = document.getElementById('menu-button');
 
-//The ones that don't work yet :(
-    
+        // Simulate initial state where dropdown is not visible
+        dropdown.classList.remove('show');
+        expect(dropdown.classList.contains('show')).toBe(false);
 
-test('should update building and UI elements when a building is selected', () => {
-    const { selectedBuilding } = require('../public/javascripts/timeline.js');
-    const building = 'shiley';
-    selectedBuilding(building);
+        // Simulate button click to toggle dropdown visibility
+        button.click();
+        expect(dropdown.classList.contains('show')).toBe(true);
 
-    const buildingText = document.getElementById('buildingText');
-    console.log(buildingText.innerText);  // Debugging line
-    expect(buildingText).toBeTruthy();
-    expect(buildingText.innerText).toBe('Shiley');
-});
-
-test('should update the timeline year when going forward or backward', async () => {
-    const { updateYear } = require('../public/javascripts/timeline.js');
-
-    const mockPost = jest.spyOn($, 'post').mockImplementation((url, data) => {
-        return { 
-            done: jest.fn((cb) => cb([
-                { year: '2009', description: 'Test 2009' },
-                { year: '2010', description: 'Test 2010' },
-                { year: '2011', description: 'Test 2011' }
-            ])) 
-        };
+        // Simulate another click to hide dropdown
+        button.click();
+        expect(dropdown.classList.contains('show')).toBe(false);
     });
 
-    const building = 'shiley';
-    
-    // Simulate calling updateYear for next year
-    await updateYear(building, true);
-    
-    // Check UI updates and mock call
-    expect(mockPost).toHaveBeenCalledWith(expect.stringContaining("shiley"));
-    expect(document.getElementById('yearText').innerText).toBe('2010');
+    test('handlePhotoCapture registers a photo and updates count/UI', () => {
+        const { handlePhotoCapture } = require('../public/javascripts/timeline.js');
 
-    // Now simulate going back to previous year
-    await updateYear(building, false);
-    expect(document.getElementById('yearText').innerText).toBe('2009');
-});
-    
-test('read-button toggles text and calls updateInfo', () => {
-    const { updateInfo } = require('../public/javascripts/timeline.js');
-    const spy = jest.spyOn(updateInfo, 'mockImplementation');
+        
+        const fileInput = document.createElement('input');
+        fileInput.type = "file";
+        const mockFile = new File(["dummy content"], "test.jpg", { type: "image/jpeg" });
+        Object.defineProperty(fileInput, 'files', { value: [mockFile] });
 
-    const button = document.getElementById('read-button');
-    button.click();
-
-    // Ensure the button text has been updated
-    expect(button.innerText).toBe('Read less');
-    expect(spy).toHaveBeenCalledWith("shiley", "2009");
-});
-
-test('menu-button toggles dropdown visibility', () => {
-    const dropdown = document.getElementById('myDropdown');
-    const button = document.getElementById('menu-button');
-
-    // Simulate initial state where dropdown is not visible
-    dropdown.classList.remove('show');
-    expect(dropdown.classList.contains('show')).toBe(false);
-
-    // Simulate button click to toggle dropdown visibility
-    button.click();
-    expect(dropdown.classList.contains('show')).toBe(true);
-
-    // Simulate another click to hide dropdown
-    button.click();
-    expect(dropdown.classList.contains('show')).toBe(false);
-});
-
-test('handlePhotoCapture registers a photo and updates count/UI', () => {
-    const { handlePhotoCapture } = require('../public/javascripts/timeline.js');
-
-    
-    const fileInput = document.createElement('input');
-    fileInput.type = "file";
-    const mockFile = new File(["dummy content"], "test.jpg", { type: "image/jpeg" });
-    Object.defineProperty(fileInput, 'files', { value: [mockFile] });
-
-    // Initialize global object
-    global.capturedPhotos = { shiley: false };
-    global.currentBuilding = "shiley";
-    global.photoCount = 0;
-    
-    handlePhotoCapture({ target: fileInput });
-    
-    // Assert that photo count is updated
-    expect(document.getElementById("photoCount").innerText).toBe("Photos Taken: 1");
-    expect(document.getElementById("checkmarkImage")).not.toBeNull();
-});
+        // Initialize global object
+        global.capturedPhotos = { shiley: false };
+        global.currentBuilding = "shiley";
+        global.photoCount = 0;
+        
+        handlePhotoCapture({ target: fileInput });
+        
+        // Assert that photo count is updated
+        expect(document.getElementById("photoCount").innerText).toBe("Photos Taken: 1");
+        expect(document.getElementById("checkmarkImage")).not.toBeNull();
+    });
 
     test('DOMContentLoaded triggers updateInfo with 2009', () => {
-        const timeline = require('../public/javascripts/timeline.js');
-        const spy = jest.spyOn(timeline, 'updateInfo');
     
         document.body.setAttribute('data-year', '2009');
         global.currentBuilding = "shiley";
+
+        const timeline = require('../public/javascripts/timeline.js');
+        const spy = jest.spyOn(timeline, 'updateInfo');
     
         document.dispatchEvent(new Event('DOMContentLoaded'));
     
@@ -213,9 +244,9 @@ test('handlePhotoCapture registers a photo and updates count/UI', () => {
         expect(buildingText.innerText).toBe('Shiley');
         expect(photoCountText.innerText).toBe('Photos Taken: 0');
         expect(captureButton.style.display).toBe('block');  // Capture button should be visible again
-      });
+    });
 
-      test('should update the year and change button styles', async () => {
+    test('should update the year and change button styles', async () => {
         const{updateYear}=require('../public/javascripts/timeline.js')
 
         await updateYear('shiley', true);  // Going forward to the next year
@@ -223,9 +254,10 @@ test('handlePhotoCapture registers a photo and updates count/UI', () => {
         expect(document.getElementById("yearText").innerText).toBe('2000');
         expect(document.getElementById("futureButton").style.color).toBe('gray');
         expect(document.getElementById("pastButton").style.color).toBe('floralwhite');
-      });
+    });
 
 
+    //Beginning of the ones that do work!
     test('updateInfo sets year and description', async () => {
        
         const { updateInfo } = require("../public/javascripts/timeline.js");
@@ -254,8 +286,7 @@ test('handlePhotoCapture registers a photo and updates count/UI', () => {
         await updateInfo('shiley', '2009');
     
         expect(document.getElementById('yearText').innerText).toBe('2009');
-        expect(document.getElementById('descriptionText').innerText)
-  .toBe("A very long test description that exceeds ninety-five characters easily for Read more behavior.");
+        expect(document.getElementById('descriptionText').innerText).toBe("A very long test description that exceeds ninety-five characters easily for Read more behavior.");
     });
 
 
@@ -375,5 +406,5 @@ test('handlePhotoCapture registers a photo and updates count/UI', () => {
             expect(document.getElementById("phone-container3").style.display).toBe('flex');
         }, 0);
     });
-
+    
 });
