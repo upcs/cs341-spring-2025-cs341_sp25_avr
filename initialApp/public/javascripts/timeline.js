@@ -24,11 +24,14 @@ function updateYear(building, forward) {
     const contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "';"
 
     $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
+        //for the building, puts all of the event years in an array
         const years = [];
         for (let i = 0; i < p.length; i++) {
             years[i] = p[i].year
         }
+        years.sort
 
+        //finds year and index of current event/year before anything is done
         let currentYear = document.getElementById('yearText').innerText
         let currentIndex = years.indexOf(currentYear);
         for (let i = 0; i < p.length; i++) {
@@ -42,10 +45,10 @@ function updateYear(building, forward) {
             updateInfo(building, years[p.length - 1])
             document.getElementById("future-button").style = "color:gray;"
             document.getElementById("past-button").style = "color:floralwhite;"
-            //if one event/
-            // if (years.length - 1 == 0) {
-            //     document.getElementById("past-button").style = "color:gray;"
-            // }
+            //if one event/year turns past button gray
+            if (years.length - 1 == 0) {
+                document.getElementById("past-button").style = "color:gray;"
+            }
             return;
         }
 
@@ -63,10 +66,10 @@ function updateYear(building, forward) {
             updateInfo(building, currentYear)
         }
 
-        //grays or whites out future and past buttons if event is possible
+        //turns gray or stays whites text for future and past buttons if event is possible
         document.getElementById("future-button").style = "color:floralwhite;"
         document.getElementById("past-button").style = "color:floralwhite;"
-        if (currentIndex == 0) {
+        if (currentIndex == 0 || years.length - 1 == 0) {
             document.getElementById("past-button").style = "color:gray;"
         }
         if (currentIndex == years.length - 1) {
