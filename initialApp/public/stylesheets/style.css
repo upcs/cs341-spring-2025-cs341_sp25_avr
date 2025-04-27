@@ -283,6 +283,7 @@ h1 {
 .welcome-popup h1 {
     margin-top: 12px;
     font-size: 2rem;
+    margin: 2px;
 }
 
 .close-popup {
