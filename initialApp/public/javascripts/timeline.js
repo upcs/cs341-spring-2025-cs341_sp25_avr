@@ -1,7 +1,7 @@
 
 
 //keeps track of selected location button selected
-var currentBuilding = "shiley"
+var currentBuilding = ""
 let photoCount = 0; // Initialize photo count
 const capturedPhotos = {}; // Object to track captured photos by building name
 
@@ -79,13 +79,17 @@ function updateYear(building, forward) {
     })
 }
 
-//updates all of the relevant texts and images to new event 
+//updates all of the relevant texts and images to new event according to building and year
 function updateInfo(building, year) {
     var contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "' AND year=" + year + ";"
     $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
 
-        //updates image to new current year, only if year changes to avoid flashing/needless update
-        if (year != document.getElementById('yearText').innerText) {
+        //gets building name and year from current photo
+        var currentImage = document.getElementById("buildingImage").src
+        var currentImage = currentImage.slice(document.getElementById("buildingImage").src.indexOf("archiveContent") + 15)
+
+        //updates image to new current year, only if year or buiulding changes to avoid flashing/needless update
+        if (year != currentImage.slice(-8, -4) || building != currentImage.slice(0, -9)) {
             //gets image path staating at archiveContent for relative pathing
             const imagePath = p[0].imagePath.slice(18);
             document.getElementById("buildingImage").setAttribute("src", imagePath)
