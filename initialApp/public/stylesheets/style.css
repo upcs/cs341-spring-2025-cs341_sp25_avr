@@ -240,31 +240,23 @@ h1 {
 
 }
 
-/* #debug-btn {
-    width: 100px;
-    height: 20px;
-    font-size: 10px;
-    padding: none;
-    background-color: grey;
-    border: solid 1px white;
-    border-radius: 10px;
-    color: white;
-} */
 
 /* Starting Popup */
 
 .overlay {
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* 0.5 opacity */
+    background-color: rgba(0, 0, 0, 0.5);
+    /* 0.5 opacity */
     position: absolute;
     display: flex;
     justify-content: center;
     align-items: center;
     visibility: visible;
     transition: all 0.5s ease;
-    transform: translateY(0); /* start position */
-    
+    transform: translateY(0);
+    /* start position */
+
 }
 
 .welcome-popup {
@@ -278,7 +270,8 @@ h1 {
 }
 
 .overlay.hide {
-    transform: translateY(-50px); /* move it up */
+    transform: translateY(-50px);
+    /* move it up */
     opacity: 0;
     visibility: hidden;
 }
@@ -286,16 +279,18 @@ h1 {
 .welcome-popup p {
     color: white;
 }
+
 .welcome-popup h1 {
     margin-top: 12px;
     font-size: 2rem;
+    margin: 2px;
 }
-   
+
 .close-popup {
     display: none;
 }
-   
-#close-popup-btn{
+
+#close-popup-btn {
     position: absolute;
     width: 60px;
     height: 50px;
@@ -310,12 +305,12 @@ h1 {
     cursor: pointer;
 }
 
-#close-popup-btn:focus{
+#close-popup-btn:focus {
     opacity: 0.5;
 }
-   
-   
-#close-popup:hover{
+
+
+#close-popup:hover {
     opacity: 0.7;
 }
 
@@ -367,17 +362,25 @@ h1 {
 .image-container {
     width: 500px;
     height: 400px;
-    overflow: hidden; /* Hide overflow */
-    display: flex; /* Use flexbox to center the image */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
+    overflow: hidden;
+    /* Hide overflow */
+    display: flex;
+    /* Use flexbox to center the image */
+    justify-content: center;
+    /* Center horizontally */
+    align-items: center;
+    /* Center vertically */
 }
 
 .image-container embed {
-    width: 100%; /* Make the embed take the full width of the container */
-    height: auto; /* Maintain aspect ratio */
-    object-fit: cover; /* Cover the container while maintaining aspect ratio */
+    width: 100%;
+    /* Make the embed take the full width of the container */
+    height: auto;
+    /* Maintain aspect ratio */
+    object-fit: cover;
+    /* Cover the container while maintaining aspect ratio */
 }
+
 /* Add margin to the last button */
 .popup-container button:last-child {
     margin-bottom: 90px;
