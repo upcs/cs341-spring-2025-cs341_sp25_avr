@@ -47,23 +47,20 @@ body {
 
 
 #map {
-    height: 100vh;
+    height: 100%; /* Make the map fill the parent container */
     width: 100%;
-    position: relative;
-    /* Make sure the map fills the container */
-    top: 0;
-    left: 0;
-    z-index: 0;
-
+    position: absolute;
+    top: 0; /* Align to the top of the parent */
+    left: 0; /* Align to the left of the parent */
+    z-index: 0; /* Ensure it is behind other elements */
 }
 
 .building-info-btn {
-    display: none;
+    display: none; /* Keep this if you want to hide the buttons initially */
     width: 250px;
-    margin-bottom: 30px;
+    margin-bottom: 30px; /* Space below each button */
     text-align: center;
     justify-content: center;
-    /* animation: pulse 5s infinite; */
     color: white;
     background-color: #1E1656;
     padding: 10px 10px 10px 10px;
@@ -110,24 +107,21 @@ body {
 
 .popup-container {
     width: 350px;
-    padding-bottom: 30px;
+    padding: 10px; /* Add padding to all sides */
+    padding-bottom: 50px; /* Add specific padding to the bottom */
     margin-top: 10px;
     display: flex;
     justify-content: flex-start;
-    /* Ensure content starts from the top */
     align-items: center;
     flex-direction: column;
-    overflow-y: auto;
-    /* Keep scrolling behavior */
-    max-height: 400px;
-    /* Ensure it doesn't cut off content */
+    overflow-y: auto; /* Keep scrolling behavior */
+    max-height: 325px; /* Ensure it doesn't cut off content */
     background-color: darkgray;
     border-radius: 15px;
     position: fixed;
     top: 60vh;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
-
 
 .loading-message {
     visibility: none;
@@ -290,7 +284,7 @@ h1 {
     display: none;
 }
 
-#close-popup-btn {
+#close-popup-btn{
     position: absolute;
     width: 60px;
     height: 50px;
@@ -309,8 +303,7 @@ h1 {
     opacity: 0.5;
 }
 
-
-#close-popup:hover {
+#close-popup:hover{
     opacity: 0.7;
 }
 
@@ -318,7 +311,7 @@ h1 {
     width: 350px;
     top: 100px;
     display: flex;
-    position: fixed;
+    position: relative;
     justify-content: right;
 }
 
@@ -347,6 +340,17 @@ h1 {
     position: fixed;
     margin-top: 60px;
     cursor: pointer;
+}
+
+.fullscreen-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+    object-fit: cover; /* Cover the entire area */
+    z-index: 9999; /* Ensure it appears above other content */
+    cursor: pointer; /* Change cursor to indicate clickable */
 }
 
 #captureButton {

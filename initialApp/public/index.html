@@ -164,7 +164,9 @@
                     2. Advanced -> Feature Flags <br>
                     3. Turn on 'Fullscreen API'
                 </p>
-
+                <br>
+                <p>If you map doesn't compeletly load, please reload your page.
+                </p>
                 <img src="images/wally.png" alt="">
                 <button id="close-popup-btn">OK</button>
             </div>
@@ -185,8 +187,8 @@
         </div>
 
         <div class="building-photo">
-            <div class="image-container">
-                <embed id="buildingImage" src="" alt="Picture of Shiley">
+            <div class="image-container" id="imageContainer">
+                <img id="buildingImage" src="archiveContent/shiley/1948.jpg" alt="Picture of Shiley" onclick="toggleImageExpand(event)">
             </div>
         </div>
 

@@ -223,11 +223,11 @@ button:hover {
 #buildingText,
 #yearText {
   padding-bottom: 0px;
-
 }
 
 #buildingImage {
   margin-top: 80px;
+  padding-top: 20px;
 }
 
 #buildingText {
