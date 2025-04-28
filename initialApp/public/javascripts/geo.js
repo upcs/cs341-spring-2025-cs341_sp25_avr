@@ -299,4 +299,3 @@ hideTapIconMessage();
 window.error = error;
 
 module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success };
-

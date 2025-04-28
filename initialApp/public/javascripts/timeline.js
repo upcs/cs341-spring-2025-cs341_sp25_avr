@@ -271,6 +271,22 @@ function changeBuilding(newBuilding) {
     }
 }
 
+$(document).click(function (event) {
+    if (!$(event.target).is("#menu-button") && document.getElementById("phone-container3").style.display == 'flex') {
+        //if dropdown is toggled, untoggles to hide it
+        if (document.getElementById("myDropdown").className == "dropdown-content show") {
+            document.getElementById("myDropdown").classList.toggle("show")
+        }
+    }
+});
+
+$(document).click(function (event) {
+    if (!$(event.target).is("#map-menu-button") && document.getElementById("phone-container3").style.display == 'flex') {
+        //if dropdown is toggled, untoggles to hide it
+        if (document.getElementById("mapDropdown").className == "dropdown-content show") {
+            document.getElementById("mapDropdown").classList.toggle("show")
+        }
+    }
+});
 
 module.exports = { selectedBuilding, updateYear, updateInfo, changeBuilding, handlePhotoCapture };
-

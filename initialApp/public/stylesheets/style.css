@@ -49,7 +49,7 @@ body {
 #map {
     height: 100%; /* Make the map fill the parent container */
     width: 100%;
-    position: absolute; /* Set to absolute */
+    position: absolute;
     top: 0; /* Align to the top of the parent */
     left: 0; /* Align to the left of the parent */
     z-index: 0; /* Ensure it is behind other elements */
