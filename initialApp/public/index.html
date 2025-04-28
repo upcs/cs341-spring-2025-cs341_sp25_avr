@@ -10,11 +10,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
 
     <script>
@@ -41,7 +39,7 @@
         window.onload = scrollToTop;
 
         // Add event listeners to buttons to scroll to the top when clicked
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Add event listeners to the Past and Future buttons
             document.getElementById('past-button').addEventListener('click', goToPast);
             document.getElementById('future-button').addEventListener('click', goToFuture);
@@ -76,10 +74,14 @@
         <div id="creditBox">
             <h1 class="creditTitle"> Credits </h1>
             <h3 class="creditText"> Thank you to the Marketing Team for helping make this possible.</h3>
-            <h3 class="creditText"> Thank you to the Archives for providing the images and information for each of the building locations.</h3>
-            <p class="creditText"> The Clark Library Digital Collections can be found by clicking <a href="https://digital.up.edu/" target="_blank">this</a> link</p>
-            <p class="creditText"> More pages and articles from the University Museum can be found by clicking <a href="https://sites.up.edu/museum/about/" target="_blank">this</a> link</p>
-            <h3 class="creditText"> <br> <br> Thank you for trying our Time Machine made by UP Shiley School of Engineering students!</h3>
+            <h3 class="creditText"> Thank you to the Archives for providing the images and information for each of the
+                building locations.</h3>
+            <p class="creditText"> The Clark Library Digital Collections can be found by clicking <a
+                    href="https://digital.up.edu/" target="_blank">this</a> link</p>
+            <p class="creditText"> More pages and articles from the University Museum can be found by clicking <a
+                    href="https://sites.up.edu/museum/about/" target="_blank">this</a> link</p>
+            <h3 class="creditText"> <br> <br> Thank you for trying our Time Machine made by UP Shiley School of
+                Engineering students!</h3>
             <img src="images/wally.png" alt="">
         </div>
     </div>
@@ -111,21 +113,26 @@
                 <div class="loader"></div>
             </div>
 
-            <div id="waldschmidt" class="building-info-btn" onclick="selectedBuilding('waldschmidt')">Waldschmidt Hall</div>
-            <div id="shiley" class="building-info-btn" onclick="selectedBuilding('shiley')">Shiley School of Engineering</div>
+            <div id="waldschmidt" class="building-info-btn" onclick="selectedBuilding('waldschmidt')">Waldschmidt Hall
+            </div>
+            <div id="shiley" class="building-info-btn" onclick="selectedBuilding('shiley')">Shiley School of Engineering
+            </div>
             <div id="chiles" class="building-info-btn" onclick="selectedBuilding('chiles')">Chiles Center</div>
             <div id="christie" class="building-info-btn" onclick="selectedBuilding('christie')">Christie Hall</div>
             <div id="mago" class="building-info-btn" onclick="selectedBuilding('mago')">Mago Hunt Center</div>
-            <div id="chapel" class="building-info-btn" onclick="selectedBuilding('chapel')">The Chapel of Christ the Teacher</div>
+            <div id="chapel" class="building-info-btn" onclick="selectedBuilding('chapel')">The Chapel of Christ the
+                Teacher</div>
             <div id="commons" class="building-info-btn" onclick="selectedBuilding('commons')">Bauccio Commons</div>
             <div id="db" class="building-info-btn" onclick="selectedBuilding('db')">Dundon-Berchtold Hall</div>
             <div id="library" class="building-info-btn" onclick="selectedBuilding('library')">Clark Library</div>
             <div id="kenna" class="building-info-btn" onclick="selectedBuilding('kenna')">Kenna Hall</div>
             <div id="mehling" class="building-info-btn" onclick="selectedBuilding('mehling')">Mehling Hall</div>
             <div id="corrado" class="building-info-btn" onclick="selectedBuilding('corrado')">Corrado Hall</div>
-            <div id="fields" class="building-info-btn" onclick="selectedBuilding('fields')">Fields and Schoenfeldt Halls</div>
+            <div id="fields" class="building-info-btn" onclick="selectedBuilding('fields')">Fields and Schoenfeldt Halls
+            </div>
             <div id="lund" class="building-info-btn" onclick="selectedBuilding('lund')">Lund Family Hall</div>
-            <div id="beauchamp" class="building-info-btn" onclick="selectedBuilding('beauchamp')">Beauchamp Recreation & Wellness Center</div>
+            <div id="beauchamp" class="building-info-btn" onclick="selectedBuilding('beauchamp')">Beauchamp Recreation &
+                Wellness Center</div>
             <div id="shipstad" class="building-info-btn" onclick="selectedBuilding('shipstad')">Shipstad Hall</div>
             <div id="merlo" class="building-info-btn" onclick="selectedBuilding('merlo')">Harry A. Merlo Field</div>
             <div id="franz" class="building-info-btn" onclick="selectedBuilding('franz')">Franz Hall</div>
@@ -137,23 +144,27 @@
             <div id="baseball" class="building-info-btn" onclick="selectedBuilding('baseball')">Joe Etzel Field</div>
             <div id="romanaggi" class="building-info-btn" onclick="selectedBuilding('romanaggi')">Romanaggi Hall</div>
 
+            <!-- for buffer space -->
+            <div class="building-info-btn" style="visibility: hidden;"> </div>
+
+
         </div>
 
         <div class="overlay">
             <div class="welcome-popup">
                 <h1>Welcome to the Time Machine</h1>
                 <p>To use the geolocation on iphones & Safari: </p> <br>
-                <p>1. Settings -> Privacy & Security  <br>
+                <p>1. Settings -> Privacy & Security <br>
                     2. Location Services -> Safari Websites <br>
                     3. Select 'Ask Next Time Or When I Share'
-                </p> 
+                </p>
                 <br>
                 <p>To enable the fullscreen feature:</p> <br>
-                <p>1. Settings -> Safari  <br>
+                <p>1. Settings -> Safari <br>
                     2. Advanced -> Feature Flags <br>
                     3. Turn on 'Fullscreen API'
                 </p>
-        
+
                 <img src="images/wally.png" alt="">
                 <button id="close-popup-btn">OK</button>
             </div>
@@ -175,16 +186,14 @@
 
         <div class="building-photo">
             <div class="image-container">
-                <embed id="buildingImage" src="archiveContent/shiley/1948.jpg" alt="Picture of Shiley">
+                <embed id="buildingImage" src="" alt="Picture of Shiley">
             </div>
         </div>
 
-        <h1 id="buildingText">Engineering Hall</h1>
-        <h3 id="yearText">1948</h3>
+        <h1 id="buildingText"></h1>
+        <h3 id="yearText"></h3>
 
-        <p id="descriptionText">The Engineering building was opened in 1948. It was designed and the construction was
-            supervised by<span id="dots">...</span><span id="toggle-text"> the architectural firm of Jacobberger,
-                Stanton & Zeller. The building was built by the Ross B. Hammond Co. of Portland, Oregon.</span></P>
+        <p id="descriptionText"> </span></P>
 
         <button class="link" id="read-button">Read more</button>
 
@@ -195,18 +204,20 @@
 
         <!-- Capture Input -->
         <div class="capture-container" style="display: flex; flex-direction: column; align-items: center;">
-            <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;" onchange="handlePhotoCapture(event)">
-            <button id="captureButton" onclick="document.getElementById('captureInput').click();" style="margin-bottom: 10px;"><i class="fa-solid fa-camera"></i></button>
+            <input type="file" accept="image/*" capture="user" id="captureInput" style="display: none;"
+                onchange="handlePhotoCapture(event)">
+            <button id="captureButton" onclick="document.getElementById('captureInput').click();"
+                style="margin-bottom: 10px;"><i class="fa-solid fa-camera"></i></button>
             <div id="photoStamp" style="display: none;">
                 <img src="images/checkmark.png" alt="Photo Taken" style="width: 50px; height: 50px;">
+            </div>
+            <p id="photoCount" style="text-align: center; margin-top: 0;">Photos Taken: 0</p>
         </div>
-        <p id="photoCount" style="text-align: center; margin-top: 0;">Photos Taken: 0</p>
-    </div>
 
 
-    <script src="javascripts/geo.js"></script>
-    <script src="javascripts/fullscreen.js"></script>
-    <script src="javascripts/timeline.js"></script>
+        <script src="javascripts/geo.js"></script>
+        <script src="javascripts/fullscreen.js"></script>
+        <script src="javascripts/timeline.js"></script>
 
 </body>
 

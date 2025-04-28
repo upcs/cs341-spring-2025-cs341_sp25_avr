@@ -119,7 +119,7 @@ function success(pos) {
         console.error("Invalid user location, accuracy values, or no map.");
     }
 
-    
+
 
     // used to store each circle's name so we know which circle belongs to which building
     let circles = {};
@@ -142,26 +142,32 @@ function success(pos) {
 
     let matchedPopup = document.getElementById(nearbyBuilding);
 
-    popups.forEach(popup => {
-        popup.style.display = 'none';
-    });
+
+    //only hides all locations when updating if debugbtn is set to hide
+    if (document.getElementById('debug-btn').innerText == "Show all locations") {
+        popups.forEach(popup => {
+            popup.style.display = 'none';
+        });
+    }
+
+
 
     // if there is a building near by
     if (nearbyBuilding && matchedPopup) {
 
         hideLoader(); // Only update for the nearby building
-        
-    
+
+
         matchedPopup.style.display = 'flex';
 
-        matchedPopup.addEventListener('click', ()=> {
+        matchedPopup.addEventListener('click', () => {
             if (window.selectedBuilding) {
                 document.getElementById("phone-container2").style.display = 'none';
                 document.getElementById("phone-container3").style.display = 'flex';
                 window.selectedBuilding(nearbyBuilding);
             }
         });
-        
+
     } else {
         showLoader();
     }
@@ -195,10 +201,24 @@ function error(err) {
 // ------ SHOW ALL LOCATIONS BUTTON ------
 
 devButton.addEventListener('click', () => {
+    //if user is hiding or showing all popup locations
+    if (document.getElementById('debug-btn').innerText == "Show all locations") {
+        //user clicked show all, so button text is updated and all popup locations are now visible
+        document.getElementById('debug-btn').innerText = "Hide all locations"
+        popups.forEach((popup, index) => {
+            popup.style.display = 'flex';
+        });
 
-    popups.forEach((popup, index) => {
-        popup.style.display = 'flex';
-    });
+    } else {
+        //user clicked hide all, so button text is updated and all popup locations are no longer visible
+        document.getElementById('debug-btn').innerText = "Show all locations"
+        popups.forEach((popup, index) => {
+            popup.style.display = 'none';
+        });
+
+    }
+
+
 });
 
 
