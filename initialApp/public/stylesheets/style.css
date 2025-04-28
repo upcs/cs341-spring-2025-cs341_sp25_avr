@@ -47,13 +47,12 @@ body {
 
 
 #map {
-    height: 100vh;
+    height: 100%; /* Make the map fill the parent container */
     width: 100%;
-    position: relative;
-    /* Make sure the map fills the container */
-    top: 0;
-    left: 0;
-    z-index: 0;
+    position: absolute; /* Set to absolute */
+    top: 0; /* Align to the top of the parent */
+    left: 0; /* Align to the left of the parent */
+    z-index: 0; /* Ensure it is behind other elements */
 }
 
 .building-info-btn {
@@ -285,7 +284,7 @@ h1 {
     display: none;
 }
 
-#close-popup-btn {
+#close-popup-btn{
     position: absolute;
     width: 60px;
     height: 50px;
@@ -304,8 +303,7 @@ h1 {
     opacity: 0.5;
 }
 
-
-#close-popup:hover {
+#close-popup:hover{
     opacity: 0.7;
 }
 
@@ -313,7 +311,7 @@ h1 {
     width: 350px;
     top: 100px;
     display: flex;
-    position: fixed;
+    position: relative;
     justify-content: right;
 }
 
@@ -342,6 +340,17 @@ h1 {
     position: fixed;
     margin-top: 60px;
     cursor: pointer;
+}
+
+.fullscreen-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+    object-fit: cover; /* Cover the entire area */
+    z-index: 9999; /* Ensure it appears above other content */
+    cursor: pointer; /* Change cursor to indicate clickable */
 }
 
 #captureButton {

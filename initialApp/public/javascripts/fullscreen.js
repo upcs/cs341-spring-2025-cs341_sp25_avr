@@ -52,6 +52,66 @@ function toggleFullscreen() {
     }
 }
 
+function toggleImageExpand(event) {
+    const image = document.getElementById('buildingImage');
+    
+    // Check if the image is already in fullscreen mode
+    if (!image.classList.contains('fullscreen-image')) {
+        // Add the class to expand the image
+        image.classList.add('fullscreen-image');
+        document.body.classList.add('blur'); // Add blur to the body
+        // Request fullscreen for the image
+        if (image.requestFullscreen) {
+            image.requestFullscreen();
+        } else if (image.mozRequestFullScreen) {
+            image.mozRequestFullScreen();
+        } else if (image.webkitRequestFullscreen) {
+            image.webkitRequestFullscreen();
+        } else if (image.msRequestFullscreen) {
+            image.msRequestFullscreen();
+        }
+    } else {
+        // Remove the class to return to normal size
+        image.classList.remove('fullscreen-image');
+        document.body.classList.remove('blur'); // Remove blur from the body
+        // Exit fullscreen if the image is in fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+    
+    // Prevent the click event from bubbling up to the document
+    event.stopPropagation();
+}
+
+// Close the expanded image when clicking outside of it
+document.addEventListener('click', function(event) {
+    const image = document.getElementById('buildingImage');
+    if (image.classList.contains('fullscreen-image')) {
+        // Check if the click was outside the image
+        if (!image.contains(event.target)) {
+            image.classList.remove('fullscreen-image');
+            document.body.classList.remove('blur'); // Remove blur from the body
+            // Exit fullscreen if the image is in fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+});
+
 // // Listen for fullscreen changes and update the button text
 document.addEventListener("fullscreenchange", updateButton);
 document.addEventListener("webkitfullscreenchange", updateButton);
@@ -68,8 +128,6 @@ function updateButton() {
     }
 }
 
-
-
 if (btn) {
     btn.addEventListener("click", toggleFullscreen);
   }
@@ -78,4 +136,3 @@ if (btn) {
   }
 
 module.exports = { toggleFullscreen, updateButton, goFullscreen }
-
