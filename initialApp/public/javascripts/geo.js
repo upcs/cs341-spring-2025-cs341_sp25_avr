@@ -80,18 +80,15 @@ function initMap() {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        // access brower geolocation API 
+        // access browser geolocation API 
         // watchPosition() sends back a new set of coords if user moves
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition(success, error);
         } else {
             console.error("Geolocation is not supported by this browser.");
         }
-
     }
-
 }
-
 
 // if map was created 
 function success(pos) {
