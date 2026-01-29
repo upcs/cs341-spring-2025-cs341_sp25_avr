@@ -1,290 +1,329 @@
+// ================================
+// timeline.js (FULL FILE)
+// - Timeline navigation (past/future)
+// - Photo upload visual UI (preview + checkmark + clear)
+// - Stamp gamification (1 stamp per building, saved in localStorage)
+// ================================
+
+// keeps track of selected location button selected
+var currentBuilding = "";
+let photoCount = 0;        // total photos taken (session)
+const capturedPhotos = {}; // per-building photo taken (session)
+
+// ===== STAMP GAMIFICATION =====
+const STAMP_KEY = "up125_stamps";
+
+function getStamps() {
+  try {
+    return JSON.parse(localStorage.getItem(STAMP_KEY) || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveStamps(stamps) {
+  localStorage.setItem(STAMP_KEY, JSON.stringify(stamps));
+}
+
+function updateStampUI() {
+  const el = document.getElementById("stampCount");
+  if (!el) return;
+  el.textContent = getStamps().length;
+}
+
+function awardStamp(buildingName) {
+  if (!buildingName) return;
+
+  const stamps = getStamps();
+  if (!stamps.includes(buildingName)) {
+    stamps.push(buildingName);
+    saveStamps(stamps);
+  }
+  updateStampUI();
+}
+// ===== END STAMPS =====
 
 
-//keeps track of selected location button selected
-var currentBuilding = ""
-let photoCount = 0; // Initialize photo count
-const capturedPhotos = {}; // Object to track captured photos by building name
-
-//functions for timeline 
-
+// ================================
+// Main navigation: building selected
+// ================================
 function selectedBuilding(building) {
-    changeBuilding(building); // Call changeBuilding to reset the photo state
-    document.getElementById("phone-container2").style.display = 'none';
-    document.getElementById("phone-container3").style.display = 'flex';
-    updateYear(building, null);
-    // Updates building name & timeline related visuals
-    document.getElementById('buildingText').innerText = document.getElementById(building).innerText;
-    updateYear(building, null);
+  changeBuilding(building);
+
+  // earn stamp when user visits/selects building
+  awardStamp(building);
+
+  // switch screens
+  document.getElementById("phone-container2").style.display = 'none';
+  document.getElementById("phone-container3").style.display = 'flex';
+
+  // update building title shown on timeline
+  const label = document.getElementById(building)?.innerText || building;
+  document.getElementById('buildingText').innerText = label;
+
+  // load newest year for that building
+  updateYear(building, null);
 }
 
-//determines year of next event/timeline if possible, then calls updateInfo 
-//building for database and forward boolean for future(true) or past(false) in timeline
+
+// ================================
+// Timeline year logic (past/future)
+// ================================
 function updateYear(building, forward) {
-    //if year is null, returns array of years from building
-    const contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "';"
+  const contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "';";
 
-    $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
-        //for the building, puts all of the event years in an array
-        const years = [];
-        for (let i = 0; i < p.length; i++) {
-            years[i] = p[i].year
-        }
-        years.sort
+  $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
+    if (!p || p.length === 0) return;
 
-        //finds year and index of current event/year before anything is done
-        let currentYear = document.getElementById('yearText').innerText
-        let currentIndex = years.indexOf(currentYear);
-        for (let i = 0; i < p.length; i++) {
-            if (currentYear == p[i].year) {
-                currentIndex = i;
-            }
-        }
+    // collect years
+    const years = [];
+    for (let i = 0; i < p.length; i++) {
+      years.push(String(p[i].year));
+    }
 
-        //if not going forwards or backwards, default is most recent year
-        if (forward == null) {
-            updateInfo(building, years[p.length - 1])
-            document.getElementById("future-button").style = "color:gray;"
-            document.getElementById("past-button").style = "color:floralwhite;"
-            //if one event/year turns past button gray
-            if (years.length - 1 == 0) {
-                document.getElementById("past-button").style = "color:gray;"
-            }
-            return;
-        }
+    // FIX: sort numeric years
+    years.sort((a, b) => parseInt(a) - parseInt(b));
 
-        //goes to future year if possible and going forward
-        if (currentIndex + 1 < years.length && forward == true) {
-            currentIndex = currentIndex + 1
-            currentYear = years[currentIndex]
-            updateInfo(building, currentYear)
-        }
+    // current year shown
+    let currentYear = String(document.getElementById('yearText').innerText || "");
+    let currentIndex = years.indexOf(currentYear);
 
-        //goes to past year if possible and going backwards
-        if (currentIndex > 0 && forward == false) {
-            currentIndex = currentIndex - 1
-            currentYear = years[currentIndex]
-            updateInfo(building, currentYear)
-        }
+    // if nothing selected yet, set newest
+    if (forward == null || currentIndex === -1) {
+      const newestYear = years[years.length - 1];
+      updateInfo(building, newestYear);
 
-        //turns gray or stays whites text for future and past buttons if event is possible
-        document.getElementById("future-button").style = "color:floralwhite;"
-        document.getElementById("past-button").style = "color:floralwhite;"
-        if (currentIndex == 0 || years.length - 1 == 0) {
-            document.getElementById("past-button").style = "color:gray;"
-        }
-        if (currentIndex == years.length - 1) {
-            document.getElementById("future-button").style = "color:gray;"
-        }
+      // button styles
+      document.getElementById("future-button").style = "color:gray;";
+      document.getElementById("past-button").style = "color:floralwhite;";
+      if (years.length === 1) {
+        document.getElementById("past-button").style = "color:gray;";
+      }
+      return;
+    }
 
-    })
+    // move future
+    if (forward === true && currentIndex + 1 < years.length) {
+      currentIndex++;
+      updateInfo(building, years[currentIndex]);
+    }
+
+    // move past
+    if (forward === false && currentIndex - 1 >= 0) {
+      currentIndex--;
+      updateInfo(building, years[currentIndex]);
+    }
+
+    // update button colors
+    document.getElementById("future-button").style = "color:floralwhite;";
+    document.getElementById("past-button").style = "color:floralwhite;";
+
+    if (currentIndex === 0) document.getElementById("past-button").style = "color:gray;";
+    if (currentIndex === years.length - 1) document.getElementById("future-button").style = "color:gray;";
+  });
 }
 
-//updates all of the relevant texts and images to new event according to building and year
+
+// ================================
+// Update timeline content (image/text)
+// ================================
 function updateInfo(building, year) {
-    var contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "' AND year=" + year + ";"
-    $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
+  const contentRequest = "SELECT * FROM Content WHERE buildingName='" + building + "' AND year=" + year + ";";
 
-        //gets building name and year from current photo
-        var currentImage = document.getElementById("buildingImage").src
-        var currentImage = currentImage.slice(document.getElementById("buildingImage").src.indexOf("archiveContent") + 15)
+  $.post("/contentTable", { dbRequest: contentRequest }).done((p) => {
+    if (!p || p.length === 0) return;
 
-        //updates image to new current year, only if year or buiulding changes to avoid flashing/needless update
-        if (year != currentImage.slice(-8, -4) || building != currentImage.slice(0, -9)) {
-            //gets image path staating at archiveContent for relative pathing
-            const imagePath = p[0].imagePath.slice(18);
-            document.getElementById("buildingImage").setAttribute("src", imagePath)
-        }
+    // update year
+    document.getElementById('yearText').innerText = year;
 
-        //updates year to the new current year
-        document.getElementById('yearText').innerText = year
+    // update image (avoid flashing)
+    const imgEl = document.getElementById("buildingImage");
+    if (imgEl) {
+      const imagePath = p[0].imagePath ? p[0].imagePath.slice(18) : null;
+      if (imagePath && imgEl.getAttribute("src") !== imagePath) {
+        imgEl.setAttribute("src", imagePath);
+      }
+    }
 
-        //updates description text to current year
-        var text = p[0].description;
-        //depending on if user selected to read more updates length of description text accordingly
-        if (document.getElementById('read-button').innerText == "Read more" && text.length > 95) {
-            document.getElementById('descriptionText').innerText = text.slice(0, 95) + "...";
-        } else {
-            document.getElementById('descriptionText').innerText = text;
-        }
+    // update description text
+    const descEl = document.getElementById('descriptionText');
+    const readBtn = document.getElementById('read-button');
 
-    })
+    let text = p[0].description || "";
+    if (readBtn && readBtn.innerText === "Read more" && text.length > 95) {
+      text = text.slice(0, 95) + "...";
+    }
+    if (descEl) descEl.innerText = text;
+  });
 }
 
 
-
-//buttons on clicks
-
-//toggles menu drop down
+// ================================
+// Menu / navigation buttons
+// ================================
 document.getElementById("menu-button").onclick = function () {
-    document.getElementById("myDropdown").classList.toggle("show")
-}
+  document.getElementById("myDropdown").classList.toggle("show");
+};
+
 document.getElementById("map-menu-button").onclick = function () {
-    document.getElementById("mapDropdown").classList.toggle("show")
-}
+  document.getElementById("mapDropdown").classList.toggle("show");
+};
 
 document.getElementById("map-toggle").onclick = function () {
-    document.getElementById("phone-container2").style.display = 'flex';
-    document.getElementById("phone-container3").style.display = 'none';
-}
+  document.getElementById("phone-container2").style.display = 'flex';
+  document.getElementById("phone-container3").style.display = 'none';
+};
 
 document.getElementById("home-toggle").onclick = function () {
-    toHomeScreen()
-}
+  toHomeScreen();
+};
 
 document.getElementById("aboutButton").onclick = function () {
-    document.getElementById("phone-container").style.display = 'none';
-    document.getElementById("phone-container1").style.display = 'flex';
-    document.getElementById("phone-container2").style.display = 'none';
-    document.getElementById("phone-container3").style.display = 'none';
-}
+  document.getElementById("phone-container").style.display = 'none';
+  document.getElementById("phone-container1").style.display = 'flex';
+  document.getElementById("phone-container2").style.display = 'none';
+  document.getElementById("phone-container3").style.display = 'none';
+};
 
 document.getElementById("past-button").onclick = function () {
-    updateYear(currentBuilding, false)
+  updateYear(currentBuilding, false);
 };
 
 document.getElementById("future-button").onclick = function () {
-    updateYear(currentBuilding, true)
+  updateYear(currentBuilding, true);
 };
 
 document.getElementById('read-button').onclick = function () {
-    var text = document.getElementById('read-button').innerText
+  const btn = document.getElementById('read-button');
+  if (!btn) return;
 
-    if (text === 'Read more') {
-        document.getElementById('read-button').innerText = "Read less"
-    } else {
-        document.getElementById('read-button').innerText = "Read more"
-    }
+  btn.innerText = (btn.innerText === "Read more") ? "Read less" : "Read more";
 
-    updateInfo(currentBuilding, document.getElementById('yearText').innerText)
+  if (currentBuilding && document.getElementById('yearText').innerText) {
+    updateInfo(currentBuilding, document.getElementById('yearText').innerText);
+  }
 };
 
-
-//navigation function for menu home
 function toHomeScreen() {
-    document.getElementById("phone-container").style.display = 'flex';
-    document.getElementById("phone-container1").style.display = 'none';
-    document.getElementById("phone-container2").style.display = 'none';
-    document.getElementById("phone-container3").style.display = 'none';
+  document.getElementById("phone-container").style.display = 'flex';
+  document.getElementById("phone-container1").style.display = 'none';
+  document.getElementById("phone-container2").style.display = 'none';
+  document.getElementById("phone-container3").style.display = 'none';
 }
 
 
-//zoom in/enlarging photos
-$(document).click(function (event) {
-    //when clicking off of zoomed in image 
-    if (!$(event.target).is("#buildingImage")) {
-        document.getElementById("buildingImage").style.maxHeight = "90%"
-        document.getElementById("buildingImage").style.scale = 0.95
-        document.getElementById("menu-button").style.filter = "blur(0px)"
-        document.getElementById("buildingText").style.filter = "blur(0px)"
-        document.getElementById("yearText").style.filter = "blur(0px)"
-        document.getElementById("descriptionText").style.filter = "blur(0px)"
-        document.getElementById("read-button").style.filter = "blur(0px)"
-        document.getElementById("past-button").style.filter = "blur(0px)"
-        document.getElementById("future-button").style.filter = "blur(0px)"
-
-        //when clicking on image to zoom in    
-    } else if ($(event.target).is("#buildingImage")) {
-        document.getElementById("buildingImage").style.scale = 1.03
-        document.getElementById("buildingImage").style.maxHeight = "100%"
-        document.getElementById("menu-button").style.filter = "blur(3px)"
-        document.getElementById("buildingText").style.filter = "blur(3px)"
-        document.getElementById("yearText").style.filter = "blur(3px)"
-        document.getElementById("descriptionText").style.filter = "blur(3px)"
-        document.getElementById("read-button").style.filter = "blur(3px)"
-        document.getElementById("past-button").style.filter = "blur(3px)"
-        document.getElementById("future-button").style.filter = "blur(3px)"
-        //if dropdown is toggled, untoggles to hide it
-        if (document.getElementById("myDropdown").className == "dropdown-content show") {
-            document.getElementById("myDropdown").classList.toggle("show")
-        }
-    }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    updateInfo(currentBuilding, '2009');
-});
-
-// Function to handle photo capture
+// ================================
+// Photo upload visual feature
+// ================================
 function handlePhotoCapture(event) {
-    const file = event.target.files[0];
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
 
-    if (file) {
-        // Check if a photo has already been taken for the current building
-        if (capturedPhotos[currentBuilding]) {
-            alert(`You have already taken a photo for ${currentBuilding}.`);
-            return; // Exit the function if a photo has already been taken
-        }
+  if (!currentBuilding) {
+    alert("Select a building first.");
+    return;
+  }
 
-        // Increment the photo count
-        photoCount++;
-        capturedPhotos[currentBuilding] = true; // Mark this building as having a photo taken
-        document.getElementById('photoCount').innerText = `Photos Taken: ${photoCount}`;
+  // one photo per building
+  if (capturedPhotos[currentBuilding]) {
+    alert("You already added a photo for this building.");
+    return;
+  }
 
-        // Change the button to a checkmark
-        const captureButton = document.getElementById('captureButton');
-        captureButton.style.display = 'none'; // Hide the button
-        const checkmark = document.createElement('img');
-        checkmark.src = 'images/checkmark.png'; // Path to your checkmark image
-        checkmark.style.width = '50px';
-        checkmark.style.height = '50px';
-        checkmark.id = 'checkmarkImage'; // Give it an ID for future reference
-        document.querySelector('.capture-container').appendChild(checkmark); // Add checkmark to the container
+  capturedPhotos[currentBuilding] = true;
+  photoCount++;
 
-        // Check if all buildings have been photographed
-        if (Object.keys(capturedPhotos).length === 25) {
-            // Add confetti
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { x: 0.5, y: 0.5 }
-            });
-        }
-    }
+  // update counter
+  const countEl = document.getElementById("photoCount");
+  if (countEl) countEl.innerText = `Photos Taken: ${photoCount}`;
+
+  // show preview
+  const wrap = document.getElementById("photoPreviewWrap");
+  const img = document.getElementById("photoPreview");
+  if (wrap && img) {
+    img.src = URL.createObjectURL(file);
+    wrap.style.display = "block";
+  }
+
+  // show stamp checkmark
+  const stamp = document.getElementById("photoStamp");
+  if (stamp) stamp.style.display = "flex";
+
+  // show clear button
+  const clearBtn = document.getElementById("clearPhotoBtn");
+  if (clearBtn) clearBtn.style.display = "inline-block";
+
+  // hide add button
+  const addBtn = document.getElementById("captureButton");
+  if (addBtn) addBtn.style.display = "none";
+
+  // optional confetti after 25 photos
+  if (Object.keys(capturedPhotos).length === 25 && typeof confetti === "function") {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { x: 0.5, y: 0.5 }
+    });
+  }
 }
 
-// Function to change the building and reset photo capture state
+// clears only the UI selection (does not decrease score; keeps it simple)
+function clearSelectedPhoto() {
+  const input = document.getElementById("captureInput");
+  if (input) input.value = "";
+
+  const wrap = document.getElementById("photoPreviewWrap");
+  if (wrap) wrap.style.display = "none";
+
+  const stamp = document.getElementById("photoStamp");
+  if (stamp) stamp.style.display = "none";
+
+  const clearBtn = document.getElementById("clearPhotoBtn");
+  if (clearBtn) clearBtn.style.display = "none";
+
+  const addBtn = document.getElementById("captureButton");
+  if (addBtn) addBtn.style.display = "inline-block";
+}
+
+// when switching buildings, reset the visual UI (preview/checkmark/buttons)
 function changeBuilding(newBuilding) {
-    // Check if the building is changing
-    if (currentBuilding !== newBuilding) {
-        // If a photo was taken for the current building, do not decrement the count
-        if (capturedPhotos[currentBuilding]) {
-            // Just mark the previous building as not having a photo taken
-            capturedPhotos[currentBuilding] = false;
-        }
+  currentBuilding = newBuilding;
 
-        // Update the building name
-        currentBuilding = newBuilding; // Update the current building
-        document.getElementById('buildingText').innerText = newBuilding;
+  // reset visual UI
+  clearSelectedPhoto();
 
-        // Update the UI
-        document.getElementById('photoCount').innerText = `Photos Taken: ${photoCount}`;
-        document.getElementById('photoStamp').style.display = 'none'; // Hide the checkmark
-        const checkmarkImage = document.getElementById('checkmarkImage');
-        if (checkmarkImage) {
-            checkmarkImage.remove(); // Remove the checkmark image if it exists
-        }
-
-        // Show the capture button again
-        document.getElementById('captureButton').style.display = 'block';
-    }
+  // if building already has a photo in this session, show "Photo Added"
+  if (capturedPhotos[currentBuilding]) {
+    document.getElementById("photoStamp").style.display = "flex";
+    document.getElementById("captureButton").style.display = "none";
+    document.getElementById("clearPhotoBtn").style.display = "inline-block";
+  }
 }
 
+
+// ================================
+// Close dropdowns if clicking outside
+// ================================
 $(document).click(function (event) {
-    if (!$(event.target).is("#menu-button") && document.getElementById("phone-container3").style.display == 'flex') {
-        //if dropdown is toggled, untoggles to hide it
-        if (document.getElementById("myDropdown").className == "dropdown-content show") {
-            document.getElementById("myDropdown").classList.toggle("show")
-        }
+  if (!$(event.target).is("#menu-button") && document.getElementById("phone-container3").style.display == 'flex') {
+    if (document.getElementById("myDropdown").className == "dropdown-content show") {
+      document.getElementById("myDropdown").classList.toggle("show");
     }
+  }
 });
 
 $(document).click(function (event) {
-    if (!$(event.target).is("#map-menu-button") && document.getElementById("phone-container2").style.display == 'flex') {
-        //if dropdown is toggled, untoggles to hide it
-        if (document.getElementById("mapDropdown").className == "dropdown-content show") {
-            document.getElementById("mapDropdown").classList.toggle("show")
-        }
+  if (!$(event.target).is("#map-menu-button") && document.getElementById("phone-container2").style.display == 'flex') {
+    if (document.getElementById("mapDropdown").className == "dropdown-content show") {
+      document.getElementById("mapDropdown").classList.toggle("show");
     }
+  }
 });
 
-module.exports = { selectedBuilding, updateYear, updateInfo, changeBuilding, handlePhotoCapture };
+
+// ================================
+// Init
+// ================================
+document.addEventListener("DOMContentLoaded", () => {
+  updateStampUI();
+});
