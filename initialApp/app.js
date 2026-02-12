@@ -44,26 +44,35 @@ const options = {
 };
 
 //Test
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+// app.get('/', (req, res) => {
+//   res.send('Hello World!');
+// });
+
+
 
 //Serve static files if needed
-app.use(express.static('public'));
+// app.use(express.static('public'));
 
+// Error Handling
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
 app.use(function (err, req, res, next) {
+
+  console.error(err.stack);
   // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  // res.locals.message = err.message;
+  // res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render('error', {
+
+    message: err.message || 'Error: Unexpected',
+    error: req.app.get('env') === 'development' ? err : {}
+  });
 });
 
 //Make the server!
@@ -72,7 +81,6 @@ const PORT = process.env.PORT || 4000;
    console.log(`Server running at http://cs341avr.campus.up.edu`);
    console.log(`Server running at http://localhost:${PORT}`);
  });
-
 
 
 module.exports = app;
