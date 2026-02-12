@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Campus Quest</title>
+
+<link rel="stylesheet" href="stylesheets/style.css">
+
+<link rel="stylesheet"
+ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+
+<style>
+body {
+  background: rgba(76,0,130,0.9);
+  color:white;
+  text-align:center;
+}
+
+#questMap {
+  height: 60vh;
+  margin: 10px;
+  border-radius: 12px;
+}
+
+.stamp-grid {
+  display:grid;
+  grid-template-columns: repeat(5,1fr);
+  gap:10px;
+  padding:10px;
+}
+
+.stamp {
+  background:#2d004d;
+  padding:10px;
+  border-radius:10px;
+}
+
+.stamp.earned {
+  background:#6a0dad;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Campus Quest Mode 🎯</h1>
+<button onclick="goHome()">⬅ Back</button>
+
+<div id="questMap"></div>
+
+<h2>Your Stamps</h2>
+<div id="stampGrid" class="stamp-grid"></div>
+
+<h3>Earn Stamp</h3>
+
+<select id="buildingSelect"></select>
+<br><br>
+
+<input type="file" id="photoInput" accept="image/*">
+<br><br>
+
+<textarea id="likeText" placeholder="What do you like about this building?"></textarea>
+<br><br>
+
+<button onclick="earnStamp()">Get Stamp</button>
+
+<script src="javascripts/quest.js"></script>
+
+</body>
+</html>

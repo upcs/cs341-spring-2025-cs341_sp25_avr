@@ -291,6 +291,9 @@ function changeBuilding(newBuilding) {
 
   // reset visual UI
   clearSelectedPhoto();
+//connect stamps
+  selectedBuilding(building)
+
 
   // if building already has a photo in this session, show "Photo Added"
   if (capturedPhotos[currentBuilding]) {
@@ -320,10 +323,113 @@ $(document).click(function (event) {
   }
 });
 
+function selectedBuilding(building) {
+
+    // ✅ AUTO STAMP WHEN BUILDING IS VIEWED
+    const stamps = JSON.parse(localStorage.getItem("questStamps") || "{}");
+    if (!stamps[building]) {
+        stamps[building] = true;
+        localStorage.setItem("questStamps", JSON.stringify(stamps));
+    }
+
+    changeBuilding(building);
+    document.getElementById("phone-container2").style.display = 'none';
+    document.getElementById("phone-container3").style.display = 'flex';
+    updateYear(building, null);
+
+    document.getElementById('buildingText').innerText =
+        document.getElementById(building).innerText;
+
+    updateYear(building, null);
+}
 
 // ================================
 // Init
 // ================================
 document.addEventListener("DOMContentLoaded", () => {
   updateStampUI();
+});
+// QUEST BUTTON NAVIGATION
+document.addEventListener("DOMContentLoaded", () => {
+
+  const questBtn = document.getElementById("questButton");
+
+  if (questBtn) {
+    questBtn.onclick = function () {
+      document.getElementById("phone-container").style.display = 'none';
+      document.getElementById("phone-container1").style.display = 'none';
+      document.getElementById("phone-container2").style.display = 'none';
+      document.getElementById("phone-container3").style.display = 'none';
+      document.getElementById("phone-container4").style.display = 'flex';
+    };
+  }
+
+});
+// =========================
+// QUEST QR SCAN SYSTEM
+// =========================
+
+function getStamps(){
+  return JSON.parse(localStorage.getItem("questStamps") || "{}");
+}
+
+function saveStamp(building){
+  const s = getStamps();
+  s[building] = true;
+  localStorage.setItem("questStamps", JSON.stringify(s));
+  renderStampGrid();
+}
+
+function renderStampGrid(){
+  const grid = document.getElementById("stampGrid");
+  if(!grid) return;
+
+  const stamps = getStamps();
+  grid.innerHTML = "";
+
+  Object.keys(stamps).forEach(b=>{
+    const d = document.createElement("div");
+    d.className = "stamp";
+    d.innerText = b;
+    grid.appendChild(d);
+  });
+}
+
+
+
+// QR SCANNER
+
+function startScanner(){
+
+  const readerDiv = document.getElementById("reader");
+  readerDiv.innerHTML = "";
+
+  const html5QrCode = new Html5Qrcode("reader");
+
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+
+      // EXPECT QR CODES CONTAIN BUILDING ID
+      // Example QR content: shiley  or  waldschmidt
+
+      saveStamp(decodedText);
+
+      html5QrCode.stop();
+      alert("Stamp collected for: " + decodedText);
+
+    },
+    (errorMessage) => {}
+  );
+}
+
+
+// attach scan button
+document.addEventListener("DOMContentLoaded", ()=>{
+  const scanBtn = document.getElementById("scanBtn");
+  if(scanBtn){
+    scanBtn.onclick = startScanner;
+  }
+  renderStampGrid();
 });

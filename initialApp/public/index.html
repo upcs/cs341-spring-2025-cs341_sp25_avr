@@ -35,6 +35,9 @@
         125th Anniversary<br>
         Time Machine
     </h1>
+    
+   <button id="questButton" class="home-button">Visit Campus Quest</button>
+
 
     <!-- START BUTTON -->
     <button id="startButton" class="home-button">Start</button>
@@ -216,6 +219,19 @@
         });
     });
 </script>
+<!-- QUEST SCREEN -->
+<div id="phone-container4" style="display:none; flex-direction:column; align-items:center; padding:20px;">
+
+  <h1>Campus Stamp Quest</h1>
+  <p>Visit buildings and collect stamps!</p>
+
+  <div id="stampGrid"></div>
+
+  <button onclick="toHomeScreen()" class="home-button">Back Home</button>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+</div>
 
 </body>
 </html>
