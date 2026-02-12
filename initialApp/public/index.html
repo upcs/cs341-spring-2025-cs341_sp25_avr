@@ -27,12 +27,6 @@
         <source src="images/Tour_video.mp4" type="video/mp4">
     </video>
 
-        <button id="startButton" class="home-button">Start</button>
-
-        <button id="photoHub-toggle" class="home-button">Photo Hub</button>
-
-        <button id="aboutButton" class="home-button">About</button>
-        <button id="fullScreenButton" class="home-button">Fullscreen</button>
     <div class="logo-container">
         <img src="images/UP_PrimaryLogo_stacked_web_purple.png" alt="UP Logo">
     </div>
@@ -42,8 +36,12 @@
         Time Machine
     </h1>
 
-    <!-- START BUTTON -->
     <button id="startButton" class="home-button">Start</button>
+
+    <button id="photoHub-toggle" class="home-button">Photo Hub</button>
+
+    <button id="aboutButton" class="home-button">About</button>
+    <button id="fullScreenButton" class="home-button">Fullscreen</button>
 
     <!-- POKÉMON-GO STYLE PROMPT (NEW FEATURE) -->
     <div id="goPromptHome" style="
@@ -60,8 +58,6 @@
         Visit compus like you are playing Pokémon Go!<br>
     </div>
 
-    <button id="aboutButton" class="home-button">About</button>
-    <button id="fullScreenButton" class="home-button">Fullscreen</button>
 </div>
 
 <!-- ================= ABOUT SCREEN ================= -->
@@ -104,6 +100,7 @@
         <div id="mapDropdown" class="dropdown-content">
             <button class="link" onclick="toHomeScreen()">Home</button>
             <button class="link" id="debug-btn">Show all locations</button>
+            <button class="link photoHub-toggle">Photo Hub</button>
         </div>
     </div>
 
@@ -129,9 +126,9 @@
                 <button class="link" id="map-toggle">Map</button>
 
                 <!-- Add a button to go to the photo hub within the drop down menu -->
-                 <button class="link" id="photoHub-toggle">Photo Hub</button>
-
             </div>
+        </div>
+        
         <!-- Example buildings (rest unchanged) -->
         <div id="shiley" class="building-info-btn" onclick="selectedBuilding('shiley')">
             Shiley School of Engineering
@@ -211,48 +208,44 @@
             <span>Photo Added</span>
         </div>
 
-    </div>
-
-    <div id="phone-container4" class="photo-hub-screen">
-
-        <h1>Photo Hub</h1>
-
-        <div class="upload-photos">
-            <input type="file" id ="photoUpload" accept="image/*>
-            <button id="uploadButton">Upload Photo</button>
-        </div>
-
-        <div class="photo-gallery">
-            <div class="photo-card"><image src="https://tinyjpg.com/images/social/website.jpg"></div>
-            <div class="photo-card"><image src="https://tinyjpg.com/images/social/website.jpg"></div>
-            <div class="photo-card"><image src="https://tinyjpg.com/images/social/website.jpg"></div>
-        </div>
-
-        <button id="backToHome" class="home-button">Home Page</button>
         <p id="photoCount">Photos Taken: 0</p>
+
     </div>
 
 </div>
 
-<!-- ================= SCRIPTS ================= -->
-<script src="javascripts/geo.js"></script>
-<script src="javascripts/fullscreen.js"></script>
-<script src="javascripts/timeline.js"></script>
+<div id="phone-container4" class="photo-hub-screen">
 
-<script>
-    // START button → go to map screen
-    document.addEventListener("DOMContentLoaded", () => {
-        const startBtn = document.getElementById("startButton");
-        startBtn.addEventListener("click", () => {
-            document.getElementById("phone-container").style.display = "none";
-            document.getElementById("phone-container1").style.display = "none";
-            document.getElementById("phone-container3").style.display = "none";
-            document.getElementById("phone-container2").style.display = "flex";
-        });
-    });
-</script>
+    <h1>Photo Hub</h1>
 
+    <div class="upload-photos">
+        <input type="file" id ="photoUpload" accept="image/*">
+        <button id="uploadButton">Upload Photo</button>
     </div>
+
+    <div class="photo-gallery">
+        <div class="photo-card"><img src="https://tinyjpg.com/images/social/website.jpg"></div>
+        <div class="photo-card"><img src="https://tinyjpg.com/images/social/website.jpg"></div>
+        <div class="photo-card"><img src="https://tinyjpg.com/images/social/website.jpg"></div>
+    </div>
+
+    <button id="backToHome" class="home-button">Home Page</button>
+
+</div>
+
+    <script>
+        // START button → go to map screen
+        document.addEventListener("DOMContentLoaded", () => {
+            const startBtn = document.getElementById("startButton");
+            startBtn.addEventListener("click", () => {
+                document.getElementById("phone-container").style.display = "none";
+                document.getElementById("phone-container1").style.display = "none";
+                document.getElementById("phone-container3").style.display = "none";
+                document.getElementById("phone-container2").style.display = "flex";
+            });
+        });
+
+    </script>
 
     <!-- Scripts -->
     <script src="javascripts/geo.js"></script>
@@ -269,12 +262,11 @@
 
             // Shows photo hub
             document.getElementById("phone-container4").style.display = "flex";
+        };
 
-            document.getElementById("backToHome").onclick = function() {
+        document.getElementById("backToHome").onclick = function() {
             document.getElementById("phone-container4").style.display = "none";
             document.getElementById("phone-container").style.display = "flex";
-            };
-
         };
 
     </script>
