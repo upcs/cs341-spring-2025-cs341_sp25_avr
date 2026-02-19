@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>UP Tour App</title>
+
+    <link rel="stylesheet" href="stylesheets/style.css">
+    <link rel="stylesheet" href="stylesheets/building_c.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+
+<!-- ================= HOME SCREEN ================= -->
+<div id="phone-container">
+
+    <video autoplay muted loop>
+        <source src="images/Tour_video.mp4" type="video/mp4">
+    </video>
+
+    <img src="images/UP_PrimaryLogo_stacked_web_purple.png" alt="UP Logo">
+
+
+    <h1>
+        125th Anniversary<br>
+        Time Machine
+    </h1>
+
+    <!-- START BUTTON -->
+
+    <button id="startButton" class="home-button">Start</button>
+
+    <button id="photoHub-toggle" class="home-button">Photo Hub</button>
+
+    <button id="questButton" class="home-button">Visit Campus Quest</button>
+
+    <button id="aboutButton" class="home-button">About</button>
+
+</div>
+
+<!-- ================= ABOUT SCREEN ================= -->
+<div id="phone-container1" style="display:none; flex-direction:column; align-items:center;">
+    <button id="home-toggle" class="home-button"><i class="fa fa-bars"></i> Menu</button>
+
+    <div id="creditBox">
+        <h1 class="creditTitle">Credits</h1>
+        <h3 class="creditText">Thank you to the Marketing Team for helping make this possible.</h3>
+        <h3 class="creditText">Thank you to the Archives for providing images and information.</h3>
+
+        <p class="creditText">
+            Clark Library Digital Collections:
+            <a href="https://digital.up.edu/" target="_blank">link</a>
+        </p>
+
+        <p class="creditText">
+            University Museum:
+            <a href="https://sites.up.edu/museum/about/" target="_blank">link</a>
+        </p>
+
+        <h3 class="creditText">
+            <br>Thank you for trying our Time Machine made by UP Shiley students!
+        </h3>
+
+        <img src="images/wally.png" alt="Wally">
+    </div>
+</div>
+
+<!-- ================= MAP SCREEN ================= -->
+<div id="phone-container2">
+
+    <div id="map"></div>
+
+    <div class="dropdown">
+        <button id="map-menu-button" class="dropbtn">
+            <i class="fa fa-bars"></i> Menu
+        </button>
+
+        <div id="mapDropdown" class="dropdown-content">
+            <button class="link" onclick="toHomeScreen()">Home</button>
+            <button class="link" id="debug-btn">Show all locations</button>
+        </div>
+    </div>
+
+    <div id="additional-btns-container">
+        <button id="help-btn">?</button>
+        <button id="map-fullscreen-btn">
+            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+        </button>
+    </div>
+
+    <div class="popup-container">
+        <div class="loading-message">
+            <p>Walk to a nearby building</p>
+            <p>Tap icon to learn more</p>
+            <div class="loader"></div>
+        </div>
+
+        <!-- Example buildings (rest unchanged) -->
+        <div id="shiley" class="building-info-btn" onclick="selectedBuilding('shiley')">
+            Shiley School of Engineering
+        </div>
+        <div id="library" class="building-info-btn" onclick="selectedBuilding('library')">
+            Clark Library
+        </div>
+
+        <div class="building-info-btn" style="visibility:hidden;"></div>
+    </div>
+</div>
+
+<!-- ================= TIMELINE SCREEN ================= -->
+<div id="phone-container3" style="display:none;">
+
+    <div class="dropdown">
+        <button id="menu-button" class="dropbtn">
+            <i class="fa fa-bars"></i> Menu
+        </button>
+        <div id="myDropdown" class="dropdown-content">
+            <button class="link" onclick="toHomeScreen()">Home</button>
+            <button class="link" id="map-toggle">Map</button>
+        </div>
+    </div>
+
+    <div class="building-photo">
+        <div class="image-container">
+            <img id="buildingImage" src="archiveContent/shiley/1948.jpg">
+        </div>
+    </div>
+
+    <h1 id="buildingText"></h1>
+    <h3 id="yearText"></h3>
+
+    <!-- STAMP COUNTER -->
+    <div id="stampBadge" style="text-align:center; font-size:18px; font-weight:600;">
+        🏷️ Stamps collected: <span id="stampCount">0</span>
+    </div>
+
+    <p id="descriptionText"></p>
+
+    <button class="link" id="read-button">Read more</button>
+
+    <div class="timeline-btn-container">
+        <button id="past-button">Past</button>
+        <button id="future-button" style="color:gray;">Future</button>
+    </div>
+
+    <!-- ADD PHOTO SECTION -->
+    <div class="capture-container" style="
+        width:90%;
+        margin:14px auto;
+        padding:12px;
+        border-radius:14px;
+        background:rgba(255,255,255,0.08);
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:10px;
+    ">
+        <strong>Add a Photo to this Building</strong>
+
+        <input type="file" accept="image/*" id="captureInput" style="display:none"
+               onchange="handlePhotoCapture(event)">
+
+        <button id="captureButton"
+                onclick="document.getElementById('captureInput').click();">
+            <i class="fa-solid fa-camera"></i> Add Photo
+        </button>
+
+        <div id="photoPreviewWrap" style="display:none;">
+            <img id="photoPreview" style="max-width:300px; border-radius:12px;">
+        </div>
+
+        <div id="photoStamp" style="display:none;">
+            <img src="images/checkmark.png" style="width:30px;">
+            <span>Photo Added</span>
+        </div>
+
+    </div>
+
+    <p id="photoCount">Photos Taken: 0</p>
+
+</div>
+
+<div id="phone-container4" class="photo-hub-screen">
+
+    <h1>Photo Hub</h1>
+
+    <div class="upload-photos">
+        <input type="file" id ="photoUpload" accept="image/*">
+        <button id="uploadButton">Upload Photo</button>
+    </div>
+
+    <div class="photo-gallery">
+        <div class="photo-card"><img src="https://tinyjpg.com/images/social/website.jpg"></div>
+        <div class="photo-card"><img src="https://tinyjpg.com/images/social/website.jpg"></div>
+        <div class="photo-card"><img src="https://tinyjpg.com/images/social/website.jpg"></div>
+    </div>
+
+    <button id="backToHome" class="home-button">Home Page</button>
+</div>
+
+<!-- QUEST SCREEN -->
+<div id="phone-container5" style="display:none; flex-direction:column; align-items:center; padding:20px;">
+
+    <h1>Campus Stamp Quest</h1>
+    <p>Visit buildings and collect stamps!</p>
+
+    <div id="stampGrid"></div>
+
+    <button id="backHome" class="home-button">Back Home</button>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+</div>
+
+<!-- Scripts -->
+<script src="javascripts/geo.js"></script>
+<script src="javascripts/fullscreen.js"></script>
+<script src="javascripts/timeline.js"></script>
+
+
+<script>
+    // START button → go to map screen
+    document.addEventListener("DOMContentLoaded", () => {
+        const startBtn = document.getElementById("startButton");
+        startBtn.addEventListener("click", () => {
+            document.getElementById("phone-container").style.display = "none";
+            document.getElementById("phone-container1").style.display = "none";
+            document.getElementById("phone-container3").style.display = "none";
+            document.getElementById("phone-container2").style.display = "flex";
+
+        });
+    });
+</script>
+
+    <!-- VISIT CAMPUS QUEST -->
+    <script>
+        document.getElementById("questButton").onclick = function() {
+
+            document.getElementById("phone-container").style.display = "none";
+            document.getElementById("phone-container1").style.display = "none";
+            document.getElementById("phone-container2").style.display = "none";
+            document.getElementById("phone-container3").style.display = "none";
+            document.getElementById("phone-container4").style.display = "none";
+
+            // Shows Quest area
+            document.getElementById("phone-container5").style.display = "flex";
+
+            document.getElementById("backHome").onclick = function() {
+            document.getElementById("phone-container5").style.display = "none";
+            document.getElementById("phone-container").style.display = "flex";
+        };
+        };
+
+    </script>
+
+    <!-- VISIT PHOTO HUB -->
+    <script>
+        document.getElementById("photoHub-toggle").onclick = function() {
+
+            document.getElementById("phone-container").style.display = "none";
+            document.getElementById("phone-container1").style.display = "none";
+            document.getElementById("phone-container2").style.display = "none";
+            document.getElementById("phone-container3").style.display = "none";
+
+            // Shows photo hub
+            document.getElementById("phone-container4").style.display = "flex";
+        };
+
+        document.getElementById("backToHome").onclick = function() {
+            document.getElementById("phone-container4").style.display = "none";
+            document.getElementById("phone-container").style.display = "flex";
+        };
+
+    </script>
+</body>
+</html>
