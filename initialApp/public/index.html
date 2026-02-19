@@ -27,36 +27,23 @@
         <source src="images/Tour_video.mp4" type="video/mp4">
     </video>
 
-    <div class="logo-container">
-        <img src="images/UP_PrimaryLogo_stacked_web_purple.png" alt="UP Logo">
-    </div>
+    <img src="images/UP_PrimaryLogo_stacked_web_purple.png" alt="UP Logo">
+
 
     <h1>
         125th Anniversary<br>
         Time Machine
     </h1>
 
+    <!-- START BUTTON -->
+
     <button id="startButton" class="home-button">Start</button>
 
     <button id="photoHub-toggle" class="home-button">Photo Hub</button>
 
-    <button id="aboutButton" class="home-button">About</button>
-    <button id="fullScreenButton" class="home-button">Fullscreen</button>
+    <button id="questButton" class="home-button">Visit Campus Quest</button>
 
-    <!-- POKÉMON-GO STYLE PROMPT (NEW FEATURE) -->
-    <div id="goPromptHome" style="
-        margin-top: 12px;
-        padding: 12px 16px;
-        border-radius: 16px;
-        background: rgba(130, 4, 146, 0.878);
-        color: white;
-        font-weight: 700;
-        font-size: 15px;
-        text-align: center;
-        max-width: 280px;
-    ">
-        Visit compus like you are playing Pokémon Go!<br>
-    </div>
+    <button id="aboutButton" class="home-button">About</button>
 
 </div>
 
@@ -100,7 +87,6 @@
         <div id="mapDropdown" class="dropdown-content">
             <button class="link" onclick="toHomeScreen()">Home</button>
             <button class="link" id="debug-btn">Show all locations</button>
-            <button class="link photoHub-toggle">Photo Hub</button>
         </div>
     </div>
 
@@ -118,17 +104,6 @@
             <div class="loader"></div>
         </div>
 
-        <!-- drop down menu-->
-        <div class="dropdown">
-            <button id="menu-button" class="dropbtn"><i class="fa fa-bars"></i> Menu </button>
-            <div id="myDropdown" class="dropdown-content">
-                <button class="link" id="home-toggle" onclick="toHomeScreen()">Home</button>
-                <button class="link" id="map-toggle">Map</button>
-
-                <!-- Add a button to go to the photo hub within the drop down menu -->
-            </div>
-        </div>
-        
         <!-- Example buildings (rest unchanged) -->
         <div id="shiley" class="building-info-btn" onclick="selectedBuilding('shiley')">
             Shiley School of Engineering
@@ -208,9 +183,9 @@
             <span>Photo Added</span>
         </div>
 
-        <p id="photoCount">Photos Taken: 0</p>
-
     </div>
+
+    <p id="photoCount">Photos Taken: 0</p>
 
 </div>
 
@@ -230,28 +205,64 @@
     </div>
 
     <button id="backToHome" class="home-button">Home Page</button>
+</div>
+
+<!-- QUEST SCREEN -->
+<div id="phone-container5" style="display:none; flex-direction:column; align-items:center; padding:20px;">
+
+    <h1>Campus Stamp Quest</h1>
+    <p>Visit buildings and collect stamps!</p>
+
+    <div id="stampGrid"></div>
+
+    <button id="backHome" class="home-button">Back Home</button>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
 </div>
 
-    <script>
-        // START button → go to map screen
-        document.addEventListener("DOMContentLoaded", () => {
-            const startBtn = document.getElementById("startButton");
-            startBtn.addEventListener("click", () => {
-                document.getElementById("phone-container").style.display = "none";
-                document.getElementById("phone-container1").style.display = "none";
-                document.getElementById("phone-container3").style.display = "none";
-                document.getElementById("phone-container2").style.display = "flex";
-            });
+<!-- Scripts -->
+<script src="javascripts/geo.js"></script>
+<script src="javascripts/fullscreen.js"></script>
+<script src="javascripts/timeline.js"></script>
+
+
+<script>
+    // START button → go to map screen
+    document.addEventListener("DOMContentLoaded", () => {
+        const startBtn = document.getElementById("startButton");
+        startBtn.addEventListener("click", () => {
+            document.getElementById("phone-container").style.display = "none";
+            document.getElementById("phone-container1").style.display = "none";
+            document.getElementById("phone-container3").style.display = "none";
+            document.getElementById("phone-container2").style.display = "flex";
+
         });
+    });
+</script>
+
+    <!-- VISIT CAMPUS QUEST -->
+    <script>
+        document.getElementById("questButton").onclick = function() {
+
+            document.getElementById("phone-container").style.display = "none";
+            document.getElementById("phone-container1").style.display = "none";
+            document.getElementById("phone-container2").style.display = "none";
+            document.getElementById("phone-container3").style.display = "none";
+            document.getElementById("phone-container4").style.display = "none";
+
+            // Shows Quest area
+            document.getElementById("phone-container5").style.display = "flex";
+
+            document.getElementById("backHome").onclick = function() {
+            document.getElementById("phone-container5").style.display = "none";
+            document.getElementById("phone-container").style.display = "flex";
+        };
+        };
 
     </script>
 
-    <!-- Scripts -->
-    <script src="javascripts/geo.js"></script>
-    <script src="javascripts/fullscreen.js"></script>
-    <script src="javascripts/timeline.js"></script>
-
+    <!-- VISIT PHOTO HUB -->
     <script>
         document.getElementById("photoHub-toggle").onclick = function() {
 
