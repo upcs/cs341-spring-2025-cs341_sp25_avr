@@ -43,6 +43,8 @@
 
     <button id="questButton" class="home-button">Visit Campus Quest</button>
 
+    <button id="tempStampButton" class="home-button">Stamps</button>
+
     <button id="aboutButton" class="home-button">About</button>
 
 </div>
@@ -112,7 +114,7 @@
             Clark Library
         </div>
 
-        <div class="building-info-btn" style="visibility:hidden;"></div>
+        <div class="building-info-btn" style="visibility:hidden;"></div> 
     </div>
 </div>
 
@@ -189,6 +191,7 @@
 
 </div>
 
+<!-- PHOTO HUB -->
 <div id="phone-container4" class="photo-hub-screen">
 
     <h1>Photo Hub</h1>
@@ -219,6 +222,47 @@
 
     <script src="https://unpkg.com/html5-qrcode"></script>
 
+</div>
+
+<!-- STAMP INTERFACE -->
+<div id="phone-container6" class="stamp-screen" style="display:none; flex-direction:column; align-items:center; padding:20px;">
+
+    <h1>Stamps</h1>
+
+    <div id="stampGridUI" style="
+      width:100%;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+      justify-items:center;
+      margin-top:10px;
+    ">
+    <!-- Example stamp -->
+    <button class="stamp-button" data-name="Clark Library" data-desc="Built in 1957. Study spot + archives." style="all:unset; cursor:pointer; text-align:center;">
+      <img src="archiveContent/library/1958.jpg" alt="Clark Library stamp" style="
+          width:78px; height:78px;
+          border-radius:50%;
+          object-fit:cover;
+          border:3px solid rgba(255,255,255,0.35);
+          box-shadow:0 6px 16px rgba(0,0,0,0.25);
+      ">
+      <div style="font-size:12px; margin-top:6px;">Clark Library</div>
+    </button>
+
+    <button class="stamp-btn" data-name="Shiley" data-desc="Engineering building. Opened in 2020." style="all:unset; cursor:pointer; text-align:center;">
+      <img src="archiveContent/shiley/1948.jpg" alt="Shiley stamp" style="
+          width:78px; height:78px;
+          border-radius:50%;
+          object-fit:cover;
+          border:3px solid rgba(255,255,255,0.35);
+          box-shadow:0 6px 16px rgba(0,0,0,0.25);
+      ">
+      <div style="font-size:12px; margin-top:6px; ">Shiley</div>
+    </button>
+
+    <!-- Add more stamps by copying a button -->
+
+    <div style="align-items: center;"><button id="goHome" class="home-button" style="margin-top:18px;">Back Home</button></div>
 </div>
 
 <!-- Scripts -->
@@ -277,6 +321,26 @@
 
         document.getElementById("backToHome").onclick = function() {
             document.getElementById("phone-container4").style.display = "none";
+            document.getElementById("phone-container").style.display = "flex";
+        };
+
+    </script>
+
+    <!-- VISIT STAMP INTERFACE -->
+    <script>
+        document.getElementById("tempStampButton").onclick = function() {
+
+            document.getElementById("phone-container").style.display = "none";
+            document.getElementById("phone-container1").style.display = "none";
+            document.getElementById("phone-container2").style.display = "none";
+            document.getElementById("phone-container3").style.display = "none";
+            document.getElementById("phone-container4").style.display = "none";
+            document.getElementById("phone-container5").style.display = "none";
+            document.getElementById("phone-container6").style.display = "flex";
+        };
+
+        document.getElementById("goHome").onclick = function() {
+            document.getElementById("phone-container6").style.display = "none";
             document.getElementById("phone-container").style.display = "flex";
         };
 
