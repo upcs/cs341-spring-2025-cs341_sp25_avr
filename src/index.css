@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 40 33% 97%;
+    --foreground: 270 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 270 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 30% 15%;
+
+    --primary: 270 54% 34%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 40 30% 92%;
+    --secondary-foreground: 270 30% 15%;
+
+    --muted: 40 20% 94%;
+    --muted-foreground: 270 10% 45%;
+
+    --accent: 36 80% 55%;
+    --accent-foreground: 270 30% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 270 15% 88%;
+    --input: 270 15% 88%;
+    --ring: 270 54% 34%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 270 30% 15%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 270 54% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 20% 22%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 270 20% 25%;
+    --sidebar-ring: 270 54% 50%;
+
+    /* Custom tokens */
+    --up-purple: 270 54% 34%;
+    --up-purple-light: 270 40% 60%;
+    --up-purple-dark: 270 60% 22%;
+    --up-gold: 36 80% 55%;
+    --up-gold-light: 40 70% 75%;
+    --up-cream: 40 33% 97%;
+    --up-warm-gray: 30 10% 60%;
+
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  .dark {
+    --background: 270 30% 8%;
+    --foreground: 40 20% 95%;
+    --card: 270 25% 12%;
+    --card-foreground: 40 20% 95%;
+    --popover: 270 25% 12%;
+    --popover-foreground: 40 20% 95%;
+    --primary: 270 50% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 20% 18%;
+    --secondary-foreground: 40 20% 95%;
+    --muted: 270 15% 18%;
+    --muted-foreground: 270 10% 60%;
+    --accent: 36 70% 55%;
+    --accent-foreground: 270 30% 10%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 270 15% 22%;
+    --input: 270 15% 22%;
+    --ring: 270 50% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .text-gradient-purple {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--up-purple)) 0%, hsl(var(--up-purple-light)) 100%);
+  }
+
+  .bg-gradient-purple {
+    background: linear-gradient(135deg, hsl(var(--up-purple-dark)) 0%, hsl(var(--up-purple)) 60%, hsl(var(--up-purple-light)) 100%);
+  }
+
+  .bg-gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--up-gold)) 0%, hsl(var(--up-gold-light)) 100%);
+  }
+
+  .glass-card {
+    @apply backdrop-blur-md border;
+    background: hsl(var(--card) / 0.85);
+  }
+}
