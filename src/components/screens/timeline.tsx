@@ -13,7 +13,7 @@ interface TimelineScreenProps {
 
 const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const building = buildings.find((b) => b.id === buildingId);
-  const content = buildingContent[buildingId] || [];
+  const localContent = buildingContent[buildingId] || [];
   const [dbTimeline, setDbTimeline] = useState<Array<{ year: number; description: string }>>([]);
   const [dbTimelineLoading, setDbTimelineLoading] = useState(false);
   const [dbTimelineError, setDbTimelineError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const [photoStatsLoading, setPhotoStatsLoading] = useState(false);
   const [photoStatsError, setPhotoStatsError] = useState<string | null>(null);
 
-  const effectiveContent = dbTimeline.length > 0 ? dbTimeline : content;
+  const effectiveContent = dbTimeline.length > 0 ? dbTimeline : localContent;
   const currentEntry = effectiveContent[currentIndex];
   const hasPast = currentIndex > 0;
   const hasFuture = currentIndex < effectiveContent.length - 1;
@@ -56,7 +56,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
 
   useEffect(() => {
     let cancelled = false;
-    const shouldLoadSample = !building || content.length === 0;
+    const shouldLoadSample = !building || (localContent.length === 0 && dbTimeline.length === 0);
     if (!shouldLoadSample) return;
 
     setSampleLoading(true);
@@ -83,7 +83,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     return () => {
       cancelled = true;
     };
-  }, [building, content.length]);
+  }, [building, localContent.length, dbTimeline.length]);
 
   useEffect(() => {
     let cancelled = false;
