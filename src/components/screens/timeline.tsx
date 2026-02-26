@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, X } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { buildings, buildingContent } from "@/data/geoTable";
 import { useAppStore } from "@/store/appStore";
 import type { Screen } from "@/pages/Index";
@@ -13,7 +12,7 @@ interface TimelineScreenProps {
 
 const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const building = buildings.find((b) => b.id === buildingId);
-  const content = buildingContent[buildingId] || [];
+  const localContent = buildingContent[buildingId] || [];
   const [dbTimeline, setDbTimeline] = useState<Array<{ year: number; description: string }>>([]);
   const [dbTimelineLoading, setDbTimelineLoading] = useState(false);
   const [dbTimelineError, setDbTimelineError] = useState<string | null>(null);
@@ -32,11 +31,8 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const [photoSubmitting, setPhotoSubmitting] = useState(false);
   const [photoSubmitError, setPhotoSubmitError] = useState<string | null>(null);
   const [photoSubmitSuccess, setPhotoSubmitSuccess] = useState(false);
-  const [photoStats, setPhotoStats] = useState<Array<{ buildingName: string; count: number }>>([]);
-  const [photoStatsLoading, setPhotoStatsLoading] = useState(false);
-  const [photoStatsError, setPhotoStatsError] = useState<string | null>(null);
 
-  const effectiveContent = dbTimeline.length > 0 ? dbTimeline : content;
+  const effectiveContent = dbTimeline.length > 0 ? dbTimeline : localContent;
   const currentEntry = effectiveContent[currentIndex];
   const hasPast = currentIndex > 0;
   const hasFuture = currentIndex < effectiveContent.length - 1;
@@ -56,7 +52,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
 
   useEffect(() => {
     let cancelled = false;
-    const shouldLoadSample = !building || content.length === 0;
+    const shouldLoadSample = !building || (localContent.length === 0 && dbTimeline.length === 0);
     if (!shouldLoadSample) return;
 
     setSampleLoading(true);
@@ -83,7 +79,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     return () => {
       cancelled = true;
     };
-  }, [building, content.length]);
+  }, [building, localContent.length, dbTimeline.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,39 +152,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     return loadPhotos();
   }, [buildingId]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setPhotoStatsLoading(true);
-    setPhotoStatsError(null);
-
-    fetch("/api/content/photos/stats")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load stats");
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        const normalized = Array.isArray(data)
-          ? data.map((row) => ({
-              buildingName: row.buildingName,
-              count: Number(row.count) || 0,
-            }))
-          : [];
-        setPhotoStats(normalized);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setPhotoStatsError("Unable to load photo stats.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setPhotoStatsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const handlePhotoSubmit = async () => {
     if (!buildingId) return;
@@ -291,27 +254,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           <p className="text-sm text-muted-foreground mb-4">{photosError}</p>
         )}
 
-        <div className="w-full max-w-xl mb-6">
-          <h3 className="text-sm font-semibold text-foreground mb-3 text-center">Archive Insights</h3>
-          {photoStatsLoading && (
-            <p className="text-sm text-muted-foreground text-center">Loading photo stats...</p>
-          )}
-          {!photoStatsLoading && photoStats.length > 0 && (
-            <div className="h-56 w-full rounded-lg border border-border bg-card p-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={photoStats}>
-                  <XAxis dataKey="buildingName" tick={{ fontSize: 10 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-          {photoStatsError && (
-            <p className="text-sm text-muted-foreground text-center">{photoStatsError}</p>
-          )}
-        </div>
 
         {sampleError && (
           <p className="text-sm text-muted-foreground mb-4">{sampleError}</p>
@@ -425,31 +367,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
             Future
             <ChevronRight className="w-5 h-5" />
           </button>
-        </div>
-      </div>
-
-      {/* Archive insights */}
-      <div className="px-5 pb-4">
-        <div className="glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-foreground text-center mb-3">Archive Insights</h3>
-          {photoStatsLoading && (
-            <p className="text-xs text-muted-foreground text-center">Loading photo stats...</p>
-          )}
-          {!photoStatsLoading && photoStats.length > 0 && (
-            <div className="h-56 w-full rounded-lg border border-border bg-card p-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={photoStats}>
-                  <XAxis dataKey="buildingName" tick={{ fontSize: 10 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-          {photoStatsError && (
-            <p className="text-xs text-muted-foreground text-center">{photoStatsError}</p>
-          )}
         </div>
       </div>
 
