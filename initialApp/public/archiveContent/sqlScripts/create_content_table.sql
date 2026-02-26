@@ -5,6 +5,14 @@ CREATE TABLE Content (
   imagePath VARCHAR(100)
 );
 
+CREATE TABLE Photos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  buildingName VARCHAR(50),
+  year INT(11),
+  imageUrl VARCHAR(255),
+  caption VARCHAR(10000)
+);
+
 INSERT INTO Content (buildingName, year, description, imagePath)
 VALUES
 ('chapel', 1937, 'St. Mary''s was constructed (1937) as the first Commons, the student cafeteria.  When the current dining facilities were built (1958), the St. Mary''s building was repurposed as the university chapel (1958-1985).', 'initialApp\\public\\archiveContent\\chapel\\1937.jpg'),
@@ -76,7 +84,7 @@ VALUES
 ('phouse', 2015, 'The redesigned Pilot House extends the community experience of the University. It is opened for late-night activities and other entertainment. The Pilot House has welcomed thousands of students and alumni over the years and continues to do so.', 'initialApp\\public\\archiveContent\\phouse\\2015.jpg'),
 ('rigley', 1938, 'Rev. Maurice Rigley, C.S.C, started his tenure at the University of Portland in 1938 as an associate professor of English, where he soon adopted this strip of lawn.', 'initialApp\\public\\archiveContent\\rigley\\1938.JPG'),
 ('rigley', 1946, 'Fr. Rigley volunteered as a campus park ranger and grounds keeper, providing this piece of clean lawn for students to relax and lounge.', 'initialApp\\public\\archiveContent\\rigley\\1946.jpg'),
-('rigley', 1957, 'On April 12, 1957 the small triangular strip of lawn was dedicated as Rigley Field. It is was considered the greenest thing on the campus, always being well-groomed even when the rest of the campus was withered in the summer sun.', 'initialApp\\public\\archiveContent\\rigley\\1957.JPG')
+('rigley', 1957, 'On April 12, 1957 the small triangular strip of lawn was dedicated as Rigley Field. It is was considered the greenest thing on the campus, always being well-groomed even when the rest of the campus was withered in the summer sun.', 'initialApp\\public\\archiveContent\\rigley\\1957.JPG'),
 ('baseball', 1975, 'University of Portland''s baseball field has resided in two different location before settling across from the West Quad Residence Halls of Villa Maria, Mehling, and Corrado. In 1975, the field was also called Farley Field and Joe Etzel, the head coach at the time, was credited with building one of the finest collegiate baseball facilities in the Northwest through his own labor and fund raising.', 'initialApp\\public\\archiveContent\\baseball\\1975.jpg'),
 ('baseball', 1987, 'In 1987, they began expanding Farley Field, adding a much needed stadium structure and overall improvements to the facility.', 'initialApp\\public\\archiveContent\\baseball\\1987.jpg'),
 ('baseball', 1988, 'Renamed Pilot Stadium, the new facility was completed prior to the 1988 baseball season. It was considered to be on of the finest natural grass surfaces in the region, and renovations included an additional 300 seats along the first base line and above the visitor''s dugout.', 'initialApp\\public\\archiveContent\\baseball\\1988.jpg'),
@@ -84,3 +92,11 @@ VALUES
 ('romanaggi', 1938, 'Originally named simply, the Science Hall, is one of the oldest buildings still standing on campus.', 'initialApp\\public\\archiveContent\\romanaggi\\1938.jpg'),
 ('romanaggi', 1967, 'Still the Science Hall, the hall stayed put while the campus expanded around it, including the building of Buckley Center.', 'initialApp\\public\\archiveContent\\romanaggi\\1967.jpg'),
 ('romanaggi', 2010, 'In 2010, the hall was renamed for the man who ranged its corridors as a shy student; Don and Agnes'' major gift for Romanaggi Hall allowed a thorough renovation, construction of handicapped access venues and an elevator; the gift also foresightedly provides for continued maintenance of the building for many years.', 'initialApp\\public\\archiveContent\\romanaggi\\2010.jpg');
+
+INSERT INTO Photos (buildingName, year, imageUrl, caption)
+SELECT
+  buildingName,
+  year,
+  REPLACE(REPLACE(imagePath, 'initialApp\\\\public\\\\', ''), '\\\\', '/') AS imageUrl,
+  description AS caption
+FROM Content;

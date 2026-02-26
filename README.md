@@ -7,6 +7,23 @@ The **Campus History Web Application** is an interactive, web-based tool designe
 ### Website Link:
 [Campus History Web Application](http://cs341avr.campus.up.edu/)
 
+## Sprint 2 Summary (Alpha)
+
+Completed features:
+- Load and display real data from the MySQL database (`Content` + `Photos`)
+- Data visualization: photo counts per building (bar chart)
+- Fully navigable UI with timeline, photos, and map views
+- Graceful error handling for DB/API failures
+- Photo upload form to add new images to the DB (local disk storage)
+- Tests for the main database-backed UI features
+
+How to run locally:
+- Backend: `cd initialApp && PORT=4000 npm start`
+- Frontend: `npm run dev`
+
+How to seed DB content/photos:
+- `cd initialApp && node scripts/seedContent.js`
+
 ## Geo Database
 
 ### Table of Contents
