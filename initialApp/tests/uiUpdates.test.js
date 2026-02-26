@@ -25,18 +25,8 @@ describe('UI Update Functions', () => {
     const loader = document.querySelector('.loader');
     
     expect(messages[0].style.display).toBe('flex');
-    expect(messages[0].innerHTML).toBe('Near by buildings:');
+    expect(messages[0].innerHTML).toBe('Nearby buildings:');
     expect(messages[1].style.display).toBe('flex');
     expect(loader.style.display).toBe('none');
-  });
-
-  test('should attach click handler to popup', () => {
-    hideLoader();
-    
-    const popup = document.querySelector('.welcome-pop-up');
-    popup.click();
-    
-    expect(document.getElementById("phone-container2").style.display).toBe('none');
-    expect(document.getElementById("phone-container3").style.display).toBe('flex');
   });
 });

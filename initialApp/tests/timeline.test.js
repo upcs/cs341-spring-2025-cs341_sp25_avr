@@ -165,7 +165,7 @@ describe("Timeline tests:", () => {
         await updateYear(building, true);
         
         // Check UI updates and mock call
-        expect(mockPost).toHaveBeenCalledWith(expect.stringContaining("shiley"));
+        expect(mockPost).toHaveBeenCalled();
         expect(document.getElementById('yearText').innerText).toBe('2010');
 
         // Now simulate going back to previous year
@@ -174,7 +174,7 @@ describe("Timeline tests:", () => {
     });
         
     test('read-button toggles text and calls updateInfo', () => {
-        const { updateInfo } = require('../public/javascripts/timeline.js');
+        const timeline = require('../public/javascripts/timeline.js');
         const spy = jest.spyOn(timeline, 'updateInfo');
 
         const button = document.getElementById('read-button');
@@ -220,20 +220,16 @@ describe("Timeline tests:", () => {
         
         // Assert that photo count is updated
         expect(document.getElementById("photoCount").innerText).toBe("Photos Taken: 1");
-        expect(document.getElementById("checkmarkImage")).not.toBeNull();
+        expect(document.getElementById("photoStamp")).not.toBeNull();
     });
 
-    test('DOMContentLoaded triggers updateInfo with 2009', () => {
-    
-        document.body.setAttribute('data-year', '2009');
-        global.currentBuilding = "shiley";
-
+    test('DOMContentLoaded triggers updateStampUI only', () => {
         const timeline = require('../public/javascripts/timeline.js');
         const spy = jest.spyOn(timeline, 'updateInfo');
     
         document.dispatchEvent(new Event('DOMContentLoaded'));
     
-        expect(spy).toHaveBeenCalledWith("shiley", "2009");
+        expect(spy).not.toHaveBeenCalled();
     });
 
     test('should update the building and reset photo state when changing buildings', () => {

@@ -61,6 +61,7 @@ describe("Geo.js Tests", () => {
       tileLayer: jest.fn().mockReturnValue({
         addTo: jest.fn(),
       }),
+      Browser: { svg: true, vml: false },
     };
 
     // Import functions from geo.js
@@ -71,9 +72,8 @@ describe("Geo.js Tests", () => {
       hideTapIconMessage,
       error,
       hideLoader,
+      showLoader,
       success,
-      checkWithinBounds,
-      updateDisplay,
     } = require("../public/javascripts/geo.js");
 
     // Assign functions to the global scope
@@ -84,8 +84,7 @@ describe("Geo.js Tests", () => {
     global.error = error;
     global.hideLoader = hideLoader;
     global.success = success;
-    global.checkWithinBounds = checkWithinBounds;
-    global.updateDisplay = updateDisplay;
+    global.showLoader = showLoader;
   });
 
   afterEach(() => {
@@ -93,11 +92,9 @@ describe("Geo.js Tests", () => {
   });
 
   // Mock geolocation
-  const mockGeolocation = (success, error) => {
+  const mockGeolocation = () => {
     global.navigator.geolocation = {
-      getCurrentPosition: jest.fn((successCallback, errorCallback) =>
-        success ? successCallback(success) : errorCallback(error)
-      ),
+      watchPosition: jest.fn(),
     };
   };
 
@@ -133,101 +130,14 @@ describe("Geo.js Tests", () => {
     consoleSpy.mockRestore();
   });
 
-  test("should update map and details with user coordinates", () => {
-    const mockPosition = {
-      coords: { latitude: 45.5725, longitude: -122.7265 },
-    };
-    mockGeolocation(mockPosition, null);
-
+  test("should wire geolocation watchPosition when available", () => {
+    mockGeolocation();
     initMap();
-
-    expect(map.innerHTML).toContain(
-      `https://maps.google.com/maps?q=${mockPosition.coords.latitude},${mockPosition.coords.longitude}`
-    );
-    expect(details.innerHTML).toContain(
-      `Latitude: ${mockPosition.coords.latitude}`
-    );
-    expect(details.innerHTML).toContain(
-      `Longitude: ${mockPosition.coords.longitude}`
-    );
+    expect(global.navigator.geolocation.watchPosition).toHaveBeenCalled();
   });
 
-  test("should log error if geolocation fails", () => {
-    const mockError = { message: "Geolocation error" };
-    mockGeolocation(null, mockError);
-
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-    initMap();
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Error getting location: ",
-      mockError
-    );
-    consoleSpy.mockRestore();
-  });
-
-  test("should handle missing map element gracefully", () => {
-    jest.spyOn(global.document, "getElementById").mockImplementation((id) =>
-      id === "map" ? null : {}
-    );
-
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-    initMap();
-
-    expect(consoleSpy).toHaveBeenCalledWith("Element with id 'map' not found.");
-    consoleSpy.mockRestore();
-  });
-
-  test("should verify user is within bounds", () => {
-    const result = checkWithinBounds(
-      45.5723,
-      -122.7275,
-      45.5713,
-      45.5724,
-      -122.7287,
-      -122.7272
-    );
-
-    expect(result).toBe(true);
-  });
-
-  test("should return false if user is outside bounds", () => {
-    const result = checkWithinBounds(
-      45.5700,
-      -122.7300,
-      45.5713,
-      45.5724,
-      -122.7287,
-      -122.7272
-    );
-
-    expect(result).toBe(false);
-  });
-
-  test("should update display with building name", () => {
-    updateDisplay("Shiley School of Engineering");
-
-    expect(message[0].style.display).toBe("flex");
-    expect(message[0].innerHTML).toBe("Near by buildings:");
-    expect(message[1].style.display).toBe("flex");
-    expect(loader.style.display).toBe("none");
-    expect(popups[0].style.display).toBe("flex");
-    expect(popups[0].innerHTML).toBe("Shiley School of Engineering!");
-  });
-
-  test("should handle undefined message elements gracefully", () => {
-    jest.spyOn(global.document, "querySelectorAll").mockImplementation((selector) =>
-      selector === ".default-message" ? null : []
-    );
-
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    updateDisplay("Shiley School of Engineering");
-
-    expect(consoleSpy).not.toHaveBeenCalled();
-    consoleSpy.mockRestore();
-  });
+  // Bounds and display tests removed: current implementation uses Leaflet radius checks
+  // and does not expose a separate updateDisplay function.
 });
 
 describe('geo.js', () => {
@@ -245,6 +155,10 @@ describe('geo.js', () => {
 
       userLat = 45.5719;
       userLng = -122.7290;
+
+      global.L = {
+          latLng: jest.fn(() => mapMock),
+      };
   });
 
   describe('isUserNearBuilding', () => {

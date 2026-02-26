@@ -36,7 +36,7 @@ function toggleFullscreen() {
         } else if (elem.msRequestFullscreen) {
             elem.msRequestFullscreen();
         }
-        btn.textContent = "Minimize";
+        if (btn) btn.textContent = "Minimize";
     } else {
         // Exit fullscreen
         if (document.exitFullscreen) {
@@ -48,12 +48,13 @@ function toggleFullscreen() {
         } else if (document.msExitFullscreen) {
             document.msExitFullscreen();
         }
-        btn.textContent = "Fullscreen";
+        if (btn) btn.textContent = "Fullscreen";
     }
 }
 
 function toggleImageExpand(event) {
     const image = document.getElementById('buildingImage');
+    if (!image) return;
     
     // Check if the image is already in fullscreen mode
     if (!image.classList.contains('fullscreen-image')) {
@@ -93,6 +94,7 @@ function toggleImageExpand(event) {
 // Close the expanded image when clicking outside of it
 document.addEventListener('click', function(event) {
     const image = document.getElementById('buildingImage');
+    if (!image) return;
     if (image.classList.contains('fullscreen-image')) {
         // Check if the click was outside the image
         if (!image.contains(event.target)) {
@@ -120,19 +122,19 @@ document.addEventListener("MSFullscreenChange", updateButton);
 
 function updateButton() {
     if (document.fullscreenElement || document.webkitFullscreenElement) {
-        btn.textContent = "Minimize";
-        btn2.innerHTML = '<i class="fa-solid fa-down-left-and-up-right-to-center"></i>';
+        if (btn) btn.textContent = "Minimize";
+        if (btn2) btn2.innerHTML = '<i class="fa-solid fa-down-left-and-up-right-to-center"></i>';
     } else {
-        btn.textContent = "Fullscreen";
-        btn2.innerHTML = '<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
+        if (btn) btn.textContent = "Fullscreen";
+        if (btn2) btn2.innerHTML = '<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
     }
 }
 
 if (btn) {
     btn.addEventListener("click", toggleFullscreen);
-  }
-  if (btn2) {
+}
+if (btn2) {
     btn2.addEventListener("click", toggleFullscreen);
-  }
+}
 
 module.exports = { toggleFullscreen, updateButton, goFullscreen }

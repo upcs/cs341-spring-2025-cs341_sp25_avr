@@ -25,4 +25,5 @@ dist-ssr
 initialApp/.env
 .env
 initialApp/public/uploads
+initialApp/coverage
 .env
