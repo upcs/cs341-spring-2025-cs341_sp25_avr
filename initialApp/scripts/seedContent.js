@@ -8,7 +8,7 @@ const mysql = require('mysql');
 
 const sqlPath = path.join(__dirname, '..', 'public', 'archiveContent', 'sqlScripts', 'create_content_table.sql');
 const sqlBody = fs.readFileSync(sqlPath, 'utf8');
-const sql = `DROP TABLE IF EXISTS Content;\n${sqlBody}`;
+const sql = `DROP TABLE IF EXISTS Photos;\nDROP TABLE IF EXISTS Content;\n${sqlBody}`;
 
 const connection = mysql.createConnection({
   host: process.env.DB_HOST,

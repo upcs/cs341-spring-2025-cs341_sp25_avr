@@ -5,6 +5,14 @@ CREATE TABLE Content (
   imagePath VARCHAR(100)
 );
 
+CREATE TABLE Photos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  buildingName VARCHAR(50),
+  year INT(11),
+  imageUrl VARCHAR(255),
+  caption VARCHAR(10000)
+);
+
 INSERT INTO Content (buildingName, year, description, imagePath)
 VALUES
 ('chapel', 1937, 'St. Mary''s was constructed (1937) as the first Commons, the student cafeteria.  When the current dining facilities were built (1958), the St. Mary''s building was repurposed as the university chapel (1958-1985).', 'initialApp\\public\\archiveContent\\chapel\\1937.jpg'),
@@ -84,3 +92,11 @@ VALUES
 ('romanaggi', 1938, 'Originally named simply, the Science Hall, is one of the oldest buildings still standing on campus.', 'initialApp\\public\\archiveContent\\romanaggi\\1938.jpg'),
 ('romanaggi', 1967, 'Still the Science Hall, the hall stayed put while the campus expanded around it, including the building of Buckley Center.', 'initialApp\\public\\archiveContent\\romanaggi\\1967.jpg'),
 ('romanaggi', 2010, 'In 2010, the hall was renamed for the man who ranged its corridors as a shy student; Don and Agnes'' major gift for Romanaggi Hall allowed a thorough renovation, construction of handicapped access venues and an elevator; the gift also foresightedly provides for continued maintenance of the building for many years.', 'initialApp\\public\\archiveContent\\romanaggi\\2010.jpg');
+
+INSERT INTO Photos (buildingName, year, imageUrl, caption)
+SELECT
+  buildingName,
+  year,
+  REPLACE(REPLACE(imagePath, 'initialApp\\\\public\\\\', ''), '\\\\', '/') AS imageUrl,
+  description AS caption
+FROM Content;

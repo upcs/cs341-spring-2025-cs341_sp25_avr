@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 initialApp/.env
 .env
+initialApp/public/uploads
+.env
