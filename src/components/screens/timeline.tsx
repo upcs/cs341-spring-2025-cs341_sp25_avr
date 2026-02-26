@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, Camera, Check } from "lucide-react";
 import { buildings, buildingContent } from "@/data/geoTable";
@@ -18,6 +18,9 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [photoAdded, setPhotoAdded] = useState(false);
+  const [sampleContent, setSampleContent] = useState<Array<{ buildingName: string; year: number; description: string }>>([]);
+  const [sampleLoading, setSampleLoading] = useState(false);
+  const [sampleError, setSampleError] = useState<string | null>(null);
 
   const currentEntry = content[currentIndex];
   const hasPast = currentIndex > 0;
@@ -64,6 +67,37 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     setTimeout(() => setPhotoAdded(false), 3000);
   };
 
+  useEffect(() => {
+    let cancelled = false;
+    const shouldLoadSample = !building || content.length === 0;
+    if (!shouldLoadSample) return;
+
+    setSampleLoading(true);
+    setSampleError(null);
+
+    fetch("/api/content/sample?limit=3")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load sample content");
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setSampleContent(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSampleError("Unable to load sample history right now.");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setSampleLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [building, content.length]);
+
   if (!building || content.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
@@ -72,6 +106,34 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
         <p className="text-muted-foreground mb-6 text-center">
           Historical content for this building is coming soon.
         </p>
+
+        {sampleLoading && (
+          <p className="text-sm text-muted-foreground mb-4">Loading sample history...</p>
+        )}
+
+        {!sampleLoading && sampleContent.length > 0 && (
+          <div className="w-full max-w-xl mb-6">
+            <h3 className="text-sm font-semibold text-foreground mb-3 text-center">Sample History</h3>
+            <div className="space-y-3">
+              {sampleContent.map((row, index) => (
+                <div key={`${row.buildingName}-${row.year}-${index}`} className="rounded-lg border border-border p-3 bg-card">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      {row.buildingName}
+                    </span>
+                    <span className="text-xs text-muted-foreground">• {row.year}</span>
+                  </div>
+                  <p className="text-sm text-foreground/90">{row.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {sampleError && (
+          <p className="text-sm text-muted-foreground mb-4">{sampleError}</p>
+        )}
+
         <button
           onClick={() => onNavigate("map")}
           className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium"
