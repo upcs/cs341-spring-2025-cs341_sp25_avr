@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 initialApp/.env
 .env
+certs/dev.key
+certs/dev.crt
 initialApp/public/uploads
 initialApp/coverage
 .env
