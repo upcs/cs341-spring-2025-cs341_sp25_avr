@@ -50,6 +50,9 @@
       "!**/node_modules/**",
       "!**/tests/**"
     ],
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
     "coverageReporters": [
       "text",
       "cobertura",

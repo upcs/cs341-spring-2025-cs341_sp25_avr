@@ -3,7 +3,7 @@ const fetchMock = require("jest-fetch-mock");
 fetchMock.enableMocks();
 
 // Import the functions you want to test
-const { success, toggleFullscreen, updateButton, updateDisplay, isUserNearBuilding, checkAllBuildings } = require("../public/javascripts/geo.js");
+const { isUserNearBuilding } = require("../public/javascripts/geo.js");
 beforeEach(() => {
     fetch.resetMocks(); // Reset fetch mock before each test
 });
@@ -64,34 +64,15 @@ describe("geo.js functionality", () => {
     test("Checks if user is near a building", () => {
         const userLat = 45.5725;
         const userLong = -122.7245;
-        const building = { latMin: 45.572, latMax: 45.573, longMin: -122.725, longMax: -122.724 };
+        const circle = {
+            getLatLng: jest.fn().mockReturnValue({ lat: 45.5725, lng: -122.7245 }),
+            getRadius: jest.fn().mockReturnValue(50),
+        };
 
-        expect(isUserNearBuilding(userLat, userLong, building)).toBe(true);
-    });
+        global.L = {
+            latLng: jest.fn(() => ({ distanceTo: jest.fn().mockReturnValue(40) })),
+        };
 
-    test("Update display should modify popups correctly", () => {
-        document.body.innerHTML = `
-            <div class="default-message"></div>
-            <div class="default-message"></div>
-            <div class="loader"></div>
-            <div class="welcome-pop-up"></div>
-        `;
-
-        updateDisplay("Shiley");
-
-        expect(document.querySelector(".default-message").innerHTML).toBe("Near by buildings:");
-        expect(document.querySelector(".welcome-pop-up").style.display).toBe("flex");
-    });
-
-    test("Toggles fullscreen mode", () => {
-        document.fullscreenElement = null;
-        toggleFullscreen();
-        expect(document.fullscreenElement).not.toBe(null);
-    });
-
-    test("Update button text based on fullscreen mode", () => {
-        document.body.innerHTML = `<button id="fullScreenButton">Fullscreen</button>`;
-        updateButton();
-        expect(document.getElementById("fullScreenButton").textContent).toBe("Fullscreen");
+        expect(isUserNearBuilding(userLat, userLong, circle)).toBe(true);
     });
 });

@@ -3,38 +3,54 @@
  * @jest-environment jsdom
  */
 
-const { initMap, map, marker } = require('../public/javascripts/geo.js');
+const geo = require('../public/javascripts/geo.js');
 
-// Mock Google Maps
-jest.mock('../__mocks__/google.js');
+// Mock Leaflet
+global.L = {
+  map: jest.fn(() => ({
+    setView: jest.fn(),
+    removeLayer: jest.fn(),
+    fitBounds: jest.fn(),
+  })),
+  tileLayer: jest.fn(() => ({
+    addTo: jest.fn(),
+  })),
+  marker: jest.fn(() => ({
+    addTo: jest.fn().mockReturnThis(),
+  })),
+  circle: jest.fn(() => ({
+    addTo: jest.fn(),
+  })),
+  Browser: { svg: true, vml: false },
+};
 
 describe('Map Functions', () => {
   beforeAll(() => {
     document.body.innerHTML = '<div id="map"></div>';
+    global.navigator.geolocation = {
+      watchPosition: jest.fn(),
+    };
   });
 
   test('initMap should initialize map with correct settings', () => {
-    initMap();
+    geo.initMap();
     
-    expect(google.maps.Map).toHaveBeenCalledWith(
-      document.getElementById('map'),
-      {
-        center: { lat: 45.572, lng: -122.727 },
-        zoom: 18,
-        disableDefaultUI: true,
+    expect(L.map).toHaveBeenCalledWith(
+      "map",
+      expect.objectContaining({
+        zoom: 13,
         zoomControl: false,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false
-      }
+      })
     );
     
-    expect(google.maps.Marker).toHaveBeenCalled();
+    expect(L.tileLayer).toHaveBeenCalled();
   });
 
   test('should export map and marker instances', () => {
-    initMap();
-    expect(map).toBeDefined();
-    expect(marker).toBeDefined();
+    geo.initMap();
+    expect(geo.map).toBeDefined();
+
+    geo.success({ coords: { latitude: 45.572, longitude: -122.728, accuracy: 5 } });
+    expect(geo.marker).toBeDefined();
   });
 });
