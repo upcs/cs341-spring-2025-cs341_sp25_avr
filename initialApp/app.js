@@ -31,6 +31,7 @@ app.use('/users', usersRouter);
 app.use('/geoTable', geoRouter);
 app.use('/coordinates', geoRouter)
 app.use('/contentTable', contentRouter);
+app.use('/api/content', contentRouter);
 
 //Error test
 app.get('/test-error', (req, res) => {
@@ -75,12 +76,14 @@ app.use(function (err, req, res, next) {
   });
 });
 
-//Make the server!
-const PORT = process.env.PORT || 4000;
- app.listen(PORT, '0.0.0.0', () => {
-   console.log(`Server running at http://cs341avr.campus.up.edu`);
-   console.log(`Server running at http://localhost:${PORT}`);
- });
+// Only listen here when running this file directly.
+if (require.main === module) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://cs341avr.campus.up.edu`);
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
 
 
 module.exports = app;
