@@ -39,15 +39,20 @@ const devButton = document.getElementById("debug-btn");
 
 
 // ------ START BUTTON ------
-document.getElementById("startButton").onclick = function () {
-    document.getElementById("phone-container").style.display = 'none';
-    document.getElementById("phone-container2").style.display = 'flex';
+const startButton = document.getElementById("startButton");
+if (startButton) {
+    startButton.onclick = function () {
+        const phone1 = document.getElementById("phone-container");
+        const phone2 = document.getElementById("phone-container2");
+        if (phone1) phone1.style.display = 'none';
+        if (phone2) phone2.style.display = 'flex';
 
-    // only load the map when 'start button' is pressed or map is not present
-    if (!map) {
-        initMap();
-    }
-};
+        // only load the map when 'start button' is pressed or map is not present
+        if (!map) {
+            initMap();
+        }
+    };
+}
 
 // ------ WELCOME POPUP & HELP BUTTON-------
 if (okBtn && overlay) {
@@ -73,6 +78,9 @@ function initMap() {
             zoomControl: false, // This disables the zoom buttons
             preferCanvas: !L.Browser.svg && !L.Browser.vml //Fix rendering issue
         });
+        if (module && module.exports) {
+            module.exports.map = map;
+        }
 
         // gets the openStreetMap source
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -108,6 +116,9 @@ function success(pos) {
 
     // marker is set to user's current location
     marker = L.marker([userLat, userLng]).addTo(map);
+    if (module && module.exports) {
+        module.exports.marker = marker;
+    }
 
     // circle to see the accuracy of the coordinate
     if (userLat && userLng && accuracy && map) {
@@ -141,7 +152,8 @@ function success(pos) {
 
 
     //only hides all locations when updating if debugbtn is set to hide
-    if (document.getElementById('debug-btn').innerText == "Show all locations") {
+    const debugBtnEl = document.getElementById('debug-btn');
+    if (debugBtnEl && debugBtnEl.innerText == "Show all locations") {
         popups.forEach(popup => {
             popup.style.display = 'none';
         });
@@ -169,21 +181,20 @@ function success(pos) {
         showLoader();
     }
 
-    zoomed = map.fitBounds(userCircle.getBounds());
-
     // keep the map at the changed zoom level if user is moving
     if (typeof window === "undefined" || process.env.NODE_ENV === "test") {
         // In test environment, skip calling fitBounds
         console.log("Skipping fitBounds call in test environment");
-    } else {
+    } else if (map && userCircle && typeof userCircle.getBounds === "function") {
         if (!zoomed) {
             zoomed = map.fitBounds(userCircle.getBounds());
-        } else {
-            console.error("userCircle is undefined or invalid.");
         }
     }
+
     //change center of map dynammically based on current marker
-    map.setView([userLat, userLng]);
+    if (map && typeof map.setView === "function") {
+        map.setView([userLat, userLng]);
+    }
 }
 
 // hand errors if user location can't be found
@@ -197,24 +208,24 @@ function error(err) {
 
 // ------ SHOW ALL LOCATIONS BUTTON ------
 
-devButton.addEventListener('click', () => {
+if (devButton) devButton.addEventListener('click', () => {
+    const debugBtnEl = document.getElementById('debug-btn');
     //if user is hiding or showing all popup locations
-    if (document.getElementById('debug-btn').innerText == "Show all locations") {
+    if (debugBtnEl && debugBtnEl.innerText == "Show all locations") {
         //user clicked show all, so button text is updated and all popup locations are now visible
-        document.getElementById('debug-btn').innerText = "Hide all locations"
+        debugBtnEl.innerText = "Hide all locations"
         popups.forEach((popup, index) => {
             popup.style.display = 'flex';
         });
 
     } else {
         //user clicked hide all, so button text is updated and all popup locations are no longer visible
-        document.getElementById('debug-btn').innerText = "Show all locations"
+        if (debugBtnEl) debugBtnEl.innerText = "Show all locations"
         popups.forEach((popup, index) => {
             popup.style.display = 'none';
         });
 
     }
-
 
 });
 
@@ -250,6 +261,12 @@ function hideTapIconMessage() {
 
 // checks if user is inside the radius of a building
 function isUserNearBuilding(userLat, userLng, circle) {
+    if (!circle || typeof circle.getLatLng !== 'function' || typeof circle.getRadius !== 'function') {
+        return false;
+    }
+    if (!L || typeof L.latLng !== 'function') {
+        return false;
+    }
     let circleCenter = circle.getLatLng(); // gets the center coord of each building
     let radius = circle.getRadius(); // gets the radius of a the circle
     let distance = L.latLng(userLat, userLng).distanceTo(circleCenter); // checks distance from circle center to user
@@ -278,15 +295,23 @@ function getBuildingName(userLat, userLng, circles) {
 
 // hides the loading effect and updates display infomation 
 function hideLoader() {
-    message[0].style.display = 'flex';
-    message[0].innerHTML = 'Nearby buildings:';
-    message[1].style.display = 'flex';
-    loader.style.display = 'none';
+    const messages = document.querySelectorAll(".default-message");
+    const loaderEl = document.querySelector(".loader");
+    if (messages[0]) {
+        messages[0].style.display = 'flex';
+        messages[0].innerHTML = 'Nearby buildings:';
+    }
+    if (messages[1]) {
+        messages[1].style.display = 'flex';
+    }
+    if (loaderEl) loaderEl.style.display = 'none';
 }
 
 function showLoader() {
-    message[0].innerHTML = 'Walk to a nearby building';
-    loader.style.display = 'none';
+    const messages = document.querySelectorAll(".default-message");
+    const loaderEl = document.querySelector(".loader");
+    if (messages[0]) messages[0].innerHTML = 'Walk to a nearby building';
+    if (loaderEl) loaderEl.style.display = 'none';
 }
 
 
@@ -295,4 +320,16 @@ hideTapIconMessage();
 
 window.error = error;
 
-module.exports = { initMap, isUserNearBuilding, getBuildingName, hideTapIconMessage, error, hideLoader, success };
+module.exports = {
+    initMap,
+    isUserNearBuilding,
+    getBuildingName,
+    hideTapIconMessage,
+    error,
+    hideLoader,
+    showLoader,
+    success,
+    map,
+    marker,
+    buildings,
+};

@@ -63,6 +63,29 @@ router.get('/sample', async function (req, res) {
     }
 });
 
+// Timeline entries for a specific building
+router.get('/by-building', async function (req, res) {
+    const buildingName = req.query.buildingName ? String(req.query.buildingName) : null;
+    if (!buildingName) {
+        res.status(400).json({ message: "buildingName is required" });
+        return;
+    }
+
+    const query = `
+        SELECT buildingName, year, description, imagePath
+        FROM Content
+        WHERE buildingName = ${mysql.escape(buildingName)}
+        ORDER BY year ASC;
+    `;
+
+    try {
+        const results = await db.dbquery(query);
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to load building timeline" });
+    }
+});
+
 // Photos from database (optionally filtered by buildingName)
 router.get('/photos', async function (req, res) {
     const rawLimit = parseInt(req.query.limit, 10);

@@ -14,6 +14,9 @@ interface TimelineScreenProps {
 const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const building = buildings.find((b) => b.id === buildingId);
   const content = buildingContent[buildingId] || [];
+  const [dbTimeline, setDbTimeline] = useState<Array<{ year: number; description: string }>>([]);
+  const [dbTimelineLoading, setDbTimelineLoading] = useState(false);
+  const [dbTimelineError, setDbTimelineError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const { stamps, addStamp } = useAppStore();
   const [sampleContent, setSampleContent] = useState<Array<{ buildingName: string; year: number; description: string }>>([]);
@@ -33,15 +36,16 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const [photoStatsLoading, setPhotoStatsLoading] = useState(false);
   const [photoStatsError, setPhotoStatsError] = useState<string | null>(null);
 
-  const currentEntry = content[currentIndex];
+  const effectiveContent = dbTimeline.length > 0 ? dbTimeline : content;
+  const currentEntry = effectiveContent[currentIndex];
   const hasPast = currentIndex > 0;
-  const hasFuture = currentIndex < content.length - 1;
+  const hasFuture = currentIndex < effectiveContent.length - 1;
   const isStamped = stamps.has(buildingId);
 
   const yearProgress = useMemo(() => {
-    if (content.length <= 1) return 100;
-    return ((currentIndex) / (content.length - 1)) * 100;
-  }, [currentIndex, content.length]);
+    if (effectiveContent.length <= 1) return 100;
+    return ((currentIndex) / (effectiveContent.length - 1)) * 100;
+  }, [currentIndex, effectiveContent.length]);
 
   // Award stamp when viewing building
   useState(() => {
@@ -80,6 +84,43 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
       cancelled = true;
     };
   }, [building, content.length]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!buildingId) return;
+
+    setDbTimelineLoading(true);
+    setDbTimelineError(null);
+
+    fetch(`/api/content/by-building?buildingName=${encodeURIComponent(buildingId)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load building timeline");
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const normalized = Array.isArray(data)
+          ? data.map((row) => ({
+              year: Number(row.year),
+              description: String(row.description || ""),
+            }))
+          : [];
+        setDbTimeline(normalized);
+        setCurrentIndex(0);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setDbTimelineError("Unable to load timeline from database.");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setDbTimelineLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [buildingId]);
 
   const loadPhotos = () => {
     let cancelled = false;
@@ -187,7 +228,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     }
   };
 
-  if (!building || content.length === 0) {
+  if (!building || effectiveContent.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
         <MapPin className="w-12 h-12 text-muted-foreground mb-4" />
@@ -276,6 +317,10 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           <p className="text-sm text-muted-foreground mb-4">{sampleError}</p>
         )}
 
+        {dbTimelineError && (
+          <p className="text-sm text-muted-foreground mb-4">{dbTimelineError}</p>
+        )}
+
         <button
           onClick={() => onNavigate("map")}
           className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium"
@@ -308,7 +353,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
 
         {/* Timeline progress */}
         <div className="flex items-center gap-3">
-          <span className="text-xs opacity-70">{content[0].year}</span>
+          <span className="text-xs opacity-70">{effectiveContent[0].year}</span>
           <div className="flex-1 h-1.5 rounded-full bg-primary-foreground/20 overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-accent"
@@ -316,7 +361,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
               transition={{ duration: 0.4 }}
             />
           </div>
-          <span className="text-xs opacity-70">{content[content.length - 1].year}</span>
+          <span className="text-xs opacity-70">{effectiveContent[effectiveContent.length - 1].year}</span>
         </div>
       </div>
 
@@ -325,6 +370,9 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
         <span className="text-sm font-semibold text-foreground">
           🏷️ Stamps collected: {stamps.size}
         </span>
+        {dbTimelineLoading && (
+          <div className="text-xs text-muted-foreground mt-1">Loading timeline from database...</div>
+        )}
       </div>
 
       {/* Content area */}
@@ -339,12 +387,12 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           >
             <div className="flex items-center gap-3 mb-4">
               <span className="inline-block px-4 py-2 rounded-lg bg-primary text-primary-foreground font-display text-2xl font-bold">
-                {currentEntry.year}
+              {currentEntry?.year}
               </span>
               <div className="h-px flex-1 bg-border" />
             </div>
             <p className="text-foreground/90 text-lg leading-relaxed font-body">
-              {currentEntry.description}
+              {currentEntry?.description}
             </p>
           </motion.div>
         </AnimatePresence>
