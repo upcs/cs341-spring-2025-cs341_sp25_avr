@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/mckinler2/cs341-spring-2025-cs341_sp25_avr/graph/badge.svg?token=9YIMPTQY09)](https://codecov.io/gh/mckinler2/cs341-spring-2025-cs341_sp25_avr)
+[![Codecov Coverage](https://img.shields.io/codecov/c/github/upcs/cs341-spring-2025-cs341_sp25_avr/main.svg?style=flat-square)](https://codecov.io/gh/upcs/cs341-spring-2025-cs341_sp25_avr)
 
 # Campus History Web Application
 
@@ -23,6 +23,22 @@ How to run locally:
 
 How to seed DB content/photos:
 - `cd initialApp && node scripts/seedContent.js`
+
+## Sprint 3 Summary (Beta)
+
+Completed features:
+- CRUD forms for timeline entries and photos (create, read, update, delete)
+- Two data filters: timeline year filter and photo year filter
+- Photo stats visualization (bar chart)
+- CI setup for tests + coverage (Travis CI + Codecov)
+
+VM quickstart:
+- `git clone https://github.com/upcs/cs341-spring-2025-cs341_sp25_avr.git`
+- `cd cs341-spring-2025-cs341_sp25_avr`
+- `npm install && npm --prefix initialApp install`
+- `PORT=4000 npm --prefix initialApp start`
+- In a second terminal: `npm run dev`
+- Optional: `scripts/vm-start.sh` runs both backend + frontend
 
 ## Geo Database
 

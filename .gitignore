@@ -28,4 +28,5 @@ certs/dev.key
 certs/dev.crt
 initialApp/public/uploads
 initialApp/coverage
+coverage
 .env

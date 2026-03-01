@@ -54,6 +54,12 @@ beforeEach(() => {
       );
     }
 
+    if (url.includes("/api/content/by-building")) {
+      return Promise.resolve(
+        new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } })
+      );
+    }
+
     return Promise.resolve(new Response("Not found", { status: 404 }));
   });
 });
@@ -69,7 +75,7 @@ describe("TimelineScreen", () => {
     });
 
     expect(screen.getByText(/Sample Photos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Archive Insights/i)).toBeInTheDocument();
+    expect(screen.getByText(/Photo Breakdown/i)).toBeInTheDocument();
     expect(screen.getByText(/Photo caption/i)).toBeInTheDocument();
   });
 
@@ -82,5 +88,16 @@ describe("TimelineScreen", () => {
 
     fireEvent.click(screen.getByText(/Add Photo/i));
     expect(screen.getByPlaceholderText(/Caption/i)).toBeInTheDocument();
+  });
+
+  it("renders manage timeline form", async () => {
+    render(<TimelineScreen buildingId="chapel" onNavigate={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Manage Timeline/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Add Entry/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Description/i)).toBeInTheDocument();
   });
 });
