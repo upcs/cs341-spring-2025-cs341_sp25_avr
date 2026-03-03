@@ -43,17 +43,6 @@ beforeEach(() => {
       );
     }
 
-    if (url.includes("/api/content/photos/stats")) {
-      return Promise.resolve(
-        new Response(
-          JSON.stringify([
-            { buildingName: "chapel", count: 3 },
-          ]),
-          { status: 200, headers: { "Content-Type": "application/json" } }
-        )
-      );
-    }
-
     if (url.includes("/api/content/by-building")) {
       return Promise.resolve(
         new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } })
@@ -75,7 +64,6 @@ describe("TimelineScreen", () => {
     });
 
     expect(screen.getByText(/Sample Photos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Photo Breakdown/i)).toBeInTheDocument();
     expect(screen.getByText(/Photo caption/i)).toBeInTheDocument();
   });
 

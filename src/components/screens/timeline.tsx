@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, X } from "lucide-react";
 import { buildings, buildingContent } from "@/data/geoTable";
 import { useAppStore } from "@/store/appStore";
 import type { Screen } from "@/pages/Index";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 interface TimelineScreenProps {
   buildingId: string;
@@ -45,9 +44,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const [timelineFormError, setTimelineFormError] = useState<string | null>(null);
   const [editingEntry, setEditingEntry] = useState<{ year: number; description: string; imagePath?: string } | null>(null);
 
-  const [photoStats, setPhotoStats] = useState<Array<{ buildingName: string; count: number }>>([]);
-  const [photoStatsLoading, setPhotoStatsLoading] = useState(false);
-  const [photoStatsError, setPhotoStatsError] = useState<string | null>(null);
 
   const filteredTimeline = useMemo(() => {
     const content = dbTimeline.length > 0 ? dbTimeline : localContent;
@@ -192,39 +188,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     return loadPhotos();
   }, [apiBuildingName]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setPhotoStatsLoading(true);
-    setPhotoStatsError(null);
-
-    fetch("/api/content/photos/stats")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load photo stats");
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        const normalized = Array.isArray(data)
-          ? data.map((row) => ({
-              buildingName: String(row.buildingName || ""),
-              count: Number(row.count || 0),
-            }))
-          : [];
-        setPhotoStats(normalized);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setPhotoStatsError("Unable to load photo stats right now.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setPhotoStatsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
 
   const handlePhotoSubmit = async () => {
@@ -842,34 +805,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
                   {photoEditSubmitting ? "Updating..." : "Update"}
                 </button>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Photo stats */}
-      <div className="px-5 pb-8">
-        <div className="glass-card rounded-xl p-4 space-y-3">
-          <h3 className="text-sm font-bold text-foreground text-center">Photo Breakdown</h3>
-          {photoStatsLoading && (
-            <p className="text-xs text-muted-foreground text-center">Loading photo stats...</p>
-          )}
-          {!photoStatsLoading && photoStats.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center">No photo stats available.</p>
-          )}
-          {photoStatsError && (
-            <p className="text-xs text-muted-foreground text-center">{photoStatsError}</p>
-          )}
-          {!photoStatsLoading && photoStats.length > 0 && (
-            <div className="h-40 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={photoStats}>
-                  <XAxis dataKey="buildingName" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
             </div>
           )}
         </div>
