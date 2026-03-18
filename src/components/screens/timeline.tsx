@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, X } from "lucide-react";
-import { buildings, buildingContent } from "@/data/geoTable";
+import { archivePhotos, buildings, buildingContent } from "@/data/geoTable";
 import { useAppStore } from "@/store/appStore";
+import { useAuth } from "@/components/auth-context";
 import type { Screen } from "@/pages/Index";
 
 interface TimelineScreenProps {
@@ -11,21 +12,13 @@ interface TimelineScreenProps {
 }
 
 const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
+  const { readOnly } = useAuth();
   const building = buildings.find((b) => b.id === buildingId);
   const apiBuildingName = buildingId ? buildingId.replace(/-/g, " ") : "";
   const localContent = buildingContent[buildingId] || [];
-  const [dbTimeline, setDbTimeline] = useState<Array<{ year: number; description: string; imagePath?: string }>>([]);
-  const [dbTimelineLoading, setDbTimelineLoading] = useState(false);
-  const [dbTimelineError, setDbTimelineError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const { stamps, addStamp } = useAppStore();
-  const [sampleContent, setSampleContent] = useState<Array<{ buildingName: string; year: number; description: string }>>([]);
-  const [sampleLoading, setSampleLoading] = useState(false);
-  const [sampleError, setSampleError] = useState<string | null>(null);
-  const [dbPhotos, setDbPhotos] = useState<Array<{ id?: number; buildingName: string; year: number; caption: string; imageUrl: string }>>([]);
-  const [photosLoading, setPhotosLoading] = useState(false);
-  const [photosError, setPhotosError] = useState<string | null>(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<{ id?: number; imageUrl: string; caption: string; buildingName: string; year: number } | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<{ id?: string; imageUrl: string; caption: string; buildingName: string; year: number } | null>(null);
   const [showAddPhoto, setShowAddPhoto] = useState(false);
   const [photoForm, setPhotoForm] = useState({ caption: "", year: "" });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -33,7 +26,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const [photoSubmitError, setPhotoSubmitError] = useState<string | null>(null);
   const [photoSubmitSuccess, setPhotoSubmitSuccess] = useState(false);
   const [photoManageMode, setPhotoManageMode] = useState(false);
-  const [photoEdit, setPhotoEdit] = useState<{ id: number; caption: string; year: string } | null>(null);
+  const [photoEdit, setPhotoEdit] = useState<{ id: string; caption: string; year: string } | null>(null);
   const [photoEditError, setPhotoEditError] = useState<string | null>(null);
   const [photoEditSubmitting, setPhotoEditSubmitting] = useState(false);
   const [photoFilter, setPhotoFilter] = useState<"all" | "recent" | "classic">("all");
@@ -43,21 +36,53 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const [timelineSubmitting, setTimelineSubmitting] = useState(false);
   const [timelineFormError, setTimelineFormError] = useState<string | null>(null);
   const [editingEntry, setEditingEntry] = useState<{ year: number; description: string; imagePath?: string } | null>(null);
+  const sampleContent = useMemo(
+    () =>
+      Object.entries(buildingContent)
+        .flatMap(([key, rows]) =>
+          rows.slice(0, 1).map((row) => ({
+            buildingName: key,
+            year: row.year,
+            description: row.description,
+          }))
+        )
+        .slice(0, 3),
+    []
+  );
+  const staticPhotos = useMemo(
+    () =>
+      archivePhotos
+        .filter((photo) => !building || photo.buildingId === buildingId)
+        .map((photo) => ({
+          id: undefined,
+          buildingName: photo.buildingName,
+          year: photo.year,
+          caption: photo.caption,
+          imageUrl: photo.imageUrl,
+        })),
+    [building, buildingId]
+  );
+  const [timelineEntries, setTimelineEntries] = useState(localContent);
+  const [photoEntries, setPhotoEntries] = useState(staticPhotos);
 
+  useEffect(() => {
+    setTimelineEntries(localContent);
+    setPhotoEntries(staticPhotos);
+  }, [localContent, staticPhotos]);
 
   const filteredTimeline = useMemo(() => {
-    const content = dbTimeline.length > 0 ? dbTimeline : localContent;
+    const content = timelineEntries;
     if (timelineFilter === "all") return content;
     if (timelineFilter === "recent") return content.filter((item) => item.year >= 2000);
     return content.filter((item) => item.year < 2000);
-  }, [dbTimeline, localContent, timelineFilter]);
+  }, [timelineEntries, timelineFilter]);
 
   const effectiveContent = filteredTimeline;
   const filteredPhotos = useMemo(() => {
-    if (photoFilter === "all") return dbPhotos;
-    if (photoFilter === "recent") return dbPhotos.filter((photo) => (photo.year || 0) >= 2000);
-    return dbPhotos.filter((photo) => (photo.year || 0) < 2000);
-  }, [dbPhotos, photoFilter]);
+    if (photoFilter === "all") return photoEntries;
+    if (photoFilter === "recent") return photoEntries.filter((photo) => (photo.year || 0) >= 2000);
+    return photoEntries.filter((photo) => (photo.year || 0) < 2000);
+  }, [photoEntries, photoFilter]);
   const currentEntry = effectiveContent[currentIndex];
   const hasPast = currentIndex > 0;
   const hasFuture = currentIndex < effectiveContent.length - 1;
@@ -81,115 +106,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     }
   });
 
-  useEffect(() => {
-    let cancelled = false;
-    const shouldLoadSample = !building || (localContent.length === 0 && dbTimeline.length === 0);
-    if (!shouldLoadSample) return;
-
-    setSampleLoading(true);
-    setSampleError(null);
-
-    fetch("/api/content/sample?limit=3")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load sample content");
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        setSampleContent(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setSampleError("Unable to load sample history right now.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setSampleLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [building, localContent.length, dbTimeline.length]);
-
-  const loadTimeline = () => {
-    let cancelled = false;
-    if (!buildingId) return () => {};
-
-    setDbTimelineLoading(true);
-    setDbTimelineError(null);
-
-    fetch(`/api/content/by-building?buildingName=${encodeURIComponent(apiBuildingName)}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load building timeline");
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        const normalized = Array.isArray(data)
-          ? data.map((row) => ({
-              year: Number(row.year),
-              description: String(row.description || ""),
-              imagePath: row.imagePath ? String(row.imagePath) : "",
-            }))
-          : [];
-        setDbTimeline(normalized);
-        setCurrentIndex(0);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setDbTimelineError("Unable to load timeline from database.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setDbTimelineLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  };
-
-  useEffect(() => {
-    return loadTimeline();
-  }, [buildingId, apiBuildingName]);
-
-  const loadPhotos = () => {
-    let cancelled = false;
-    const buildingQuery = apiBuildingName ? `&buildingName=${encodeURIComponent(apiBuildingName)}` : "";
-
-    setPhotosLoading(true);
-    setPhotosError(null);
-
-    fetch(`/api/content/photos?limit=12${buildingQuery}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load photos");
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        setDbPhotos(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setPhotosError("Unable to load photos right now.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setPhotosLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  };
-
-  useEffect(() => {
-    return loadPhotos();
-  }, [apiBuildingName]);
-
-
-
   const handlePhotoSubmit = async () => {
     if (!apiBuildingName) return;
     if (!photoFile) {
@@ -202,24 +118,21 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     setPhotoSubmitSuccess(false);
 
     try {
-      const formData = new FormData();
-      formData.append("buildingName", apiBuildingName);
-      if (photoForm.year) formData.append("year", photoForm.year);
-      if (photoForm.caption) formData.append("caption", photoForm.caption);
-      formData.append("photo", photoFile);
-
-      const res = await fetch("/api/content/photos/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Failed to add photo");
-
+      const imageUrl = URL.createObjectURL(photoFile);
       setPhotoForm({ caption: "", year: "" });
       setPhotoFile(null);
       setPhotoSubmitSuccess(true);
       setShowAddPhoto(false);
-      loadPhotos();
+      setPhotoEntries((prev) => [
+        {
+          id: `photo-${Date.now()}`,
+          buildingName: building?.name ?? apiBuildingName,
+          year: Number(photoForm.year) || new Date().getFullYear(),
+          caption: photoForm.caption || "Uploaded archive photo",
+          imageUrl,
+        },
+        ...prev,
+      ]);
       setTimeout(() => setPhotoSubmitSuccess(false), 2000);
     } catch {
       setPhotoSubmitError("Unable to add photo right now.");
@@ -234,19 +147,29 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     setPhotoEditError(null);
 
     try {
-      const payload: { year?: string; caption?: string } = {};
-      if (photoEdit.year) payload.year = photoEdit.year;
-      if (photoEdit.caption !== undefined) payload.caption = photoEdit.caption;
-
-      const res = await fetch(`/api/content/photos/${photoEdit.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to update photo");
+      setPhotoEntries((prev) =>
+        prev.map((photo) =>
+          photo.id === photoEdit.id
+            ? {
+                ...photo,
+                year: Number(photoEdit.year) || photo.year,
+                caption: photoEdit.caption,
+              }
+            : photo
+        )
+      );
+      if (selectedPhoto?.id === photoEdit.id) {
+        setSelectedPhoto((prev) =>
+          prev
+            ? {
+                ...prev,
+                year: Number(photoEdit.year) || prev.year,
+                caption: photoEdit.caption,
+              }
+            : prev
+        );
+      }
       setPhotoEdit(null);
-      loadPhotos();
     } catch {
       setPhotoEditError("Unable to update photo right now.");
     } finally {
@@ -254,15 +177,13 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     }
   };
 
-  const handlePhotoDelete = async (id?: number) => {
+  const handlePhotoDelete = async (id?: string) => {
     if (!id) return;
     try {
-      const res = await fetch(`/api/content/photos/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete photo");
       if (selectedPhoto?.id === id) setSelectedPhoto(null);
-      loadPhotos();
+      setPhotoEntries((prev) => prev.filter((photo) => photo.id !== id));
     } catch {
-      setPhotosError("Unable to delete photo right now.");
+      setPhotoEditError("Unable to delete photo right now.");
     }
   };
 
@@ -291,8 +212,14 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
       });
 
       if (!res.ok) throw new Error("Failed to create entry");
+      setTimelineEntries((prev) =>
+        [...prev, {
+          year: Number(timelineForm.year),
+          description: timelineForm.description,
+          imagePath: timelineForm.imagePath || undefined,
+        }].sort((a, b) => a.year - b.year)
+      );
       setTimelineForm({ year: "", description: "", imagePath: "" });
-      loadTimeline();
     } catch {
       setTimelineFormError("Unable to save timeline entry.");
     } finally {
@@ -326,9 +253,21 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
       });
 
       if (!res.ok) throw new Error("Failed to update entry");
+      setTimelineEntries((prev) =>
+        prev
+          .map((entry) =>
+            entry.year === editingEntry.year && entry.description === editingEntry.description
+              ? {
+                  year: Number(payload.newYear) || editingEntry.year,
+                  description: payload.description || editingEntry.description,
+                  imagePath: payload.imagePath ?? editingEntry.imagePath,
+                }
+              : entry
+          )
+          .sort((a, b) => a.year - b.year)
+      );
       setEditingEntry(null);
       setTimelineForm({ year: "", description: "", imagePath: "" });
-      loadTimeline();
     } catch {
       setTimelineFormError("Unable to update timeline entry.");
     } finally {
@@ -345,9 +284,9 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
         body: JSON.stringify({ buildingName: apiBuildingName, year }),
       });
       if (!res.ok) throw new Error("Failed to delete entry");
-      loadTimeline();
+      setTimelineEntries((prev) => prev.filter((entry) => entry.year !== year));
     } catch {
-      setDbTimelineError("Unable to delete timeline entry.");
+      setTimelineFormError("Unable to delete timeline entry.");
     }
   };
 
@@ -360,11 +299,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           Historical content for this building is coming soon.
         </p>
 
-        {sampleLoading && (
-          <p className="text-sm text-muted-foreground mb-4">Loading sample history...</p>
-        )}
-
-        {!sampleLoading && sampleContent.length > 0 && (
+        {sampleContent.length > 0 && (
           <div className="w-full max-w-xl mb-6">
             <h3 className="text-sm font-semibold text-foreground mb-3 text-center">Sample History</h3>
             <div className="space-y-3">
@@ -383,11 +318,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           </div>
         )}
 
-        {photosLoading && (
-          <p className="text-sm text-muted-foreground mb-4">Loading photos...</p>
-        )}
-
-        {!photosLoading && filteredPhotos.length > 0 && (
+        {filteredPhotos.length > 0 && (
           <div className="w-full max-w-xl mb-6">
             <h3 className="text-sm font-semibold text-foreground mb-3 text-center">Sample Photos</h3>
             <div className="grid grid-cols-2 gap-3">
@@ -408,19 +339,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
               ))}
             </div>
           </div>
-        )}
-
-        {photosError && (
-          <p className="text-sm text-muted-foreground mb-4">{photosError}</p>
-        )}
-
-
-        {sampleError && (
-          <p className="text-sm text-muted-foreground mb-4">{sampleError}</p>
-        )}
-
-        {dbTimelineError && (
-          <p className="text-sm text-muted-foreground mb-4">{dbTimelineError}</p>
         )}
 
         <button
@@ -472,9 +390,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
         <span className="text-sm font-semibold text-foreground">
           🏷️ Stamps collected: {stamps.size}
         </span>
-        {dbTimelineLoading && (
-          <div className="text-xs text-muted-foreground mt-1">Loading timeline from database...</div>
-        )}
       </div>
 
       <div className="px-5 pt-3">
@@ -548,8 +463,16 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
       {/* Manage Timeline */}
       <div className="px-5 pb-6">
         <div className="glass-card rounded-xl p-4 space-y-3">
-          <h3 className="text-sm font-bold text-foreground text-center">Manage Timeline</h3>
+          <h3 className="text-sm font-bold text-foreground text-center">
+            {readOnly ? "Timeline Details" : "Manage Timeline"}
+          </h3>
+          {readOnly && (
+            <p className="text-xs text-center text-muted-foreground">
+              Guest access is read-only. Sign in with your school email to add or edit content.
+            </p>
+          )}
 
+          {!readOnly && (
           <div className="space-y-2">
             <input
               type="number"
@@ -606,17 +529,18 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
               )}
             </div>
           </div>
+          )}
 
           <div className="border-t border-border pt-3">
-            {dbTimeline.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center">No DB timeline entries yet.</p>
+            {timelineEntries.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center">No static timeline entries yet.</p>
             ) : (
               <div className="space-y-2 max-h-56 overflow-y-auto">
-                {dbTimeline.map((entry) => (
+                {timelineEntries.map((entry) => (
                   <div key={`${entry.year}-${entry.description.slice(0, 12)}`} className="rounded-lg border border-border p-2 bg-card">
                     <div className="flex items-center justify-between gap-2">
                       <div className="text-xs text-muted-foreground">{entry.year}</div>
-                      <div className="flex gap-2">
+                      {!readOnly && <div className="flex gap-2">
                         <button
                           onClick={() => {
                             setEditingEntry(entry);
@@ -637,7 +561,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
                         >
                           Delete
                         </button>
-                      </div>
+                      </div>}
                     </div>
                     <p className="text-xs text-foreground/80 mt-1 line-clamp-2">{entry.description}</p>
                   </div>
@@ -652,15 +576,22 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
       <div className="px-5 pb-6">
         <div className="glass-card rounded-xl p-4 space-y-3">
           <h3 className="text-sm font-bold text-foreground text-center">Photos from the Archive</h3>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-muted-foreground">Manage photos</span>
-            <button
-              onClick={() => setPhotoManageMode((prev) => !prev)}
-              className="text-xs font-semibold text-primary"
-            >
-              {photoManageMode ? "Done" : "Edit"}
-            </button>
-          </div>
+          {!readOnly && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">Manage photos</span>
+              <button
+                onClick={() => setPhotoManageMode((prev) => !prev)}
+                className="text-xs font-semibold text-primary"
+              >
+                {photoManageMode ? "Done" : "Edit"}
+              </button>
+            </div>
+          )}
+          {readOnly && (
+            <p className="text-xs text-center text-muted-foreground">
+              Guests can browse archive photos, but uploading and editing require sign-in.
+            </p>
+          )}
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-muted-foreground">Photo filter</span>
             <select
@@ -674,17 +605,13 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
             </select>
           </div>
 
-          {photosLoading && (
-            <p className="text-xs text-muted-foreground text-center">Loading photos...</p>
-          )}
-
-          {!photosLoading && filteredPhotos.length === 0 && (
+          {filteredPhotos.length === 0 && (
             <p className="text-xs text-muted-foreground text-center">
               No archived photos found for this building.
             </p>
           )}
 
-          {!photosLoading && filteredPhotos.length > 0 && (
+          {filteredPhotos.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
               {filteredPhotos.map((photo, index) => (
                 <div key={`${photo.buildingName}-${photo.year}-${index}`} className="rounded-lg overflow-hidden border border-border bg-card">
@@ -697,14 +624,16 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
                   {photoManageMode && (
                     <div className="flex items-center justify-between px-2 py-1 text-xs">
                       <button
-                        onClick={() => setPhotoEdit({ id: photo.id || 0, caption: photo.caption || "", year: String(photo.year || "") })}
-                        className="text-primary font-semibold"
+                        disabled={!photo.id}
+                        onClick={() => setPhotoEdit({ id: photo.id || "", caption: photo.caption || "", year: String(photo.year || "") })}
+                        className="text-primary font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Edit
                       </button>
                       <button
+                        disabled={!photo.id}
                         onClick={() => handlePhotoDelete(photo.id)}
-                        className="text-rose-500 font-semibold"
+                        className="text-rose-500 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Delete
                       </button>
@@ -716,7 +645,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           )}
 
           <div className="pt-2">
-            {!showAddPhoto ? (
+            {readOnly ? null : !showAddPhoto ? (
               <button
                 onClick={() => setShowAddPhoto(true)}
                 className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
@@ -770,7 +699,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
             )}
           </div>
 
-          {photoEdit && (
+          {!readOnly && photoEdit && (
             <div className="border-t border-border pt-3 space-y-2">
               <p className="text-xs font-semibold text-muted-foreground">Edit selected photo</p>
               <input

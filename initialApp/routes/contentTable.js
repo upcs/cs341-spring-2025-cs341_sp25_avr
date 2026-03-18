@@ -8,6 +8,7 @@ var mysql = require('mysql');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const { requireAuth } = require('../auth');
 
 const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -100,7 +101,7 @@ router.get('/by-building', async function (req, res) {
 });
 
 // Create a new timeline entry
-router.post('/timeline', async function (req, res) {
+router.post('/timeline', requireAuth, async function (req, res) {
     const { buildingName, year, description, imagePath } = req.body || {};
     if (!buildingName || !year || !description) {
         res.status(400).json({ message: "buildingName, year, and description are required" });
@@ -132,7 +133,7 @@ router.post('/timeline', async function (req, res) {
 });
 
 // Update a timeline entry by buildingName + year
-router.put('/timeline', async function (req, res) {
+router.put('/timeline', requireAuth, async function (req, res) {
     const { buildingName, year, description, imagePath, newYear } = req.body || {};
     if (!buildingName || !year) {
         res.status(400).json({ message: "buildingName and year are required" });
@@ -184,7 +185,7 @@ router.put('/timeline', async function (req, res) {
 });
 
 // Delete a timeline entry by buildingName + year
-router.delete('/timeline', async function (req, res) {
+router.delete('/timeline', requireAuth, async function (req, res) {
     const { buildingName, year } = req.body || {};
     if (!buildingName || !year) {
         res.status(400).json({ message: "buildingName and year are required" });
@@ -268,7 +269,7 @@ router.get('/photos/stats', async function (_req, res) {
 });
 
 // Add a photo record to the database
-router.post('/photos', async function (req, res) {
+router.post('/photos', requireAuth, async function (req, res) {
     const { buildingName, year, imageUrl, caption } = req.body || {};
     if (!buildingName || !imageUrl) {
         res.status(400).json({ message: "buildingName and imageUrl are required" });
@@ -295,7 +296,7 @@ router.post('/photos', async function (req, res) {
 });
 
 // Update a photo record
-router.put('/photos/:id', async function (req, res) {
+router.put('/photos/:id', requireAuth, async function (req, res) {
     const { id } = req.params;
     const { year, caption, imageUrl } = req.body || {};
 
@@ -343,7 +344,7 @@ router.put('/photos/:id', async function (req, res) {
 });
 
 // Delete a photo record
-router.delete('/photos/:id', async function (req, res) {
+router.delete('/photos/:id', requireAuth, async function (req, res) {
     const { id } = req.params;
     const safeId = parseInt(id, 10);
     if (!Number.isFinite(safeId)) {
@@ -366,7 +367,7 @@ router.delete('/photos/:id', async function (req, res) {
 });
 
 // Upload a local photo file and create a DB record
-router.post('/photos/upload', upload.single('photo'), async function (req, res) {
+router.post('/photos/upload', requireAuth, upload.single('photo'), async function (req, res) {
     const { buildingName, year, caption } = req.body || {};
     if (!buildingName || !req.file) {
         res.status(400).json({ message: "buildingName and photo file are required" });

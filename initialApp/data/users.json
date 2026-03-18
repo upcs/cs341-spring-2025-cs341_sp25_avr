@@ -1,0 +1,19 @@
+[
+  {
+    "id": "8d87ea65-f1b8-459c-bfc5-18600dd885e5",
+    "name": "Makengo",
+    "email": "lokombo@up.edu",
+    "passwordHash": "ffbe6c0c0d48431d76847f0a84a82d29:b85fd9b731f33a795395b93e6fe0434426b1b80aca3e5e22cf7e09f1b43f4b4135b403a7a0fbb920a74284717b3a62db9a5f1a9fb0200d91887279789f232ea7",
+    "createdAt": "2026-03-17T23:29:37.166Z"
+  },
+  {
+    "id": "2ba7b872-ca71-49e6-9bf6-3148052f0b89",
+    "name": "makengo",
+    "email": "lokombo27@up.edu",
+    "passwordHash": "c4e58a37c62cde44a67c973e900f1ceb:fc9f1a78887f38a76542ab2f322f5c0e588c94134bce50735401d6fda044ddb229db2ac7fb9c10eba76a7f20ec1cebe3b6832b5a2c92e11db2f91cbad82b9daf",
+    "verified": false,
+    "verificationToken": "67002497c9fecba925ec97dc78747e9d792ac25e0385d078",
+    "verificationExpiresAt": "2026-03-18T23:50:04.977Z",
+    "createdAt": "2026-03-17T23:50:04.977Z"
+  }
+]

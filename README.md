@@ -36,9 +36,32 @@ VM quickstart:
 - `git clone https://github.com/upcs/cs341-spring-2025-cs341_sp25_avr.git`
 - `cd cs341-spring-2025-cs341_sp25_avr`
 - `npm install && npm --prefix initialApp install`
-- `PORT=4000 npm --prefix initialApp start`
-- In a second terminal: `npm run dev`
-- Optional: `scripts/vm-start.sh` runs both backend + frontend
+- `npm start`
+
+VM access:
+- `npm start` builds the React frontend and serves it from the Express server on `0.0.0.0:4000`
+- Open `http://<your-vm-ip>:4000/` directly, or put Nginx in front and use `http://cs341avr.campus.up.edu`
+- Use `npm run dev:full` for local development with Vite on `3000` and Express on `4000`
+- Use `npm run start:dev` only if you explicitly want the old two-process VM launcher
+- For automatic restart on reboot or crash, install the systemd unit at `deploy/cs341-avr.service`
+
+Login:
+- The app now requires sign-in before access
+- Users sign up with their `@up.edu` email address
+- Passwords must be at least 8 characters
+- Accounts are stored in `initialApp/data/users.json`
+
+Domain setup for `http://cs341avr.campus.up.edu`:
+- Point the DNS record for `cs341avr.campus.up.edu` at your VM's public IP
+- Open inbound port `80` on the VM or cloud firewall
+- Install the systemd unit from `deploy/cs341-avr.service`
+- Install the Nginx site config from `deploy/cs341avr.campus.up.edu.nginx.conf`
+- Enable the Nginx site so requests to `http://cs341avr.campus.up.edu` proxy to the app on `127.0.0.1:4000`
+- If you want HTTPS later, add a certificate with Certbot and redirect `80 -> 443`
+
+One-command VM bootstrap:
+- On the VM, from the repo root, run `sudo bash deploy/setup-vm.sh`
+- Then verify `systemctl status cs341-avr` and open `http://cs341avr.campus.up.edu/`
 
 ## Geo Database
 
