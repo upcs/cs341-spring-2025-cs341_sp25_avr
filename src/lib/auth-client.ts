@@ -10,6 +10,7 @@ type AuthResponse = {
   name?: string;
   message?: string;
   verificationUrl?: string | null;
+  resetUrl?: string | null;
 };
 
 type LocalUser = {
@@ -19,6 +20,7 @@ type LocalUser = {
   password: string;
   verified: boolean;
   verificationToken: string | null;
+  resetToken: string | null;
 };
 
 const USERS_KEY = "avr_local_users";
@@ -131,6 +133,7 @@ async function fallbackSignup(payload: { name: string; email: string; password: 
     password: payload.password,
     verified: false,
     verificationToken,
+    resetToken: null,
   });
   writeUsers(users);
 
@@ -157,6 +160,52 @@ async function fallbackVerify(token: string): Promise<AuthResponse> {
     email: user.email,
     name: user.name,
     message: "Email verified. You can now sign in.",
+  };
+}
+
+async function fallbackForgotPassword(emailInput: string): Promise<AuthResponse> {
+  const email = normalizeEmail(emailInput);
+  const users = readUsers();
+  const user = users.find((entry) => entry.email === email) || null;
+
+  if (user) {
+    user.resetToken = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    writeUsers(users);
+  }
+
+  return {
+    ok: true,
+    message: "If that @up.edu account exists, a password reset link is ready.",
+    resetUrl: user ? buildLocalResetUrl(user.resetToken as string) : null,
+  };
+}
+
+function buildLocalResetUrl(token: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("reset", token);
+  return url.toString();
+}
+
+async function fallbackResetPassword(token: string, password: string): Promise<AuthResponse> {
+  if (password.length < 8) {
+    throw new Error("Password must be at least 8 characters");
+  }
+
+  const users = readUsers();
+  const user = users.find((entry) => entry.resetToken === token);
+  if (!user) {
+    throw new Error("Invalid password reset link");
+  }
+
+  user.password = password;
+  user.resetToken = null;
+  writeUsers(users);
+
+  return {
+    ok: true,
+    email: user.email,
+    name: user.name,
+    message: "Password reset. You can now sign in.",
   };
 }
 
@@ -232,6 +281,36 @@ export async function login(payload: { email: string; password: string }): Promi
   } catch (error) {
     if (error instanceof TypeError || error instanceof BackendUnavailableError) {
       return fallbackLogin(payload);
+    }
+    throw error;
+  }
+}
+
+export async function forgotPassword(email: string): Promise<AuthResponse> {
+  try {
+    return await requestJson("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+  } catch (error) {
+    if (error instanceof TypeError || error instanceof BackendUnavailableError) {
+      return fallbackForgotPassword(email);
+    }
+    throw error;
+  }
+}
+
+export async function resetPassword(token: string, password: string): Promise<AuthResponse> {
+  try {
+    return await requestJson("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, password }),
+    });
+  } catch (error) {
+    if (error instanceof TypeError || error instanceof BackendUnavailableError) {
+      return fallbackResetPassword(token, password);
     }
     throw error;
   }
