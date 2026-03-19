@@ -4,6 +4,7 @@ import type { Screen } from "@/pages/Index";
 import { useAppStore } from "@/store/appStore";
 import { buildings } from "@/data/geoTable";
 
+// Directs you to photo hub, map or timeline
 
 interface HomeScreenProps {
   onNavigate: (screen: Screen) => void;
