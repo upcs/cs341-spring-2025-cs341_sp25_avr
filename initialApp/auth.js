@@ -22,7 +22,37 @@ function readUsers() {
   try {
     const raw = fs.readFileSync(USERS_FILE, 'utf8');
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    let changed = false;
+    const normalizedUsers = parsed.map((user) => {
+      if (typeof user !== 'object' || user === null) {
+        return user;
+      }
+
+      const normalizedUser = { ...user };
+
+      // Accounts created before email verification existed should remain usable.
+      if (typeof normalizedUser.verified !== 'boolean') {
+        normalizedUser.verified = true;
+        normalizedUser.verificationToken = null;
+        normalizedUser.verificationExpiresAt = null;
+        if (!normalizedUser.verifiedAt) {
+          normalizedUser.verifiedAt = normalizedUser.createdAt || new Date().toISOString();
+        }
+        changed = true;
+      }
+
+      return normalizedUser;
+    });
+
+    if (changed) {
+      writeUsers(normalizedUsers);
+    }
+
+    return normalizedUsers;
   } catch (_error) {
     return [];
   }
@@ -154,6 +184,27 @@ function verifyUserByToken(token) {
   return { ok: true, user };
 }
 
+function refreshVerificationToken(email) {
+  const user = findUserByEmail(email);
+  if (!user) {
+    return { ok: false, message: 'No account exists for that @up.edu email. Sign up first or check the address.' };
+  }
+
+  if (user.verified) {
+    return { ok: true, user, message: 'That account is already verified.' };
+  }
+
+  user.verificationToken = crypto.randomBytes(24).toString('hex');
+  user.verificationExpiresAt = new Date(Date.now() + VERIFY_TOKEN_TTL_MS).toISOString();
+  saveUser(user);
+
+  return {
+    ok: true,
+    user,
+    message: 'A fresh verification link is ready for this account.',
+  };
+}
+
 function createPasswordReset(email) {
   const user = findUserByEmail(email);
   if (!user) {
@@ -248,6 +299,7 @@ module.exports = {
   isValidUpEmail,
   normalizeEmail,
   readUsers,
+  refreshVerificationToken,
   requireAuth,
   resetPasswordByToken,
   verifyUserByToken,

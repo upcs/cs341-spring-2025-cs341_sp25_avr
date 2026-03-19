@@ -28,6 +28,19 @@ const SESSION_KEY = "avr_local_session";
 
 class BackendUnavailableError extends Error {}
 
+function normalizeFrontendUrl(urlValue: string | null | undefined) {
+  if (!urlValue) return null;
+
+  try {
+    const parsed = new URL(urlValue, window.location.origin);
+    parsed.protocol = window.location.protocol;
+    parsed.host = window.location.host;
+    return parsed.toString();
+  } catch {
+    return urlValue;
+  }
+}
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -90,7 +103,11 @@ async function requestJson(path: string, init?: RequestInit) {
   if (!response.ok) {
     throw new Error(data.message || "Authentication failed");
   }
-  return data;
+  return {
+    ...data,
+    verificationUrl: normalizeFrontendUrl(data.verificationUrl),
+    resetUrl: normalizeFrontendUrl(data.resetUrl),
+  };
 }
 
 function buildLocalVerificationUrl(token: string) {
@@ -296,6 +313,35 @@ export async function forgotPassword(email: string): Promise<AuthResponse> {
   } catch (error) {
     if (error instanceof TypeError || error instanceof BackendUnavailableError) {
       return fallbackForgotPassword(email);
+    }
+    throw error;
+  }
+}
+
+export async function resendVerification(email: string): Promise<AuthResponse> {
+  try {
+    return await requestJson("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+  } catch (error) {
+    if (error instanceof TypeError || error instanceof BackendUnavailableError) {
+      const user = readUsers().find((entry) => entry.email === normalizeEmail(email));
+      if (!user) {
+        throw new Error("No account exists for that @up.edu email. Sign up first or check the address.");
+      }
+
+      user.verificationToken = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      writeUsers(readUsers().map((entry) => (entry.email === user.email ? user : entry)));
+
+      return {
+        ok: true,
+        email: user.email,
+        name: user.name,
+        message: "A fresh verification link is ready for this account.",
+        verificationUrl: buildLocalVerificationUrl(user.verificationToken),
+      };
     }
     throw error;
   }

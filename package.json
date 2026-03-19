@@ -15,8 +15,9 @@
     "start:server": "PORT=4000 bash scripts/start-server.sh",
     "start:vm": "npm run build && npm run start:server",
     "vm:start": "bash scripts/vm-start.sh",
-    "server": "PORT=4000 npm --prefix initialApp start",
-    "dev:full": "npx concurrently -n server,client -c auto \"npm run server\" \"npm run dev\"",
+    "server:dev": "PORT=4000 npm --prefix initialApp start",
+    "server": "npm run build && npm run server:dev",
+    "dev:full": "npx concurrently -n server,client -c auto \"npm run server:dev\" \"npm run dev\"",
     "setup": "npm install && npm --prefix initialApp install",
     "start": "npm run start:vm"
   },

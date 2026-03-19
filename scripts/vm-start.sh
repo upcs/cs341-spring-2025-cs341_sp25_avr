@@ -20,20 +20,18 @@ fi
 PORT=${PORT:-4000}
 mkdir -p "$LOG_DIR"
 
+npm run build >>"$LOG_DIR/frontend-build.log" 2>&1
 PORT="$PORT" npm --prefix initialApp start >>"$LOG_DIR/backend.log" 2>&1 &
 BACKEND_PID=$!
 
-npm run dev >>"$LOG_DIR/frontend.log" 2>&1 &
-FRONTEND_PID=$!
-
 echo "App starting..."
-echo "Frontend: http://localhost:3000/"
-echo "Backend:  http://localhost:${PORT}/"
+echo "App URL:   http://localhost:${PORT}/"
+echo "Backend:   http://localhost:${PORT}/"
 if [ -n "$LOCAL_IP" ]; then
-  echo "IP URL:   http://${LOCAL_IP}:3000/"
+  echo "IP URL:    http://${LOCAL_IP}:${PORT}/"
 fi
 echo "VM URL:   http://cs341avr.campus.up.edu"
-echo "Logs:     $LOG_DIR/frontend.log and $LOG_DIR/backend.log"
+echo "Logs:     $LOG_DIR/frontend-build.log and $LOG_DIR/backend.log"
 
-trap 'kill $BACKEND_PID $FRONTEND_PID' INT TERM
-wait $BACKEND_PID $FRONTEND_PID
+trap 'kill $BACKEND_PID' INT TERM
+wait $BACKEND_PID

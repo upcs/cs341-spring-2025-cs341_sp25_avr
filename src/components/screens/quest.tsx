@@ -17,16 +17,22 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<string | null>(null);
+  const [scanSuccess, setScanSuccess] = useState<string | null>(null);
   const [manualQrValue, setManualQrValue] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const scanTimerRef = useRef<number | null>(null);
+  const scanFrameRef = useRef<number | null>(null);
   const scanLockedRef = useRef(false);
+  const barcodeDetectorRef = useRef<{ detect: (source: CanvasImageSource) => Promise<Array<{ rawValue?: string }>> } | null>(null);
 
   const questBuildings = buildings.slice(0, 12);
   const qrStampAliases: Record<string, string> = {
     "scanned-page-p-qek1lt": "shiley",
+    qek1lt: "shiley",
+    shiley: "shiley",
+    "shiley-school-of-engineering": "shiley",
   };
 
   const normalizeId = (value: string) =>
@@ -38,9 +44,9 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
       .replace(/^-+|-+$/g, "");
 
   const stopScanning = () => {
-    if (scanTimerRef.current !== null) {
-      window.clearInterval(scanTimerRef.current);
-      scanTimerRef.current = null;
+    if (scanFrameRef.current !== null) {
+      window.cancelAnimationFrame(scanFrameRef.current);
+      scanFrameRef.current = null;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -50,24 +56,87 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
     setScanning(false);
   };
 
+  const decodeCanvas = async (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+    if (!barcodeDetectorRef.current && "BarcodeDetector" in window) {
+      try {
+        const BarcodeDetectorCtor = (window as typeof window & {
+          BarcodeDetector?: new (options?: { formats?: string[] }) => {
+            detect: (source: CanvasImageSource) => Promise<Array<{ rawValue?: string }>>;
+          };
+        }).BarcodeDetector;
+
+        if (BarcodeDetectorCtor) {
+          barcodeDetectorRef.current = new BarcodeDetectorCtor({ formats: ["qr_code"] });
+        }
+      } catch {
+        barcodeDetectorRef.current = null;
+      }
+    }
+
+    if (barcodeDetectorRef.current) {
+      try {
+        const detected = await barcodeDetectorRef.current.detect(canvas);
+        const rawValue = detected.find((entry) => entry.rawValue)?.rawValue;
+        if (rawValue) {
+          return rawValue;
+        }
+      } catch {
+        // Fall through to jsQR.
+      }
+    }
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const qr = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: "attemptBoth",
+    });
+    return qr?.data ?? null;
+  };
+
   const handleScanValue = (value: string) => {
     if (scanLockedRef.current) return;
     setScanResult(value);
     const normalized = normalizeId(value);
-    const aliasMatch = qrStampAliases[normalized];
+    const rawLower = value.toLowerCase().trim();
+    const candidateKeys = new Set<string>([normalized, rawLower]);
+
+    try {
+      const url = new URL(value);
+      candidateKeys.add(normalizeId(url.href));
+      candidateKeys.add(normalizeId(url.hostname));
+      candidateKeys.add(normalizeId(url.pathname));
+      candidateKeys.add(normalizeId(url.search));
+      candidateKeys.add(normalizeId(url.hash));
+      url.pathname
+        .split("/")
+        .filter(Boolean)
+        .forEach((segment) => candidateKeys.add(normalizeId(segment)));
+      url.searchParams.forEach((paramValue, key) => {
+        candidateKeys.add(normalizeId(key));
+        candidateKeys.add(normalizeId(paramValue));
+      });
+    } catch {
+      // Non-URL QR values are still valid candidates.
+    }
+
+    const aliasMatch = Array.from(candidateKeys)
+      .map((key) => qrStampAliases[key])
+      .find(Boolean);
+
     const match =
       (aliasMatch ? questBuildings.find((b) => b.id === aliasMatch) : undefined) ||
-      questBuildings.find((b) => normalizeId(b.id) === normalized) ||
-      questBuildings.find((b) => normalizeId(b.name) === normalized);
+      questBuildings.find((b) => Array.from(candidateKeys).some((key) => key.includes(normalizeId(b.id)))) ||
+      questBuildings.find((b) => Array.from(candidateKeys).some((key) => key.includes(normalizeId(b.name))));
 
     if (match) {
       scanLockedRef.current = true;
       setScanError(null);
+      setScanSuccess(`Unlocked ${match.name}`);
       addStamp(match.id);
       stopScanning();
       return;
     }
 
+    setScanSuccess(null);
     setScanError("Valid QR code detected, but it is not one of the campus quest codes.");
   };
 
@@ -77,12 +146,59 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
     setManualQrValue("");
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const imageUrl = URL.createObjectURL(file);
+      const image = new Image();
+
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error("load failed"));
+        image.src = imageUrl;
+      });
+
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        URL.revokeObjectURL(imageUrl);
+        setScanError("Scanner canvas is unavailable. Try the camera or paste the QR link.");
+        return;
+      }
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(imageUrl);
+        setScanError("Unable to read the uploaded image. Try a clearer QR image.");
+        return;
+      }
+
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const code = await decodeCanvas(canvas, ctx);
+      URL.revokeObjectURL(imageUrl);
+
+      if (code) {
+        handleScanValue(code);
+        return;
+      }
+
+      setScanError("No QR code was detected in that image. Try a sharper image or paste the link.");
+    } catch {
+      setScanError("Unable to read the uploaded image. Try a different QR photo.");
+    }
+  };
+
   useEffect(() => {
     if (!scanning) return;
 
     const start = async () => {
       setScanError(null);
       setScanResult(null);
+      setScanSuccess(null);
       setManualQrValue("");
       scanLockedRef.current = false;
 
@@ -100,37 +216,68 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
           },
         });
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.setAttribute("playsinline", "true");
-          videoRef.current.muted = true;
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+        const video = videoRef.current;
+        if (!video) {
+          setScanError("Camera preview is unavailable. Try uploading a QR image instead.");
+          return;
         }
 
-        scanTimerRef.current = window.setInterval(async () => {
-          if (!videoRef.current || !canvasRef.current) return;
-          const video = videoRef.current;
+        video.setAttribute("playsinline", "true");
+        video.muted = true;
+        video.srcObject = stream;
+
+        await new Promise<void>((resolve) => {
+          if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            resolve();
+            return;
+          }
+
+          const onLoaded = () => {
+            video.removeEventListener("loadedmetadata", onLoaded);
+            resolve();
+          };
+
+          video.addEventListener("loadedmetadata", onLoaded);
+        });
+
+        await video.play();
+
+        const scanFrame = async () => {
+          if (!videoRef.current || !canvasRef.current || scanLockedRef.current) return;
+
+          const activeVideo = videoRef.current;
+          if (activeVideo.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+            scanFrameRef.current = window.requestAnimationFrame(scanFrame);
+            return;
+          }
+
           const canvas = canvasRef.current;
           const ctx = canvas.getContext("2d");
-          if (!ctx) return;
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          if (!canvas.width || !canvas.height) return;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          if (!ctx || !activeVideo.videoWidth || !activeVideo.videoHeight) {
+            scanFrameRef.current = window.requestAnimationFrame(scanFrame);
+            return;
+          }
+
+          canvas.width = activeVideo.videoWidth;
+          canvas.height = activeVideo.videoHeight;
+          ctx.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
 
           try {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-              inversionAttempts: "attemptBoth",
-            });
-            if (code?.data) {
-              handleScanValue(code.data);
+            const code = await decodeCanvas(canvas, ctx);
+            if (code) {
+              handleScanValue(code);
+              return;
             }
           } catch {
-            // ignore detection errors
+            // Keep scanning if one frame cannot be decoded.
           }
-        }, 600);
-      } catch {
+
+          scanFrameRef.current = window.requestAnimationFrame(scanFrame);
+        };
+
+        scanFrameRef.current = window.requestAnimationFrame(scanFrame);
+      } catch (error) {
+        console.error("QR scanner failed to start", error);
         setScanError("Unable to access the camera. Check permissions or paste the QR link below.");
       }
     };
@@ -158,6 +305,11 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
 
       {/* Progress */}
       <div className="px-5 py-4">
+        {scanSuccess && (
+          <div className="mb-3 rounded-xl bg-accent/15 border border-accent/40 px-4 py-3 text-sm font-medium text-foreground">
+            {scanSuccess}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-foreground">Progress</span>
           <span className="text-sm font-bold text-primary">
@@ -270,6 +422,20 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
                 <p className="text-xs text-muted-foreground">
                   If camera scanning does not work, paste the QR link here.
                 </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full py-2 rounded-lg border border-border text-sm font-medium text-foreground"
+                >
+                  Upload QR Image
+                </button>
                 <input
                   type="text"
                   value={manualQrValue}

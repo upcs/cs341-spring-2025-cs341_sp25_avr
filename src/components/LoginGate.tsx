@@ -1,7 +1,7 @@
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { AuthProvider } from "./auth-context";
-import { forgotPassword, getSession, login, logout, resetPassword, signup, verifyEmail } from "@/lib/auth-client";
+import { forgotPassword, getSession, login, logout, resendVerification, resetPassword, signup, verifyEmail } from "@/lib/auth-client";
 
 type AuthState = "loading" | "authenticated" | "guest" | "unauthenticated";
 type AuthMode = "login" | "signup" | "forgot" | "reset";
@@ -33,6 +33,7 @@ const LoginGate = ({ children }: LoginGateProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [displayName, setDisplayName] = useState<string>("");
   const [resetToken, setResetToken] = useState<string | null>(null);
+  const [showResendVerification, setShowResendVerification] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,6 +86,7 @@ const LoginGate = ({ children }: LoginGateProps) => {
     setInfo(null);
     setVerificationUrl(null);
     setResetUrl(null);
+    setShowResendVerification(false);
 
     try {
       const data =
@@ -121,7 +123,9 @@ const LoginGate = ({ children }: LoginGateProps) => {
       setDisplayName(data.name || data.email || "");
       setAuthState("authenticated");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      const message = err instanceof Error ? err.message : "Authentication failed";
+      setError(message);
+      setShowResendVerification(message.toLowerCase().includes("not verified"));
     } finally {
       setSubmitting(false);
     }
@@ -282,6 +286,24 @@ const LoginGate = ({ children }: LoginGateProps) => {
             >
               Open verification link
             </a>
+          )}
+          {showResendVerification && form.email.trim() && (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const data = await resendVerification(form.email);
+                  setInfo(data.message || "A fresh verification link is ready.");
+                  setVerificationUrl(data.verificationUrl || null);
+                  setError(null);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Unable to resend verification");
+                }
+              }}
+              className="block text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Get a new verification link
+            </button>
           )}
           {resetUrl && (
             <a

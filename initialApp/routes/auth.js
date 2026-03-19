@@ -10,6 +10,7 @@ const {
   createUser,
   getAuthenticatedUser,
   getTokenForUser,
+  refreshVerificationToken,
   resetPasswordByToken,
   verifyUserByToken,
 } = require('../auth');
@@ -89,6 +90,26 @@ router.post('/forgot-password', function(req, res) {
     ok: true,
     message: result.message,
     resetUrl: result.user ? buildResetUrl(req, result.user.resetToken) : null,
+  });
+});
+
+router.post('/resend-verification', function(req, res) {
+  const { email } = req.body || {};
+  const result = refreshVerificationToken(email);
+
+  if (!result.ok) {
+    res.status(400).json({ message: result.message });
+    return;
+  }
+
+  res.json({
+    ok: true,
+    email: result.user.email,
+    name: result.user.name,
+    message: result.message,
+    verificationUrl: result.user.verificationToken
+      ? buildVerificationUrl(req, result.user.verificationToken)
+      : null,
   });
 });
 
