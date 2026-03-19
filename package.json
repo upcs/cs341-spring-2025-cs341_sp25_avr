@@ -11,10 +11,14 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "server": "npm --prefix initialApp start",
+    "start:dev": "npm run vm:start",
+    "start:server": "PORT=4000 bash scripts/start-server.sh",
+    "start:vm": "npm run build && npm run start:server",
+    "vm:start": "bash scripts/vm-start.sh",
+    "server": "PORT=4000 npm --prefix initialApp start",
     "dev:full": "npx concurrently -n server,client -c auto \"npm run server\" \"npm run dev\"",
     "setup": "npm install && npm --prefix initialApp install",
-    "start": "npm run dev"
+    "start": "npm run start:vm"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -83,7 +87,7 @@
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.0.0",
-    "eslint": "^10.0.2",
+    "eslint": "^9.39.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",

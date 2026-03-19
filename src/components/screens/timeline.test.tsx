@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import TimelineScreen from "@/components/screens/timeline";
+import { AuthProvider } from "@/components/auth-context";
 
 const mockFetch = vi.fn();
 
@@ -43,14 +44,9 @@ beforeEach(() => {
       );
     }
 
-    if (url.includes("/api/content/photos/stats")) {
+    if (url.includes("/api/content/by-building")) {
       return Promise.resolve(
-        new Response(
-          JSON.stringify([
-            { buildingName: "chapel", count: 3 },
-          ]),
-          { status: 200, headers: { "Content-Type": "application/json" } }
-        )
+        new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } })
       );
     }
 
@@ -59,22 +55,25 @@ beforeEach(() => {
 });
 
 describe("TimelineScreen", () => {
-  it("renders sample history, photos, and stats when no building content exists", async () => {
-    render(<TimelineScreen buildingId="unknown" onNavigate={() => {}} />);
+  it("renders sample history and static archive photos when no building content exists", () => {
+    render(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+        <TimelineScreen buildingId="unknown" onNavigate={() => {}} />
+      </AuthProvider>
+    );
 
     expect(screen.getByText(/No History Available/i)).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByText(/Sample History/i)).toBeInTheDocument();
-    });
-
+    expect(screen.getByText(/Sample History/i)).toBeInTheDocument();
     expect(screen.getByText(/Sample Photos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Archive Insights/i)).toBeInTheDocument();
-    expect(screen.getByText(/Photo caption/i)).toBeInTheDocument();
+    expect(screen.getByText(/Historic view of the original engineering building\./i)).toBeInTheDocument();
   });
 
   it("opens the add photo form", async () => {
-    render(<TimelineScreen buildingId="chapel" onNavigate={() => {}} />);
+    render(
+      <AuthProvider value={{ authenticated: true, readOnly: false, displayName: "Tester" }}>
+        <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
+      </AuthProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Add Photo/i)).toBeInTheDocument();
@@ -82,5 +81,20 @@ describe("TimelineScreen", () => {
 
     fireEvent.click(screen.getByText(/Add Photo/i));
     expect(screen.getByPlaceholderText(/Caption/i)).toBeInTheDocument();
+  });
+
+  it("renders manage timeline form", async () => {
+    render(
+      <AuthProvider value={{ authenticated: true, readOnly: false, displayName: "Tester" }}>
+        <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Manage Timeline/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Add Entry/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Description/i)).toBeInTheDocument();
   });
 });

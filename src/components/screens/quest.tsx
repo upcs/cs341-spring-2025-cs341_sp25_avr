@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, QrCode } from "lucide-react";
+import { ArrowLeft, Check, QrCode, X } from "lucide-react";
 import { buildings } from "@/data/geoTable";
 import { useAppStore } from "@/store/appStore";
 import type { Screen } from "@/pages/Index";
@@ -12,17 +12,113 @@ interface QuestScreenProps {
 const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
   const { stamps, addStamp } = useAppStore();
   const [showQrInfo, setShowQrInfo] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scanTimerRef = useRef<number | null>(null);
 
   const questBuildings = buildings.slice(0, 12);
 
-  // Simulate QR code scan awarding a random stamp
-  const simulateQrScan = () => {
-    const unvisited = questBuildings.filter((b) => !stamps.has(b.id));
-    if (unvisited.length > 0) {
-      const random = unvisited[Math.floor(Math.random() * unvisited.length)];
-      addStamp(random.id);
+  const normalizeId = (value: string) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/https?:\/\//, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  const stopScanning = () => {
+    if (scanTimerRef.current !== null) {
+      window.clearInterval(scanTimerRef.current);
+      scanTimerRef.current = null;
     }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setScanning(false);
   };
+
+  const handleScanValue = (value: string) => {
+    setScanResult(value);
+    const normalized = normalizeId(value);
+    const match =
+      questBuildings.find((b) => normalizeId(b.id) === normalized) ||
+      questBuildings.find((b) => normalizeId(b.name) === normalized);
+
+    if (match) {
+      addStamp(match.id);
+    }
+    stopScanning();
+  };
+
+  useEffect(() => {
+    if (!scanning) return;
+
+    const start = async () => {
+      setScanError(null);
+      setScanResult(null);
+
+      if (!("mediaDevices" in navigator) || !navigator.mediaDevices.getUserMedia) {
+        setScanError("Camera access is not supported in this browser.");
+        setScanning(false);
+        return;
+      }
+
+      if (!("BarcodeDetector" in window)) {
+        setScanError("QR scanning is not supported in this browser.");
+        setScanning(false);
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+        });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+
+        const detector = new (window as typeof window & { BarcodeDetector: typeof BarcodeDetector }).BarcodeDetector({
+          formats: ["qr_code"],
+        });
+
+        scanTimerRef.current = window.setInterval(async () => {
+          if (!videoRef.current || !canvasRef.current) return;
+          const video = videoRef.current;
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          try {
+            const barcodes = await detector.detect(canvas);
+            if (barcodes.length > 0 && barcodes[0].rawValue) {
+              handleScanValue(barcodes[0].rawValue);
+            }
+          } catch {
+            // ignore detection errors
+          }
+        }, 600);
+      } catch {
+        setScanError("Unable to access the camera. Check permissions.");
+        setScanning(false);
+      }
+    };
+
+    start();
+
+    return () => {
+      stopScanning();
+    };
+  }, [scanning, questBuildings]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,7 +154,7 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
       {/* QR Code scan button */}
       <div className="px-5 mb-4">
         <button
-          onClick={simulateQrScan}
+          onClick={() => setScanning(true)}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent text-accent-foreground font-semibold shadow-md hover:shadow-lg transition-all"
         >
           <QrCode className="w-5 h-5" />
@@ -77,7 +173,7 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
             className="mt-2 glass-card rounded-lg p-3 text-xs text-foreground/80"
           >
             <p>Visit campus buildings and scan the QR codes placed near each building entrance. Each scan unlocks a stamp for that building and shows you its history!</p>
-            <p className="mt-1 text-muted-foreground italic">(Demo: tap "Scan QR Code" above to simulate a scan)</p>
+            <p className="mt-1 text-muted-foreground italic">(The scanner uses your device camera.)</p>
           </motion.div>
         )}
       </div>
@@ -123,6 +219,43 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
           </motion.div>
         )}
       </div>
+
+      {scanning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md rounded-xl bg-background border border-border overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <div className="text-sm font-semibold text-foreground">Scan QR Code</div>
+              <button
+                onClick={stopScanning}
+                className="p-2 rounded-full hover:bg-muted"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              {scanError && (
+                <p className="text-xs text-muted-foreground">{scanError}</p>
+              )}
+              {!scanError && (
+                <div className="rounded-lg overflow-hidden border border-border">
+                  <video ref={videoRef} className="w-full h-64 object-cover" />
+                  <canvas ref={canvasRef} className="hidden" />
+                </div>
+              )}
+              {scanResult && (
+                <p className="text-xs text-muted-foreground">Scanned: {scanResult}</p>
+              )}
+              <button
+                onClick={stopScanning}
+                className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

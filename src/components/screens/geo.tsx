@@ -15,9 +15,11 @@ const MapScreen = ({ onNavigate, onBuildingSelect }: MapScreenProps) => {
   const mapInstance = useRef<L.Map | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const userCircleRef = useRef<L.Circle | null>(null);
+  const watchIdRef = useRef<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [helpVisible, setHelpVisible] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationBlocked, setLocationBlocked] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
@@ -59,51 +61,88 @@ const MapScreen = ({ onNavigate, onBuildingSelect }: MapScreenProps) => {
     // Auto-hide help after 4 seconds
     const timer = setTimeout(() => setHelpVisible(false), 4000);
 
-    // Geolocation
-    let watchId: number | null = null;
-    if ("geolocation" in navigator) {
-      watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          const { latitude, longitude, accuracy } = pos.coords;
-          setLocationError(null);
+    const handlePosition = (pos: GeolocationPosition) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      setLocationError(null);
+      setLocationBlocked(false);
 
-          const userIcon = L.divIcon({
-            className: "user-location-marker",
-            html: `<div style="width:16px;height:16px;border-radius:50%;background:#4285F4;border:3px solid white;box-shadow:0 0 8px rgba(66,133,244,0.6);"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-          });
+      const userIcon = L.divIcon({
+        className: "user-location-marker",
+        html: `<div style="width:16px;height:16px;border-radius:50%;background:#4285F4;border:3px solid white;box-shadow:0 0 8px rgba(66,133,244,0.6);"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      });
 
-          if (userMarkerRef.current) {
-            userMarkerRef.current.setLatLng([latitude, longitude]);
-          } else {
-            userMarkerRef.current = L.marker([latitude, longitude], { icon: userIcon, zIndexOffset: 1000 })
-              .addTo(map)
-              .bindTooltip("You are here", { direction: "top", offset: [0, -10] });
-          }
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setLatLng([latitude, longitude]);
+      } else {
+        userMarkerRef.current = L.marker([latitude, longitude], { icon: userIcon, zIndexOffset: 1000 })
+          .addTo(map)
+          .bindTooltip("You are here", { direction: "top", offset: [0, -10] });
+      }
 
-          if (userCircleRef.current) {
-            userCircleRef.current.setLatLng([latitude, longitude]).setRadius(accuracy);
-          } else {
-            userCircleRef.current = L.circle([latitude, longitude], {
-              radius: accuracy,
-              color: "#4285F4",
-              fillColor: "#4285F4",
-              fillOpacity: 0.1,
-              weight: 1,
-            }).addTo(map);
-          }
-        },
-        (err) => {
-          setLocationError(err.code === 1 ? "Location access denied" : "Unable to get location");
-        },
-        { enableHighAccuracy: true, maximumAge: 10000 }
+      if (userCircleRef.current) {
+        userCircleRef.current.setLatLng([latitude, longitude]).setRadius(accuracy);
+      } else {
+        userCircleRef.current = L.circle([latitude, longitude], {
+          radius: accuracy,
+          color: "#4285F4",
+          fillColor: "#4285F4",
+          fillOpacity: 0.1,
+          weight: 1,
+        }).addTo(map);
+      }
+    };
+
+    const handlePositionError = (err: GeolocationPositionError) => {
+      if (err.code === 1) {
+        setLocationBlocked(true);
+        setLocationError("Location access denied. Enable it in your browser settings.");
+      } else {
+        setLocationError("Unable to get location.");
+      }
+    };
+
+    const startWatching = () => {
+      if (!("geolocation" in navigator)) {
+        setLocationError("Geolocation is not supported by this browser.");
+        return;
+      }
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        handlePosition,
+        handlePositionError,
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
       );
-    }
+    };
+
+    const checkPermissionsAndStart = async () => {
+      if (!("geolocation" in navigator)) {
+        setLocationError("Geolocation is not supported by this browser.");
+        return;
+      }
+      if ("permissions" in navigator && typeof navigator.permissions.query === "function") {
+        try {
+          const status = await navigator.permissions.query({ name: "geolocation" as PermissionName });
+          if (status.state === "denied") {
+            setLocationBlocked(true);
+            setLocationError("Location is blocked. Enable it in your browser settings.");
+            return;
+          }
+        } catch {
+          // ignore permissions errors and try to start watch
+        }
+      }
+      startWatching();
+    };
+
+    checkPermissionsAndStart();
 
     return () => {
       clearTimeout(timer);
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
     };
   }, [onBuildingSelect]);
 
@@ -115,6 +154,27 @@ const MapScreen = ({ onNavigate, onBuildingSelect }: MapScreenProps) => {
       {locationError && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 glass-card rounded-xl px-4 py-2 shadow-lg text-center max-w-xs">
           <p className="text-xs text-muted-foreground">{locationError}</p>
+          {locationBlocked && (
+            <button
+              onClick={() => {
+                if (!("geolocation" in navigator)) return;
+                navigator.geolocation.getCurrentPosition(
+                  () => {
+                    setLocationBlocked(false);
+                    setLocationError(null);
+                  },
+                  () => {
+                    setLocationBlocked(true);
+                    setLocationError("Location access denied. Enable it in your browser settings.");
+                  },
+                  { enableHighAccuracy: true, timeout: 10000 }
+                );
+              }}
+              className="mt-2 text-xs font-semibold text-primary underline"
+            >
+              Try again
+            </button>
+          )}
         </div>
       )}
 
