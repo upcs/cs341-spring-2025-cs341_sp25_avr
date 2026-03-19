@@ -4,10 +4,13 @@ var router = express.Router();
 const {
   AUTH_COOKIE_NAME,
   authenticateUser,
+  buildResetUrl,
   buildVerificationUrl,
+  createPasswordReset,
   createUser,
   getAuthenticatedUser,
   getTokenForUser,
+  resetPasswordByToken,
   verifyUserByToken,
 } = require('../auth');
 
@@ -75,6 +78,34 @@ router.post('/verify', function(req, res) {
     email: result.user.email,
     name: result.user.name,
     message: 'Email verified. You can now sign in.',
+  });
+});
+
+router.post('/forgot-password', function(req, res) {
+  const { email } = req.body || {};
+  const result = createPasswordReset(email);
+
+  res.json({
+    ok: true,
+    message: result.message,
+    resetUrl: result.user ? buildResetUrl(req, result.user.resetToken) : null,
+  });
+});
+
+router.post('/reset-password', function(req, res) {
+  const { token, password } = req.body || {};
+  const result = resetPasswordByToken(token, password);
+
+  if (!result.ok) {
+    res.status(400).json({ message: result.message });
+    return;
+  }
+
+  res.json({
+    ok: true,
+    email: result.user.email,
+    name: result.user.name,
+    message: 'Password reset. You can now sign in.',
   });
 });
 

@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, X } from "lucide-react";
-import { archivePhotos, buildings, buildingContent } from "@/data/geoTable";
+import { buildings, buildingContent } from "@/data/geoTable";
 import { useAppStore } from "@/store/appStore";
 import { useAuth } from "@/components/auth-context";
 import type { Screen } from "@/pages/Index";
+import WallyStamp from "@/components/wally-stamp";
 
 interface TimelineScreenProps {
   buildingId: string;
@@ -17,7 +18,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const apiBuildingName = buildingId ? buildingId.replace(/-/g, " ") : "";
   const localContent = buildingContent[buildingId] || [];
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { stamps, addStamp } = useAppStore();
+  const { stamps, addStamp, photos, addPhoto, updatePhotoDetails, deletePhoto } = useAppStore();
   const [selectedPhoto, setSelectedPhoto] = useState<{ id?: string; imageUrl: string; caption: string; buildingName: string; year: number } | null>(null);
   const [showAddPhoto, setShowAddPhoto] = useState(false);
   const [photoForm, setPhotoForm] = useState({ caption: "", year: "" });
@@ -49,26 +50,24 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
         .slice(0, 3),
     []
   );
-  const staticPhotos = useMemo(
+  const [timelineEntries, setTimelineEntries] = useState(localContent);
+  const photoEntries = useMemo(
     () =>
-      archivePhotos
+      photos
         .filter((photo) => !building || photo.buildingId === buildingId)
         .map((photo) => ({
-          id: undefined,
+          id: photo.id,
           buildingName: photo.buildingName,
           year: photo.year,
           caption: photo.caption,
           imageUrl: photo.imageUrl,
         })),
-    [building, buildingId]
+    [building, buildingId, photos]
   );
-  const [timelineEntries, setTimelineEntries] = useState(localContent);
-  const [photoEntries, setPhotoEntries] = useState(staticPhotos);
 
   useEffect(() => {
     setTimelineEntries(localContent);
-    setPhotoEntries(staticPhotos);
-  }, [localContent, staticPhotos]);
+  }, [localContent]);
 
   const filteredTimeline = useMemo(() => {
     const content = timelineEntries;
@@ -119,20 +118,17 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
 
     try {
       const imageUrl = URL.createObjectURL(photoFile);
+      addPhoto({
+        buildingId,
+        buildingName: building?.name ?? apiBuildingName,
+        year: Number(photoForm.year) || new Date().getFullYear(),
+        caption: photoForm.caption || "Uploaded archive photo",
+        imageUrl,
+      });
       setPhotoForm({ caption: "", year: "" });
       setPhotoFile(null);
       setPhotoSubmitSuccess(true);
       setShowAddPhoto(false);
-      setPhotoEntries((prev) => [
-        {
-          id: `photo-${Date.now()}`,
-          buildingName: building?.name ?? apiBuildingName,
-          year: Number(photoForm.year) || new Date().getFullYear(),
-          caption: photoForm.caption || "Uploaded archive photo",
-          imageUrl,
-        },
-        ...prev,
-      ]);
       setTimeout(() => setPhotoSubmitSuccess(false), 2000);
     } catch {
       setPhotoSubmitError("Unable to add photo right now.");
@@ -147,17 +143,10 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     setPhotoEditError(null);
 
     try {
-      setPhotoEntries((prev) =>
-        prev.map((photo) =>
-          photo.id === photoEdit.id
-            ? {
-                ...photo,
-                year: Number(photoEdit.year) || photo.year,
-                caption: photoEdit.caption,
-              }
-            : photo
-        )
-      );
+      updatePhotoDetails(photoEdit.id, {
+        year: Number(photoEdit.year) || undefined,
+        caption: photoEdit.caption,
+      });
       if (selectedPhoto?.id === photoEdit.id) {
         setSelectedPhoto((prev) =>
           prev
@@ -181,7 +170,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     if (!id) return;
     try {
       if (selectedPhoto?.id === id) setSelectedPhoto(null);
-      setPhotoEntries((prev) => prev.filter((photo) => photo.id !== id));
+      deletePhoto(id);
     } catch {
       setPhotoEditError("Unable to delete photo right now.");
     }
@@ -367,7 +356,9 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
             <p className="text-sm opacity-80">University of Portland</p>
           </div>
           {isStamped && (
-            <span className="text-2xl" title="Stamp collected!">🏅</span>
+            <div title="Stamp collected!">
+              <WallyStamp collected size="sm" />
+            </div>
           )}
         </div>
 
@@ -387,9 +378,12 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
 
       {/* Stamp badge */}
       <div className="px-5 pt-4 text-center">
-        <span className="text-sm font-semibold text-foreground">
-          🏷️ Stamps collected: {stamps.size}
-        </span>
+        <div className="inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2">
+          <WallyStamp collected={stamps.size > 0} size="sm" />
+          <span className="text-sm font-semibold text-foreground">
+            Wally stamps collected: {stamps.size}
+          </span>
+        </div>
       </div>
 
       <div className="px-5 pt-3">
