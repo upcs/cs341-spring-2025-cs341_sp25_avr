@@ -29,26 +29,48 @@ How to seed DB content/photos:
 Completed features:
 - CRUD forms for timeline entries and photos (create, read, update, delete)
 - Two data filters: timeline year filter and photo year filter
-- Photo stats visualization (bar chart)
 - CI setup for tests + coverage (Travis CI + Codecov)
+- MySQL-backed content and photo routes with CRUD in `initialApp/routes/contentTable.js`
+- Fully navigable UI with map, timeline, photo hub, quest, and auth screens
+- Graceful error handling for auth, scanner, and API failure cases
+- VM deployment files for systemd restart and Nginx reverse proxy
+- Guest read-only mode for browsing archive content
+- `@up.edu` sign-up, verification, login, logout, and forgot-password flow
+- QR-based campus stamp quest with Wally stamp visuals
+- Static archive image bundling for frontend use
+- Locally persistent added photos and stamp progress
+
+How to run locally:
+- Frontend only: `npm run dev`
+- Frontend + backend: `npm run dev:full`
+- Production-style local run: `npm start`
+
+Expected local ports:
+- `npm run dev`
+- Frontend dev server: `http://localhost:3000/`
+- Backend / production-style server: `http://localhost:4000/`
 
 VM quickstart:
 - `git clone https://github.com/upcs/cs341-spring-2025-cs341_sp25_avr.git`
 - `cd cs341-spring-2025-cs341_sp25_avr`
-- `npm install && npm --prefix initialApp install`
-- `npm start`
+- `git checkout makengo`
+- `npm install`
+- `npm --prefix initialApp install`
+- `npm run build`
+- `sudo bash deploy/setup-vm.sh`
 
 VM access:
 - `npm start` builds the React frontend and serves it from the Express server on `0.0.0.0:4000`
 - Open `http://<your-vm-ip>:4000/` directly, or put Nginx in front and use `http://cs341avr.campus.up.edu`
 - Use `npm run dev:full` for local development with Vite on `3000` and Express on `4000`
-- Use `npm run start:dev` only if you explicitly want the old two-process VM launcher
 - For automatic restart on reboot or crash, install the systemd unit at `deploy/cs341-avr.service`
 
 Login:
-- The app now requires sign-in before access
+- Guests can continue in read-only mode
 - Users sign up with their `@up.edu` email address
 - Passwords must be at least 8 characters
+- Email verification is required before login
+- Forgot-password reset links are supported
 - Accounts are stored in `initialApp/data/users.json`
 
 Domain setup for `http://cs341avr.campus.up.edu`:
@@ -61,7 +83,7 @@ Domain setup for `http://cs341avr.campus.up.edu`:
 
 One-command VM bootstrap:
 - On the VM, from the repo root, run `sudo bash deploy/setup-vm.sh`
-- Then verify `systemctl status cs341-avr` and open `http://cs341avr.campus.up.edu/`
+- Then verify `systemctl status cs341-avr`, `systemctl status nginx`, and open `http://cs341avr.campus.up.edu/`
 
 ## Geo Database
 
