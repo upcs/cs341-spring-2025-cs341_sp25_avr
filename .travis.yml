@@ -12,8 +12,7 @@ script:
   - npm --prefix initialApp test
 
 after_script:
-  - npx --prefix initialApp codecov -f initialApp/coverage/lcov.info || echo "Codecov upload failed"
-
+  - npx --prefix initialApp codecov -f initialApp/coverage/lcov.info || echo "Coverage upload skipped"
 
 
 
