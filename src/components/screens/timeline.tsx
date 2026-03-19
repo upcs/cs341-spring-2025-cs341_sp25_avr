@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, X } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { buildings, buildingContent } from "@/data/geoTable";
+import { archivePhotos, buildings, buildingContent } from "@/data/geoTable";
 import { useAppStore } from "@/store/appStore";
+import { useAuth } from "@/components/auth-context";
 import type { Screen } from "@/pages/Index";
 
 interface TimelineScreenProps {
@@ -12,36 +12,92 @@ interface TimelineScreenProps {
 }
 
 const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
+  const { readOnly } = useAuth();
   const building = buildings.find((b) => b.id === buildingId);
-  const content = buildingContent[buildingId] || [];
+  const apiBuildingName = buildingId ? buildingId.replace(/-/g, " ") : "";
+  const localContent = buildingContent[buildingId] || [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const { stamps, addStamp } = useAppStore();
-  const [sampleContent, setSampleContent] = useState<Array<{ buildingName: string; year: number; description: string }>>([]);
-  const [sampleLoading, setSampleLoading] = useState(false);
-  const [sampleError, setSampleError] = useState<string | null>(null);
-  const [dbPhotos, setDbPhotos] = useState<Array<{ buildingName: string; year: number; caption: string; imageUrl: string }>>([]);
-  const [photosLoading, setPhotosLoading] = useState(false);
-  const [photosError, setPhotosError] = useState<string | null>(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<{ imageUrl: string; caption: string; buildingName: string; year: number } | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<{ id?: string; imageUrl: string; caption: string; buildingName: string; year: number } | null>(null);
   const [showAddPhoto, setShowAddPhoto] = useState(false);
   const [photoForm, setPhotoForm] = useState({ caption: "", year: "" });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoSubmitting, setPhotoSubmitting] = useState(false);
   const [photoSubmitError, setPhotoSubmitError] = useState<string | null>(null);
   const [photoSubmitSuccess, setPhotoSubmitSuccess] = useState(false);
-  const [photoStats, setPhotoStats] = useState<Array<{ buildingName: string; count: number }>>([]);
-  const [photoStatsLoading, setPhotoStatsLoading] = useState(false);
-  const [photoStatsError, setPhotoStatsError] = useState<string | null>(null);
+  const [photoManageMode, setPhotoManageMode] = useState(false);
+  const [photoEdit, setPhotoEdit] = useState<{ id: string; caption: string; year: string } | null>(null);
+  const [photoEditError, setPhotoEditError] = useState<string | null>(null);
+  const [photoEditSubmitting, setPhotoEditSubmitting] = useState(false);
+  const [photoFilter, setPhotoFilter] = useState<"all" | "recent" | "classic">("all");
 
-  const currentEntry = content[currentIndex];
+  const [timelineFilter, setTimelineFilter] = useState<"all" | "recent" | "classic">("all");
+  const [timelineForm, setTimelineForm] = useState({ year: "", description: "", imagePath: "" });
+  const [timelineSubmitting, setTimelineSubmitting] = useState(false);
+  const [timelineFormError, setTimelineFormError] = useState<string | null>(null);
+  const [editingEntry, setEditingEntry] = useState<{ year: number; description: string; imagePath?: string } | null>(null);
+  const sampleContent = useMemo(
+    () =>
+      Object.entries(buildingContent)
+        .flatMap(([key, rows]) =>
+          rows.slice(0, 1).map((row) => ({
+            buildingName: key,
+            year: row.year,
+            description: row.description,
+          }))
+        )
+        .slice(0, 3),
+    []
+  );
+  const staticPhotos = useMemo(
+    () =>
+      archivePhotos
+        .filter((photo) => !building || photo.buildingId === buildingId)
+        .map((photo) => ({
+          id: undefined,
+          buildingName: photo.buildingName,
+          year: photo.year,
+          caption: photo.caption,
+          imageUrl: photo.imageUrl,
+        })),
+    [building, buildingId]
+  );
+  const [timelineEntries, setTimelineEntries] = useState(localContent);
+  const [photoEntries, setPhotoEntries] = useState(staticPhotos);
+
+  useEffect(() => {
+    setTimelineEntries(localContent);
+    setPhotoEntries(staticPhotos);
+  }, [localContent, staticPhotos]);
+
+  const filteredTimeline = useMemo(() => {
+    const content = timelineEntries;
+    if (timelineFilter === "all") return content;
+    if (timelineFilter === "recent") return content.filter((item) => item.year >= 2000);
+    return content.filter((item) => item.year < 2000);
+  }, [timelineEntries, timelineFilter]);
+
+  const effectiveContent = filteredTimeline;
+  const filteredPhotos = useMemo(() => {
+    if (photoFilter === "all") return photoEntries;
+    if (photoFilter === "recent") return photoEntries.filter((photo) => (photo.year || 0) >= 2000);
+    return photoEntries.filter((photo) => (photo.year || 0) < 2000);
+  }, [photoEntries, photoFilter]);
+  const currentEntry = effectiveContent[currentIndex];
   const hasPast = currentIndex > 0;
-  const hasFuture = currentIndex < content.length - 1;
+  const hasFuture = currentIndex < effectiveContent.length - 1;
   const isStamped = stamps.has(buildingId);
 
   const yearProgress = useMemo(() => {
-    if (content.length <= 1) return 100;
-    return ((currentIndex) / (content.length - 1)) * 100;
-  }, [currentIndex, content.length]);
+    if (effectiveContent.length <= 1) return 100;
+    return ((currentIndex) / (effectiveContent.length - 1)) * 100;
+  }, [currentIndex, effectiveContent.length]);
+
+  useEffect(() => {
+    if (currentIndex >= effectiveContent.length) {
+      setCurrentIndex(0);
+    }
+  }, [effectiveContent.length, currentIndex]);
 
   // Award stamp when viewing building
   useState(() => {
@@ -50,107 +106,8 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     }
   });
 
-  useEffect(() => {
-    let cancelled = false;
-    const shouldLoadSample = !building || content.length === 0;
-    if (!shouldLoadSample) return;
-
-    setSampleLoading(true);
-    setSampleError(null);
-
-    fetch("/api/content/sample?limit=3")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load sample content");
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        setSampleContent(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setSampleError("Unable to load sample history right now.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setSampleLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [building, content.length]);
-
-  const loadPhotos = () => {
-    let cancelled = false;
-    const buildingQuery = buildingId ? `&buildingName=${encodeURIComponent(buildingId)}` : "";
-
-    setPhotosLoading(true);
-    setPhotosError(null);
-
-    fetch(`/api/content/photos?limit=12${buildingQuery}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load photos");
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        setDbPhotos(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setPhotosError("Unable to load photos right now.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setPhotosLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  };
-
-  useEffect(() => {
-    return loadPhotos();
-  }, [buildingId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setPhotoStatsLoading(true);
-    setPhotoStatsError(null);
-
-    fetch("/api/content/photos/stats")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load stats");
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        const normalized = Array.isArray(data)
-          ? data.map((row) => ({
-              buildingName: row.buildingName,
-              count: Number(row.count) || 0,
-            }))
-          : [];
-        setPhotoStats(normalized);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setPhotoStatsError("Unable to load photo stats.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setPhotoStatsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const handlePhotoSubmit = async () => {
-    if (!buildingId) return;
+    if (!apiBuildingName) return;
     if (!photoFile) {
       setPhotoSubmitError("Photo file is required.");
       return;
@@ -161,24 +118,21 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     setPhotoSubmitSuccess(false);
 
     try {
-      const formData = new FormData();
-      formData.append("buildingName", buildingId);
-      if (photoForm.year) formData.append("year", photoForm.year);
-      if (photoForm.caption) formData.append("caption", photoForm.caption);
-      formData.append("photo", photoFile);
-
-      const res = await fetch("/api/content/photos/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Failed to add photo");
-
+      const imageUrl = URL.createObjectURL(photoFile);
       setPhotoForm({ caption: "", year: "" });
       setPhotoFile(null);
       setPhotoSubmitSuccess(true);
       setShowAddPhoto(false);
-      loadPhotos();
+      setPhotoEntries((prev) => [
+        {
+          id: `photo-${Date.now()}`,
+          buildingName: building?.name ?? apiBuildingName,
+          year: Number(photoForm.year) || new Date().getFullYear(),
+          caption: photoForm.caption || "Uploaded archive photo",
+          imageUrl,
+        },
+        ...prev,
+      ]);
       setTimeout(() => setPhotoSubmitSuccess(false), 2000);
     } catch {
       setPhotoSubmitError("Unable to add photo right now.");
@@ -187,7 +141,156 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     }
   };
 
-  if (!building || content.length === 0) {
+  const handlePhotoUpdate = async () => {
+    if (!photoEdit) return;
+    setPhotoEditSubmitting(true);
+    setPhotoEditError(null);
+
+    try {
+      setPhotoEntries((prev) =>
+        prev.map((photo) =>
+          photo.id === photoEdit.id
+            ? {
+                ...photo,
+                year: Number(photoEdit.year) || photo.year,
+                caption: photoEdit.caption,
+              }
+            : photo
+        )
+      );
+      if (selectedPhoto?.id === photoEdit.id) {
+        setSelectedPhoto((prev) =>
+          prev
+            ? {
+                ...prev,
+                year: Number(photoEdit.year) || prev.year,
+                caption: photoEdit.caption,
+              }
+            : prev
+        );
+      }
+      setPhotoEdit(null);
+    } catch {
+      setPhotoEditError("Unable to update photo right now.");
+    } finally {
+      setPhotoEditSubmitting(false);
+    }
+  };
+
+  const handlePhotoDelete = async (id?: string) => {
+    if (!id) return;
+    try {
+      if (selectedPhoto?.id === id) setSelectedPhoto(null);
+      setPhotoEntries((prev) => prev.filter((photo) => photo.id !== id));
+    } catch {
+      setPhotoEditError("Unable to delete photo right now.");
+    }
+  };
+
+  const handleTimelineSubmit = async () => {
+    if (!apiBuildingName) return;
+    if (!timelineForm.year || !timelineForm.description) {
+      setTimelineFormError("Year and description are required.");
+      return;
+    }
+
+    setTimelineSubmitting(true);
+    setTimelineFormError(null);
+
+    try {
+      const payload = {
+        buildingName: apiBuildingName,
+        year: timelineForm.year,
+        description: timelineForm.description,
+        imagePath: timelineForm.imagePath || undefined,
+      };
+
+      const res = await fetch("/api/content/timeline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to create entry");
+      setTimelineEntries((prev) =>
+        [...prev, {
+          year: Number(timelineForm.year),
+          description: timelineForm.description,
+          imagePath: timelineForm.imagePath || undefined,
+        }].sort((a, b) => a.year - b.year)
+      );
+      setTimelineForm({ year: "", description: "", imagePath: "" });
+    } catch {
+      setTimelineFormError("Unable to save timeline entry.");
+    } finally {
+      setTimelineSubmitting(false);
+    }
+  };
+
+  const handleTimelineUpdate = async () => {
+    if (!apiBuildingName || !editingEntry) return;
+    if (!timelineForm.description && !timelineForm.imagePath && timelineForm.year === String(editingEntry.year)) {
+      setTimelineFormError("Update at least one field.");
+      return;
+    }
+
+    setTimelineSubmitting(true);
+    setTimelineFormError(null);
+
+    try {
+      const payload = {
+        buildingName: apiBuildingName,
+        year: String(editingEntry.year),
+        newYear: timelineForm.year !== String(editingEntry.year) ? timelineForm.year : undefined,
+        description: timelineForm.description,
+        imagePath: timelineForm.imagePath || undefined,
+      };
+
+      const res = await fetch("/api/content/timeline", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to update entry");
+      setTimelineEntries((prev) =>
+        prev
+          .map((entry) =>
+            entry.year === editingEntry.year && entry.description === editingEntry.description
+              ? {
+                  year: Number(payload.newYear) || editingEntry.year,
+                  description: payload.description || editingEntry.description,
+                  imagePath: payload.imagePath ?? editingEntry.imagePath,
+                }
+              : entry
+          )
+          .sort((a, b) => a.year - b.year)
+      );
+      setEditingEntry(null);
+      setTimelineForm({ year: "", description: "", imagePath: "" });
+    } catch {
+      setTimelineFormError("Unable to update timeline entry.");
+    } finally {
+      setTimelineSubmitting(false);
+    }
+  };
+
+  const handleTimelineDelete = async (year: number) => {
+    if (!apiBuildingName) return;
+    try {
+      const res = await fetch("/api/content/timeline", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ buildingName: apiBuildingName, year }),
+      });
+      if (!res.ok) throw new Error("Failed to delete entry");
+      setTimelineEntries((prev) => prev.filter((entry) => entry.year !== year));
+    } catch {
+      setTimelineFormError("Unable to delete timeline entry.");
+    }
+  };
+
+  if (!building || effectiveContent.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
         <MapPin className="w-12 h-12 text-muted-foreground mb-4" />
@@ -196,11 +299,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           Historical content for this building is coming soon.
         </p>
 
-        {sampleLoading && (
-          <p className="text-sm text-muted-foreground mb-4">Loading sample history...</p>
-        )}
-
-        {!sampleLoading && sampleContent.length > 0 && (
+        {sampleContent.length > 0 && (
           <div className="w-full max-w-xl mb-6">
             <h3 className="text-sm font-semibold text-foreground mb-3 text-center">Sample History</h3>
             <div className="space-y-3">
@@ -219,15 +318,11 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           </div>
         )}
 
-        {photosLoading && (
-          <p className="text-sm text-muted-foreground mb-4">Loading photos...</p>
-        )}
-
-        {!photosLoading && dbPhotos.length > 0 && (
+        {filteredPhotos.length > 0 && (
           <div className="w-full max-w-xl mb-6">
             <h3 className="text-sm font-semibold text-foreground mb-3 text-center">Sample Photos</h3>
             <div className="grid grid-cols-2 gap-3">
-              {dbPhotos.map((photo, index) => (
+              {filteredPhotos.map((photo, index) => (
                 <button
                   key={`${photo.buildingName}-${photo.year}-${index}`}
                   onClick={() => setSelectedPhoto({ ...photo })}
@@ -244,36 +339,6 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
               ))}
             </div>
           </div>
-        )}
-
-        {photosError && (
-          <p className="text-sm text-muted-foreground mb-4">{photosError}</p>
-        )}
-
-        <div className="w-full max-w-xl mb-6">
-          <h3 className="text-sm font-semibold text-foreground mb-3 text-center">Archive Insights</h3>
-          {photoStatsLoading && (
-            <p className="text-sm text-muted-foreground text-center">Loading photo stats...</p>
-          )}
-          {!photoStatsLoading && photoStats.length > 0 && (
-            <div className="h-56 w-full rounded-lg border border-border bg-card p-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={photoStats}>
-                  <XAxis dataKey="buildingName" tick={{ fontSize: 10 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-          {photoStatsError && (
-            <p className="text-sm text-muted-foreground text-center">{photoStatsError}</p>
-          )}
-        </div>
-
-        {sampleError && (
-          <p className="text-sm text-muted-foreground mb-4">{sampleError}</p>
         )}
 
         <button
@@ -308,7 +373,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
 
         {/* Timeline progress */}
         <div className="flex items-center gap-3">
-          <span className="text-xs opacity-70">{content[0].year}</span>
+          <span className="text-xs opacity-70">{effectiveContent[0].year}</span>
           <div className="flex-1 h-1.5 rounded-full bg-primary-foreground/20 overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-accent"
@@ -316,7 +381,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
               transition={{ duration: 0.4 }}
             />
           </div>
-          <span className="text-xs opacity-70">{content[content.length - 1].year}</span>
+          <span className="text-xs opacity-70">{effectiveContent[effectiveContent.length - 1].year}</span>
         </div>
       </div>
 
@@ -325,6 +390,21 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
         <span className="text-sm font-semibold text-foreground">
           🏷️ Stamps collected: {stamps.size}
         </span>
+      </div>
+
+      <div className="px-5 pt-3">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2">
+          <span className="text-xs font-semibold text-muted-foreground">Timeline Filter</span>
+          <select
+            value={timelineFilter}
+            onChange={(e) => setTimelineFilter(e.target.value as "all" | "recent" | "classic")}
+            className="rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground"
+          >
+            <option value="all">All years</option>
+            <option value="recent">Recent (2000+)</option>
+            <option value="classic">Classic (before 2000)</option>
+          </select>
+        </div>
       </div>
 
       {/* Content area */}
@@ -339,12 +419,12 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
           >
             <div className="flex items-center gap-3 mb-4">
               <span className="inline-block px-4 py-2 rounded-lg bg-primary text-primary-foreground font-display text-2xl font-bold">
-                {currentEntry.year}
+              {currentEntry?.year}
               </span>
               <div className="h-px flex-1 bg-border" />
             </div>
             <p className="text-foreground/90 text-lg leading-relaxed font-body">
-              {currentEntry.description}
+              {currentEntry?.description}
             </p>
           </motion.div>
         </AnimatePresence>
@@ -380,28 +460,115 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
         </div>
       </div>
 
-      {/* Archive insights */}
-      <div className="px-5 pb-4">
-        <div className="glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-foreground text-center mb-3">Archive Insights</h3>
-          {photoStatsLoading && (
-            <p className="text-xs text-muted-foreground text-center">Loading photo stats...</p>
+      {/* Manage Timeline */}
+      <div className="px-5 pb-6">
+        <div className="glass-card rounded-xl p-4 space-y-3">
+          <h3 className="text-sm font-bold text-foreground text-center">
+            {readOnly ? "Timeline Details" : "Manage Timeline"}
+          </h3>
+          {readOnly && (
+            <p className="text-xs text-center text-muted-foreground">
+              Guest access is read-only. Sign in with your school email to add or edit content.
+            </p>
           )}
-          {!photoStatsLoading && photoStats.length > 0 && (
-            <div className="h-56 w-full rounded-lg border border-border bg-card p-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={photoStats}>
-                  <XAxis dataKey="buildingName" tick={{ fontSize: 10 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+
+          {!readOnly && (
+          <div className="space-y-2">
+            <input
+              type="number"
+              placeholder="Year"
+              value={timelineForm.year}
+              onChange={(e) => setTimelineForm((prev) => ({ ...prev, year: e.target.value }))}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
+            />
+            <textarea
+              placeholder="Description"
+              value={timelineForm.description}
+              onChange={(e) => setTimelineForm((prev) => ({ ...prev, description: e.target.value }))}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground min-h-[90px]"
+            />
+            <input
+              type="text"
+              placeholder="Image path (optional)"
+              value={timelineForm.imagePath}
+              onChange={(e) => setTimelineForm((prev) => ({ ...prev, imagePath: e.target.value }))}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
+            />
+            {timelineFormError && (
+              <p className="text-xs text-muted-foreground">{timelineFormError}</p>
+            )}
+            <div className="flex gap-2">
+              {editingEntry ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setEditingEntry(null);
+                      setTimelineForm({ year: "", description: "", imagePath: "" });
+                      setTimelineFormError(null);
+                    }}
+                    className="flex-1 py-2 rounded-lg bg-muted text-muted-foreground text-xs font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleTimelineUpdate}
+                    disabled={timelineSubmitting}
+                    className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50"
+                  >
+                    {timelineSubmitting ? "Updating..." : "Update"}
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleTimelineSubmit}
+                  disabled={timelineSubmitting}
+                  className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50"
+                >
+                  {timelineSubmitting ? "Saving..." : "Add Entry"}
+                </button>
+              )}
             </div>
+          </div>
           )}
-          {photoStatsError && (
-            <p className="text-xs text-muted-foreground text-center">{photoStatsError}</p>
-          )}
+
+          <div className="border-t border-border pt-3">
+            {timelineEntries.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center">No static timeline entries yet.</p>
+            ) : (
+              <div className="space-y-2 max-h-56 overflow-y-auto">
+                {timelineEntries.map((entry) => (
+                  <div key={`${entry.year}-${entry.description.slice(0, 12)}`} className="rounded-lg border border-border p-2 bg-card">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs text-muted-foreground">{entry.year}</div>
+                      {!readOnly && <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingEntry(entry);
+                            setTimelineForm({
+                              year: String(entry.year),
+                              description: entry.description,
+                              imagePath: entry.imagePath || "",
+                            });
+                            setTimelineFormError(null);
+                          }}
+                          className="text-xs font-semibold text-primary"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleTimelineDelete(entry.year)}
+                          className="text-xs font-semibold text-rose-500"
+                        >
+                          Delete
+                        </button>
+                      </div>}
+                    </div>
+                    <p className="text-xs text-foreground/80 mt-1 line-clamp-2">{entry.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -409,33 +576,76 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
       <div className="px-5 pb-6">
         <div className="glass-card rounded-xl p-4 space-y-3">
           <h3 className="text-sm font-bold text-foreground text-center">Photos from the Archive</h3>
-
-          {photosLoading && (
-            <p className="text-xs text-muted-foreground text-center">Loading photos...</p>
+          {!readOnly && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">Manage photos</span>
+              <button
+                onClick={() => setPhotoManageMode((prev) => !prev)}
+                className="text-xs font-semibold text-primary"
+              >
+                {photoManageMode ? "Done" : "Edit"}
+              </button>
+            </div>
           )}
+          {readOnly && (
+            <p className="text-xs text-center text-muted-foreground">
+              Guests can browse archive photos, but uploading and editing require sign-in.
+            </p>
+          )}
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground">Photo filter</span>
+            <select
+              value={photoFilter}
+              onChange={(e) => setPhotoFilter(e.target.value as "all" | "recent" | "classic")}
+              className="rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground"
+            >
+              <option value="all">All years</option>
+              <option value="recent">Recent (2000+)</option>
+              <option value="classic">Classic (before 2000)</option>
+            </select>
+          </div>
 
-          {!photosLoading && dbPhotos.length === 0 && (
+          {filteredPhotos.length === 0 && (
             <p className="text-xs text-muted-foreground text-center">
               No archived photos found for this building.
             </p>
           )}
 
-          {!photosLoading && dbPhotos.length > 0 && (
+          {filteredPhotos.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
-              {dbPhotos.map((photo, index) => (
-                <button
-                  key={`${photo.buildingName}-${photo.year}-${index}`}
-                  onClick={() => setSelectedPhoto({ ...photo })}
-                  className="rounded-lg overflow-hidden border border-border bg-card"
-                >
-                  <img src={photo.imageUrl} alt={photo.caption || "Building photo"} className="w-full h-24 object-cover" />
-                </button>
+              {filteredPhotos.map((photo, index) => (
+                <div key={`${photo.buildingName}-${photo.year}-${index}`} className="rounded-lg overflow-hidden border border-border bg-card">
+                  <button
+                    onClick={() => setSelectedPhoto({ ...photo })}
+                    className="w-full"
+                  >
+                    <img src={photo.imageUrl} alt={photo.caption || "Building photo"} className="w-full h-24 object-cover" />
+                  </button>
+                  {photoManageMode && (
+                    <div className="flex items-center justify-between px-2 py-1 text-xs">
+                      <button
+                        disabled={!photo.id}
+                        onClick={() => setPhotoEdit({ id: photo.id || "", caption: photo.caption || "", year: String(photo.year || "") })}
+                        className="text-primary font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        disabled={!photo.id}
+                        onClick={() => handlePhotoDelete(photo.id)}
+                        className="text-rose-500 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
 
           <div className="pt-2">
-            {!showAddPhoto ? (
+            {readOnly ? null : !showAddPhoto ? (
               <button
                 onClick={() => setShowAddPhoto(true)}
                 className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
@@ -488,6 +698,44 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
               </div>
             )}
           </div>
+
+          {!readOnly && photoEdit && (
+            <div className="border-t border-border pt-3 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">Edit selected photo</p>
+              <input
+                type="number"
+                placeholder="Year"
+                value={photoEdit.year}
+                onChange={(e) => setPhotoEdit((prev) => prev ? { ...prev, year: e.target.value } : prev)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
+              />
+              <input
+                type="text"
+                placeholder="Caption"
+                value={photoEdit.caption}
+                onChange={(e) => setPhotoEdit((prev) => prev ? { ...prev, caption: e.target.value } : prev)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
+              />
+              {photoEditError && (
+                <p className="text-xs text-muted-foreground">{photoEditError}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPhotoEdit(null)}
+                  className="flex-1 py-2 rounded-lg bg-muted text-muted-foreground text-xs font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePhotoUpdate}
+                  disabled={photoEditSubmitting}
+                  className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50"
+                >
+                  {photoEditSubmitting ? "Updating..." : "Update"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

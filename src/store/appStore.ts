@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { archivePhotos } from "@/data/geoTable";
 
 export interface Photo {
   id: string;
@@ -33,7 +34,16 @@ interface AppState {
   addComment: (photoId: string, text: string) => void;
 }
 
-const samplePhotos: Photo[] = [];
+const samplePhotos: Photo[] = archivePhotos.map((photo) => ({
+  id: photo.id,
+  buildingId: photo.buildingId,
+  imageUrl: photo.imageUrl,
+  caption: photo.caption,
+  uploadedAt: new Date(`${photo.year}-01-01T00:00:00Z`),
+  likes: 0,
+  liked: false,
+  comments: [],
+}));
 
 export const useAppStore = create<AppState>((set) => ({
   stamps: new Set<string>(),

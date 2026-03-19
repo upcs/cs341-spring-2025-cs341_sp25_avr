@@ -1,18 +1,4 @@
-const { getUserCoords, checkAllBuildings } = require('../public/javascripts/geo.js');
-
-// Mock navigator.geolocation
-global.navigator.geolocation = {
-  getCurrentPosition: jest.fn()
-};
-
-//Mock dependencies
-jest.mock('../public/javascripts/geo.js', () => {
-  const originalModule = jest.requireActual('../public/javascripts/geo.js');
-  return {
-    ...originalModule,
-    checkAllBuildings: jest.fn()
-  };
-});
+const { initMap, success, error } = require('../public/javascripts/geo.js');
 
 describe('Geolocation Functions', () => {
  
@@ -44,29 +30,32 @@ describe('Geolocation Functions', () => {
     `
   });
  
-  test('getUserCoords should update position on success', () => {
-    
-    const mockPosition = {
-      coords: { latitude: 45.572, longitude: -122.728 }
+  test('initMap wires geolocation watchPosition', () => {
+    global.L = {
+      map: jest.fn().mockReturnValue({
+        setView: jest.fn(),
+        removeLayer: jest.fn(),
+        fitBounds: jest.fn(),
+      }),
+      tileLayer: jest.fn().mockReturnValue({ addTo: jest.fn() }),
+      marker: jest.fn().mockReturnValue({ addTo: jest.fn() }),
+      circle: jest.fn().mockReturnValue({ addTo: jest.fn() }),
+      Browser: { svg: true, vml: false },
     };
-    navigator.geolocation.getCurrentPosition.mockImplementationOnce((success) => success(mockPosition));
-    
-    getUserCoords();
-    
-    expect(map.setCenter).toHaveBeenCalledWith({
-      lat: 45.572,
-      lng: -122.728
-    });
-    
-    expect(checkAllBuildings).toHaveBeenCalledWith(45.572, -122.728);
+
+    global.navigator.geolocation = {
+      watchPosition: jest.fn(),
+    };
+
+    initMap();
+    expect(global.navigator.geolocation.watchPosition).toHaveBeenCalled();
   });
 
   test('should handle geolocation error', () => {
-    navigator.geolocation.getCurrentPosition.mockImplementationOnce((success, error) => 
-      error({ code: 1, message: 'Permission denied' })
-    );
-    
-    getUserCoords();
-    expect(console.error).toHaveBeenCalled();
+    global.alert = jest.fn();
+    const alertSpy = jest.spyOn(global, "alert").mockImplementation(() => {});
+    error({ code: 1, message: "Permission denied" });
+    expect(alertSpy).toHaveBeenCalled();
+    alertSpy.mockRestore();
   });
 });
