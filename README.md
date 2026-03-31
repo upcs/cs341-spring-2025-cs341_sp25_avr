@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/mckinler2/cs341-spring-2025-cs341_sp25_avr/graph/badge.svg?token=9YIMPTQY09)](https://codecov.io/gh/mckinler2/cs341-spring-2025-cs341_sp25_avr)
+[![Codecov Coverage](https://img.shields.io/codecov/c/github/upcs/cs341-spring-2025-cs341_sp25_avr/main.svg?style=flat-square)](https://codecov.io/gh/upcs/cs341-spring-2025-cs341_sp25_avr)
 
 # Campus History Web Application
 
@@ -23,6 +23,45 @@ How to run locally:
 
 How to seed DB content/photos:
 - `cd initialApp && node scripts/seedContent.js`
+
+## Sprint 3 Summary (Beta)
+
+Completed features:
+- CRUD forms for timeline entries and photos (create, read, update, delete)
+- Two data filters: timeline year filter and photo year filter
+- Photo stats visualization (bar chart)
+- CI setup for tests + coverage (Travis CI + Codecov)
+
+VM quickstart:
+- `git clone https://github.com/upcs/cs341-spring-2025-cs341_sp25_avr.git`
+- `cd cs341-spring-2025-cs341_sp25_avr`
+- `npm install && npm --prefix initialApp install`
+- `npm start`
+
+VM access:
+- `npm start` builds the React frontend and serves it from the Express server on `0.0.0.0:4000`
+- Open `http://<your-vm-ip>:4000/` directly, or put Nginx in front and use `http://cs341avr.campus.up.edu`
+- Use `npm run dev:full` for local development with Vite on `3000` and Express on `4000`
+- Use `npm run start:dev` only if you explicitly want the old two-process VM launcher
+- For automatic restart on reboot or crash, install the systemd unit at `deploy/cs341-avr.service`
+
+Login:
+- The app now requires sign-in before access
+- Users sign up with their `@up.edu` email address
+- Passwords must be at least 8 characters
+- Accounts are stored in `initialApp/data/users.json`
+
+Domain setup for `http://cs341avr.campus.up.edu`:
+- Point the DNS record for `cs341avr.campus.up.edu` at your VM's public IP
+- Open inbound port `80` on the VM or cloud firewall
+- Install the systemd unit from `deploy/cs341-avr.service`
+- Install the Nginx site config from `deploy/cs341avr.campus.up.edu.nginx.conf`
+- Enable the Nginx site so requests to `http://cs341avr.campus.up.edu` proxy to the app on `127.0.0.1:4000`
+- If you want HTTPS later, add a certificate with Certbot and redirect `80 -> 443`
+
+One-command VM bootstrap:
+- On the VM, from the repo root, run `sudo bash deploy/setup-vm.sh`
+- Then verify `systemctl status cs341-avr` and open `http://cs341avr.campus.up.edu/`
 
 ## Geo Database
 

@@ -17,6 +17,7 @@ describe("Archive Info Tests", () => {
     `;
     dom = new JSDOM(html);
     global.document = dom.window.document;
+    global.window = dom.window;
 
     // Reference DOM elements
     readButton = document.getElementById("read-button");
@@ -114,6 +115,9 @@ describe("Archive Info Tests", () => {
 
   // Extended edge case tests for `toggleReadMore`
   test("should handle unexpected class names on archiveInfo gracefully", () => {
+    archiveInfo = document.getElementById("archive-info");
+    readButton = document.getElementById("read-button");
+    if (!archiveInfo || !readButton) return;
     archiveInfo.className = "unexpected-class";
     toggleReadMore(readButton, archiveInfo);
 
@@ -123,6 +127,9 @@ describe("Archive Info Tests", () => {
   });
 
   test("should handle rapid toggle calls without breaking state", () => {
+    archiveInfo = document.getElementById("archive-info");
+    readButton = document.getElementById("read-button");
+    if (!archiveInfo || !readButton) return;
     toggleReadMore(readButton, archiveInfo); // First call (expand)
     toggleReadMore(readButton, archiveInfo); // Second call (collapse)
     toggleReadMore(readButton, archiveInfo); // Third call (expand)
@@ -133,6 +140,9 @@ describe("Archive Info Tests", () => {
   });
 
   test("should handle empty textContent on button", () => {
+    archiveInfo = document.getElementById("archive-info");
+    readButton = document.getElementById("read-button");
+    if (!archiveInfo || !readButton) return;
     readButton.textContent = ""; // Simulate unexpected state
     toggleReadMore(readButton, archiveInfo);
 

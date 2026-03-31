@@ -13,8 +13,11 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var geoRouter = require('./routes/geoTable.js');
 var contentRouter = require('./routes/contentTable.js')
+var authRouter = require('./routes/auth');
 
 var app = express();
+const frontendDistPath = path.join(__dirname, '..', 'dist');
+const hasFrontendBuild = fs.existsSync(path.join(frontendDistPath, 'index.html'));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,13 +28,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+if (hasFrontendBuild) {
+  app.use(express.static(frontendDistPath));
+}
 
-app.use('/', indexRouter);
+app.use('/api/auth', authRouter);
 app.use('/users', usersRouter);
 app.use('/geoTable', geoRouter);
 app.use('/coordinates', geoRouter)
 app.use('/contentTable', contentRouter);
 app.use('/api/content', contentRouter);
+if (!hasFrontendBuild) {
+  app.use('/', indexRouter);
+}
 
 //Error test
 app.get('/test-error', (req, res) => {
@@ -53,6 +62,24 @@ const options = {
 
 //Serve static files if needed
 // app.use(express.static('public'));
+
+if (hasFrontendBuild) {
+  app.get('*', (req, res, next) => {
+    if (
+      req.path.startsWith('/api/') ||
+      req.path.startsWith('/users') ||
+      req.path.startsWith('/geoTable') ||
+      req.path.startsWith('/coordinates') ||
+      req.path.startsWith('/contentTable') ||
+      req.path.startsWith('/archiveContent') ||
+      req.path.startsWith('/uploads')
+    ) {
+      return next();
+    }
+
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
 
 // Error Handling
 app.use(function (req, res, next) {

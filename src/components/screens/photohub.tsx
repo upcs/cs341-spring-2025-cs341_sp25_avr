@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Heart, MessageCircle, Upload, ChevronLeft, ChevronRight, X, Send, SortAsc, ImagePlus, Trash2 } from "lucide-react";
 import { buildings } from "@/data/geoTable";
 import { useAppStore } from "@/store/appStore";
+import { useAuth } from "@/components/auth-context";
 import type { Screen } from "@/pages/Index";
 
 interface PhotoHubScreenProps {
@@ -12,6 +13,7 @@ interface PhotoHubScreenProps {
 type SortOption = "newest" | "oldest" | "most-liked";
 
 const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
+  const { readOnly } = useAuth();
   const { photos, toggleLike, addComment, addPhoto, updatePhotoImage, deletePhoto } = useAppStore();
   const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
@@ -124,8 +126,9 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
             <ArrowLeft className="w-4 h-4" /> Home
           </button>
           <button
-            onClick={() => setShowUpload(true)}
+            onClick={() => !readOnly && setShowUpload(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-foreground/20 text-sm font-medium hover:bg-primary-foreground/30 transition-colors"
+            disabled={readOnly}
           >
             <Upload className="w-4 h-4" /> Upload
           </button>
@@ -183,12 +186,14 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
         {filteredPhotos.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No photos yet for this building.</p>
-            <button
-              onClick={() => setShowUpload(true)}
-              className="mt-3 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
-            >
-              Be the first to upload!
-            </button>
+            {!readOnly && (
+              <button
+                onClick={() => setShowUpload(true)}
+                className="mt-3 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
+              >
+                Be the first to upload!
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -202,7 +207,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
               >
                 <div className="aspect-square overflow-hidden relative group">
                   <img src={photo.imageUrl} alt={photo.caption} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                  {!readOnly && <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                     <label className="p-2 rounded-full bg-card/80 cursor-pointer hover:bg-card transition-colors">
                       <ImagePlus className="w-4 h-4 text-foreground" />
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => handleChangePhoto(photo.id, e)} />
@@ -213,14 +218,15 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
                     >
                       <Trash2 className="w-4 h-4 text-foreground" />
                     </button>
-                  </div>
+                  </div>}
                 </div>
                 <div className="p-2.5">
                   <p className="text-xs text-foreground line-clamp-2 mb-2">{photo.caption}</p>
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => toggleLike(photo.id)}
+                      onClick={() => !readOnly && toggleLike(photo.id)}
                       className="flex items-center gap-1 text-xs"
+                      disabled={readOnly}
                     >
                       <Heart
                         className={`w-4 h-4 transition-colors ${
@@ -230,8 +236,9 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
                       <span className="text-muted-foreground">{photo.likes}</span>
                     </button>
                     <button
-                      onClick={() => setCommentingOn(commentingOn === photo.id ? null : photo.id)}
+                      onClick={() => !readOnly && setCommentingOn(commentingOn === photo.id ? null : photo.id)}
                       className="flex items-center gap-1 text-xs"
+                      disabled={readOnly}
                     >
                       <MessageCircle className="w-4 h-4 text-muted-foreground" />
                       <span className="text-muted-foreground">{photo.comments.length}</span>
@@ -240,7 +247,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
 
                   {/* Comments section */}
                   <AnimatePresence>
-                    {commentingOn === photo.id && (
+                    {!readOnly && commentingOn === photo.id && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
@@ -281,7 +288,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
 
       {/* Upload modal */}
       <AnimatePresence>
-        {showUpload && (
+        {!readOnly && showUpload && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

@@ -17,6 +17,35 @@ export interface BuildingContent {
   imagePath?: string;
 }
 
+export interface ArchivePhoto {
+  id: string;
+  buildingId: string;
+  buildingName: string;
+  year: number;
+  caption: string;
+  imageUrl: string;
+}
+
+const archiveAssetModules = {
+  ...import.meta.glob("../../initialApp/public/archiveContent/**/*.{jpg,JPG,jpeg,png}", {
+    eager: true,
+    import: "default",
+  }),
+  ...import.meta.glob("../../initialApp/public/images/**/*.{jpg,JPG,jpeg,png}", {
+    eager: true,
+    import: "default",
+  }),
+} as Record<string, string>;
+
+const archiveAssetMap = Object.fromEntries(
+  Object.entries(archiveAssetModules).map(([key, value]) => [
+    key.replace(/^..\/..\/initialApp\/public/, ""),
+    value,
+  ])
+);
+
+const resolveStaticImage = (path: string) => archiveAssetMap[path] || path;
+
 export const buildings: Building[] = [
   {
     id: "shiley", name: "Shiley School of Engineering", lat: 45.571874, lng: -122.727942, radius: 45,
@@ -157,6 +186,105 @@ export const buildingContent: Record<string, BuildingContent[]> = {
     { buildingId: "phouse", year: 2012, description: "The Pilot House was renovated as a modern student gathering space with food, coffee, and late-night social areas." },
   ],
 };
+
+export const archivePhotos: ArchivePhoto[] = [
+  {
+    id: "shiley-1948",
+    buildingId: "shiley",
+    buildingName: "shiley",
+    year: 1948,
+    caption: "Historic view of the original engineering building.",
+    imageUrl: resolveStaticImage("/archiveContent/shiley/1948.jpg"),
+  },
+  {
+    id: "shiley-2009",
+    buildingId: "shiley",
+    buildingName: "shiley",
+    year: 2009,
+    caption: "Donald P. Shiley School of Engineering after major renewal.",
+    imageUrl: resolveStaticImage("/archiveContent/shiley/2009.jpg"),
+  },
+  {
+    id: "chapel-1986",
+    buildingId: "chapel",
+    buildingName: "chapel",
+    year: 1986,
+    caption: "The Chapel of Christ the Teacher shortly after dedication.",
+    imageUrl: resolveStaticImage("/archiveContent/chapel/1986.jpg"),
+  },
+  {
+    id: "chapel-2009",
+    buildingId: "chapel",
+    buildingName: "chapel",
+    year: 2009,
+    caption: "Later exterior view of the chapel and its grounds.",
+    imageUrl: resolveStaticImage("/archiveContent/chapel/2009.jpg"),
+  },
+  {
+    id: "waldschmidt-1892",
+    buildingId: "waldschmidt",
+    buildingName: "waldschmidt",
+    year: 1892,
+    caption: "One of the earliest surviving images of Waldschmidt Hall.",
+    imageUrl: resolveStaticImage("/archiveContent/waldschmidt/1892.jpg"),
+  },
+  {
+    id: "waldschmidt-2021",
+    buildingId: "waldschmidt",
+    buildingName: "waldschmidt",
+    year: 2021,
+    caption: "Waldschmidt Hall in its modern administrative role.",
+    imageUrl: resolveStaticImage("/archiveContent/waldschmidt/2021.jpg"),
+  },
+  {
+    id: "franz-1994",
+    buildingId: "franz",
+    buildingName: "franz",
+    year: 1994,
+    caption: "Franz Hall before its later science-facility modernization.",
+    imageUrl: resolveStaticImage("/archiveContent/franz/1994.JPG"),
+  },
+  {
+    id: "franz-1996",
+    buildingId: "franz",
+    buildingName: "franz",
+    year: 1996,
+    caption: "Franz Hall in the mid-1990s.",
+    imageUrl: resolveStaticImage("/archiveContent/franz/1996.jpg"),
+  },
+  {
+    id: "library-1958",
+    buildingId: "library",
+    buildingName: "library",
+    year: 1958,
+    caption: "Clark Library around its opening era.",
+    imageUrl: resolveStaticImage("/archiveContent/library/1958.jpg"),
+  },
+  {
+    id: "library-2013",
+    buildingId: "library",
+    buildingName: "library",
+    year: 2013,
+    caption: "Clark Library in the digital archive era.",
+    imageUrl: resolveStaticImage("/archiveContent/library/2013.jpg"),
+  },
+  {
+    id: "chiles-1984",
+    buildingId: "chiles",
+    buildingName: "chiles",
+    year: 1984,
+    caption: "Early years of the Chiles Center arena.",
+    imageUrl: resolveStaticImage("/archiveContent/chiles/1984.jpg"),
+  },
+  {
+    id: "shiley-marcos-2025",
+    buildingId: "shiley-marcos",
+    buildingName: "shiley marcos",
+    year: 2025,
+    caption: "Design and innovation space in the new Shiley-Marcos Center.",
+    imageUrl: resolveStaticImage("/images/04_01_2025_X-Design.png"),
+  },
+];
 
 // Campus center coordinates
 export const CAMPUS_CENTER = { lat: 45.5730, lng: -122.7275 };
