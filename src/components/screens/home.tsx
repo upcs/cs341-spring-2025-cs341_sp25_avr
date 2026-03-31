@@ -3,6 +3,7 @@ import { MapPin, Info, Trophy, Camera } from "lucide-react";
 import type { Screen } from "@/pages/Index";
 import { useAppStore } from "@/store/appStore";
 import { buildings } from "@/data/geoTable";
+import WallyStamp from "@/components/wally-stamp";
 
 
 interface HomeScreenProps {
@@ -38,15 +39,11 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-md cursor-pointer transition-all ${
-                collected
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-foreground/40 text-primary-foreground/80 backdrop-blur-sm"
-              }`}
+              className="cursor-pointer transition-all hover:scale-105"
               title={b.name}
               onClick={() => onNavigate("quest")}
             >
-              {collected ? "🏅" : "?"}
+              <WallyStamp collected={collected} size="sm" />
             </motion.div>
           );
         })}

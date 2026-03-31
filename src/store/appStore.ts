@@ -1,11 +1,15 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { archivePhotos } from "@/data/geoTable";
 
 export interface Photo {
   id: string;
   buildingId: string;
+  buildingName: string;
+  year: number;
   imageUrl: string;
   caption: string;
-  uploadedAt: Date;
+  uploadedAt: string;
   likes: number;
   liked: boolean;
   comments: Comment[];
@@ -15,7 +19,7 @@ export interface Comment {
   id: string;
   text: string;
   author: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 interface AppState {
@@ -28,74 +32,119 @@ interface AppState {
   photos: Photo[];
   addPhoto: (photo: Omit<Photo, "id" | "likes" | "liked" | "comments" | "uploadedAt">) => void;
   updatePhotoImage: (photoId: string, imageUrl: string) => void;
+  updatePhotoDetails: (photoId: string, updates: { caption?: string; year?: number }) => void;
   deletePhoto: (photoId: string) => void;
   toggleLike: (photoId: string) => void;
   addComment: (photoId: string, text: string) => void;
 }
 
-const samplePhotos: Photo[] = [];
-
-export const useAppStore = create<AppState>((set) => ({
-  stamps: new Set<string>(),
-  toggleStamp: (id) =>
-    set((state) => {
-      const next = new Set(state.stamps);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return { stamps: next };
-    }),
-  addStamp: (id) =>
-    set((state) => {
-      const next = new Set(state.stamps);
-      next.add(id);
-      return { stamps: next };
-    }),
-
-  photos: samplePhotos,
-  addPhoto: (photo) =>
-    set((state) => ({
-      photos: [
-        {
-          ...photo,
-          id: `p${Date.now()}`,
-          likes: 0,
-          liked: false,
-          comments: [],
-          uploadedAt: new Date(),
-        },
-        ...state.photos,
-      ],
-    })),
-  updatePhotoImage: (photoId, imageUrl) =>
-    set((state) => ({
-      photos: state.photos.map((p) =>
-        p.id === photoId ? { ...p, imageUrl } : p
-      ),
-    })),
-  deletePhoto: (photoId) =>
-    set((state) => ({
-      photos: state.photos.filter((p) => p.id !== photoId),
-    })),
-  toggleLike: (photoId) =>
-    set((state) => ({
-      photos: state.photos.map((p) =>
-        p.id === photoId
-          ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
-          : p
-      ),
-    })),
-  addComment: (photoId, text) =>
-    set((state) => ({
-      photos: state.photos.map((p) =>
-        p.id === photoId
-          ? {
-              ...p,
-              comments: [
-                ...p.comments,
-                { id: `c${Date.now()}`, text, author: "You", createdAt: new Date() },
-              ],
-            }
-          : p
-      ),
-    })),
+const samplePhotos: Photo[] = archivePhotos.map((photo) => ({
+  id: photo.id,
+  buildingId: photo.buildingId,
+  buildingName: photo.buildingName,
+  year: photo.year,
+  imageUrl: photo.imageUrl,
+  caption: photo.caption,
+  uploadedAt: `${photo.year}-01-01T00:00:00.000Z`,
+  likes: 0,
+  liked: false,
+  comments: [],
 }));
+
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      stamps: new Set<string>(),
+      toggleStamp: (id) =>
+        set((state) => {
+          const next = new Set(state.stamps);
+          if (next.has(id)) next.delete(id);
+          else next.add(id);
+          return { stamps: next };
+        }),
+      addStamp: (id) =>
+        set((state) => {
+          const next = new Set(state.stamps);
+          next.add(id);
+          return { stamps: next };
+        }),
+
+      photos: samplePhotos,
+      addPhoto: (photo) =>
+        set((state) => ({
+          photos: [
+            {
+              ...photo,
+              id: `p${Date.now()}`,
+              likes: 0,
+              liked: false,
+              comments: [],
+              uploadedAt: new Date().toISOString(),
+            },
+            ...state.photos,
+          ],
+        })),
+      updatePhotoImage: (photoId, imageUrl) =>
+        set((state) => ({
+          photos: state.photos.map((p) =>
+            p.id === photoId ? { ...p, imageUrl } : p
+          ),
+        })),
+      updatePhotoDetails: (photoId, updates) =>
+        set((state) => ({
+          photos: state.photos.map((photo) =>
+            photo.id === photoId
+              ? {
+                  ...photo,
+                  caption: updates.caption ?? photo.caption,
+                  year: updates.year ?? photo.year,
+                }
+              : photo
+          ),
+        })),
+      deletePhoto: (photoId) =>
+        set((state) => ({
+          photos: state.photos.filter((p) => p.id !== photoId),
+        })),
+      toggleLike: (photoId) =>
+        set((state) => ({
+          photos: state.photos.map((p) =>
+            p.id === photoId
+              ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
+              : p
+          ),
+        })),
+      addComment: (photoId, text) =>
+        set((state) => ({
+          photos: state.photos.map((p) =>
+            p.id === photoId
+              ? {
+                  ...p,
+                  comments: [
+                    ...p.comments,
+                    { id: `c${Date.now()}`, text, author: "You", createdAt: new Date().toISOString() },
+                  ],
+                }
+              : p
+          ),
+        })),
+    }),
+    {
+      name: "avr-app-store",
+      storage: createJSONStorage(() => window.localStorage),
+      partialize: (state) => ({
+        stamps: Array.from(state.stamps),
+        photos: state.photos,
+      }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as { stamps?: string[]; photos?: Photo[] } | undefined;
+        return {
+          ...currentState,
+          ...persisted,
+          stamps: new Set(persisted?.stamps ?? []),
+          photos: persisted?.photos?.length ? persisted.photos : currentState.photos,
+        };
+      },
+    }
+  )
+);
