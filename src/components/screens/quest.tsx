@@ -26,7 +26,18 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
 
   const questBuildings = buildings.slice(0, 12);
   const qrStampAliases: Record<string, string> = {
-    "scanned-page-p-qek1lt": "shiley",
+     "engineering-up-edu": "shiley",
+      "sites-up-edu-museum-mago-hunt-center-50-years-of-the-arts": "mago",
+      "portlandpilots-com-sports-2008-8-11-msoc-0811085954-aspx": "merlo",
+      "ww1-up-edu-campusministry-chapels-bells-and-more-chapel-360-html": "chapel",
+      "ww1-up-edu-facilitiesplanning-completed-projects-bauccio-commons-html": "commons",
+      "www-up-edu-admissions-aid-visit-virtual-tours-map-and-directions-html": "waldschmidt",
+      "ww1-up-edu-dbi": "db",
+      "ww1-up-edu-facilitiesplanning-completed-projects-shileymarcos-html": "shiley-marcos",
+      "www-up-edu-student-life-sports-and-fitness-recreational-services-court-reservations-and-fields-html": "fields",
+      "www-up-edu-student-life-sports-and-fitness-recreational-services-beauchamp-center-index-html": "beauchamp",
+      "ww1-up-edu-facilitiesplanning-completed-projects-chiles-center-expansion-html": "chiles",
+      "ww1-up-edu-facilitiesplanning-completed-projects-joe-etzel-field-html": "baseball",
   };
 
   const normalizeId = (value: string) =>
