@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HomeScreen from "@/components/screens/home";
 import MapScreen from "@/components/screens/geo";
@@ -12,8 +12,10 @@ export type Screen = "home" | "map" | "timeline" | "about" | "quest" | "photohub
 const Index = () => {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
+  const timelineRenderStart = useRef<number | null>(null);
 
   const handleBuildingSelect = (buildingId: string) => {
+    timelineRenderStart.current = typeof performance !== "undefined" ? performance.now() : null;
     setSelectedBuilding(buildingId);
     setScreen("timeline");
   };
@@ -33,7 +35,7 @@ const Index = () => {
         )}
         {screen === "timeline" && selectedBuilding && (
           <motion.div key="timeline" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.4 }}>
-            <TimelineScreen buildingId={selectedBuilding} onNavigate={setScreen} />
+            <TimelineScreen buildingId={selectedBuilding} onNavigate={setScreen} renderStartMs={timelineRenderStart.current} />
           </motion.div>
         )}
         {screen === "about" && (

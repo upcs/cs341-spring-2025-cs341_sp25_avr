@@ -27,9 +27,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 if (hasFrontendBuild) {
+  app.use(express.static(path.join(__dirname, 'public'), { index: false }));
   app.use(express.static(frontendDistPath));
+} else {
+  app.use(express.static(path.join(__dirname, 'public')));
 }
 
 app.use('/api/auth', authRouter);
@@ -67,6 +69,7 @@ if (hasFrontendBuild) {
   app.get('*', (req, res, next) => {
     if (
       req.path.startsWith('/api/') ||
+      req.path.startsWith('/assets/') ||
       req.path.startsWith('/users') ||
       req.path.startsWith('/geoTable') ||
       req.path.startsWith('/coordinates') ||

@@ -352,6 +352,51 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
         )}
       </div>
 
+      <div className="px-5 mb-5">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+        <div className="glass-card rounded-xl p-4 space-y-3">
+          <p className="text-sm font-semibold text-foreground">Manual QR fallback</p>
+          <p className="text-xs text-muted-foreground">
+            If camera scanning is unavailable, upload a QR image or paste the campus QR link here.
+          </p>
+          {scanError && (
+            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-foreground">
+              {scanError}
+            </p>
+          )}
+          {scanResult && !scanError && !scanSuccess && (
+            <p className="text-xs text-muted-foreground">Scanned: {scanResult}</p>
+          )}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full py-2 rounded-lg border border-border text-sm font-medium text-foreground"
+          >
+            Upload QR Image
+          </button>
+          <input
+            type="text"
+            value={manualQrValue}
+            onChange={(e) => setManualQrValue(e.target.value)}
+            placeholder="https://scanned.page/p/qEK1lt"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
+          />
+          <button
+            onClick={handleManualSubmit}
+            disabled={!manualQrValue.trim()}
+            className="w-full py-2 rounded-lg bg-accent text-accent-foreground text-sm font-medium disabled:opacity-50"
+          >
+            Redeem QR Link
+          </button>
+        </div>
+      </div>
+
       {/* Stamp grid */}
       <div className="px-5 pb-8">
         <div className="grid grid-cols-3 gap-3">
@@ -420,16 +465,8 @@ const QuestScreen = ({ onNavigate }: QuestScreenProps) => {
               )}
               <div className="space-y-2 border-t border-border pt-3">
                 <p className="text-xs text-muted-foreground">
-                  If camera scanning does not work, paste the QR link here.
+                  If camera scanning does not work, you can also use the manual fallback on the main quest screen.
                 </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full py-2 rounded-lg border border-border text-sm font-medium text-foreground"

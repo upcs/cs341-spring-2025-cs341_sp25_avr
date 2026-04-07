@@ -25,6 +25,23 @@ describe("LoginGate", () => {
     });
   });
 
+  it("lets a user continue in guest mode", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ authenticated: false }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    render(<LoginGate><div>Secret app</div></LoginGate>);
+
+    await waitFor(() => screen.getByText(/Campus History Login/i));
+    fireEvent.click(screen.getByRole("button", { name: /Continue as Guest/i }));
+
+    expect(screen.getByText(/Guest view/i)).toBeInTheDocument();
+    expect(screen.getByText("Secret app")).toBeInTheDocument();
+  });
+
   it("renders children after a successful login", async () => {
     mockFetch
       .mockResolvedValueOnce(

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, X } from "lucide-react";
 import { buildings, buildingContent } from "@/data/geoTable";
@@ -6,19 +6,73 @@ import { useAppStore } from "@/store/appStore";
 import { useAuth } from "@/components/auth-context";
 import type { Screen } from "@/pages/Index";
 import WallyStamp from "@/components/wally-stamp";
+import { recordElapsedMetric } from "@/lib/performance";
 
 interface TimelineScreenProps {
   buildingId: string;
   onNavigate: (screen: Screen) => void;
+  renderStartMs?: number | null;
 }
 
-const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
+type TimelineEntry = {
+  year: number;
+  description: string;
+  imagePath?: string;
+};
+
+type PhotoEntry = {
+  id: string;
+  buildingName: string;
+  year: number;
+  caption: string;
+  imageUrl: string;
+};
+
+async function fetchTimelineEntries(buildingName: string): Promise<TimelineEntry[]> {
+  const response = await fetch(`/api/content/by-building?buildingName=${encodeURIComponent(buildingName)}`);
+  if (!response.ok) {
+    throw new Error("Failed to load timeline");
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map((entry: { year?: number; description?: string; imagePath?: string }) => ({
+      year: Number(entry.year) || 0,
+      description: entry.description || "",
+      imagePath: entry.imagePath || undefined,
+    }))
+    .sort((a, b) => a.year - b.year);
+}
+
+async function fetchPhotoEntries(buildingName: string): Promise<PhotoEntry[]> {
+  const response = await fetch(`/api/content/photos?limit=100&buildingName=${encodeURIComponent(buildingName)}`);
+  if (!response.ok) {
+    throw new Error("Failed to load photos");
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data)) return [];
+
+  return data.map((photo: { id: number | string; buildingName: string; year?: number; caption?: string; imageUrl: string }) => ({
+    id: String(photo.id),
+    buildingName: photo.buildingName,
+    year: Number(photo.year) || new Date().getFullYear(),
+    caption: photo.caption || "Uploaded photo",
+    imageUrl: photo.imageUrl,
+  }));
+}
+
+const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: TimelineScreenProps) => {
   const { readOnly } = useAuth();
   const building = buildings.find((b) => b.id === buildingId);
-  const apiBuildingName = buildingId ? buildingId.replace(/-/g, " ") : "";
+  const apiBuildingName = building?.name ?? (buildingId ? buildingId.replace(/-/g, " ") : "");
   const localContent = buildingContent[buildingId] || [];
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { stamps, addStamp, photos, addPhoto, updatePhotoDetails, deletePhoto } = useAppStore();
+  const { stamps, addStamp } = useAppStore();
+  const [dbPhotos, setDbPhotos] = useState<PhotoEntry[]>([]);
+  const [photoLoadError, setPhotoLoadError] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<{ id?: string; imageUrl: string; caption: string; buildingName: string; year: number } | null>(null);
   const [showAddPhoto, setShowAddPhoto] = useState(false);
   const [photoForm, setPhotoForm] = useState({ caption: "", year: "" });
@@ -36,7 +90,11 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
   const [timelineForm, setTimelineForm] = useState({ year: "", description: "", imagePath: "" });
   const [timelineSubmitting, setTimelineSubmitting] = useState(false);
   const [timelineFormError, setTimelineFormError] = useState<string | null>(null);
-  const [editingEntry, setEditingEntry] = useState<{ year: number; description: string; imagePath?: string } | null>(null);
+  const [timelineLoadError, setTimelineLoadError] = useState<string | null>(null);
+  const [timelineSourceNotice, setTimelineSourceNotice] = useState<string | null>(null);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TimelineEntry | null>(null);
+  const timelineMetricReported = useRef(false);
   const sampleContent = useMemo(
     () =>
       Object.entries(buildingContent)
@@ -50,24 +108,78 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
         .slice(0, 3),
     []
   );
-  const [timelineEntries, setTimelineEntries] = useState(localContent);
-  const photoEntries = useMemo(
-    () =>
-      photos
-        .filter((photo) => !building || photo.buildingId === buildingId)
-        .map((photo) => ({
-          id: photo.id,
-          buildingName: photo.buildingName,
-          year: photo.year,
-          caption: photo.caption,
-          imageUrl: photo.imageUrl,
-        })),
-    [building, buildingId, photos]
-  );
+  const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>(localContent);
+  const photoEntries = dbPhotos;
 
   useEffect(() => {
-    setTimelineEntries(localContent);
-  }, [localContent]);
+    timelineMetricReported.current = false;
+  }, [buildingId]);
+
+  useEffect(() => {
+    if (!apiBuildingName) {
+      setTimelineEntries(localContent);
+      setTimelineLoadError(null);
+      setTimelineSourceNotice(null);
+      setTimelineLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setTimelineLoading(true);
+
+    const loadTimeline = async () => {
+      try {
+        const nextEntries = await fetchTimelineEntries(apiBuildingName);
+        if (cancelled) return;
+        setTimelineEntries(nextEntries);
+        setTimelineLoadError(null);
+        setTimelineSourceNotice(null);
+      } catch (error) {
+        if (cancelled) return;
+        if (localContent.length > 0) {
+          setTimelineEntries(localContent);
+          setTimelineLoadError(null);
+          setTimelineSourceNotice("Live timeline unavailable. Showing bundled archive notes for this building.");
+        } else {
+          setTimelineEntries([]);
+          setTimelineLoadError(error instanceof Error ? error.message : "Unable to load timeline.");
+          setTimelineSourceNotice(null);
+        }
+      } finally {
+        if (!cancelled) setTimelineLoading(false);
+      }
+    };
+
+    void loadTimeline();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBuildingName, localContent]);
+
+  useEffect(() => {
+    if (!apiBuildingName) return;
+    let cancelled = false;
+
+    const loadPhotos = async () => {
+      try {
+        const data = await fetchPhotoEntries(apiBuildingName);
+        if (cancelled) return;
+        setDbPhotos(data);
+        setPhotoLoadError(null);
+      } catch (error) {
+        if (cancelled) return;
+        setPhotoLoadError(error instanceof Error ? error.message : "Unable to load photos.");
+        setDbPhotos([]);
+      }
+    };
+
+    void loadPhotos();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBuildingName]);
 
   const filteredTimeline = useMemo(() => {
     const content = timelineEntries;
@@ -98,12 +210,24 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     }
   }, [effectiveContent.length, currentIndex]);
 
-  // Award stamp when viewing building
-  useState(() => {
+  // Award stamp once when viewing a building for the first time.
+  useEffect(() => {
     if (buildingId && !isStamped) {
       addStamp(buildingId);
     }
-  });
+  }, [addStamp, buildingId, isStamped]);
+
+  useEffect(() => {
+    if (timelineMetricReported.current || renderStartMs === null || timelineLoading) return;
+    if (!building) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      recordElapsedMetric("timeline-screen-render", renderStartMs, building.id);
+      timelineMetricReported.current = true;
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [building, renderStartMs, timelineLoading]);
 
   const handlePhotoSubmit = async () => {
     if (!apiBuildingName) return;
@@ -117,14 +241,24 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     setPhotoSubmitSuccess(false);
 
     try {
-      const imageUrl = URL.createObjectURL(photoFile);
-      addPhoto({
-        buildingId,
-        buildingName: building?.name ?? apiBuildingName,
-        year: Number(photoForm.year) || new Date().getFullYear(),
-        caption: photoForm.caption || "Uploaded archive photo",
-        imageUrl,
+      const formData = new FormData();
+      formData.append("photo", photoFile);
+      formData.append("buildingName", building?.name ?? apiBuildingName);
+      formData.append("year", photoForm.year || String(new Date().getFullYear()));
+      formData.append("caption", photoForm.caption || "Uploaded archive photo");
+
+      const response = await fetch("/api/content/photos/upload", {
+        method: "POST",
+        body: formData,
       });
+      if (!response.ok) {
+        throw new Error("Unable to upload photo");
+      }
+
+      const refreshed = await fetch(`/api/content/photos?limit=100&buildingName=${encodeURIComponent(apiBuildingName)}`);
+      if (refreshed.ok) {
+        setDbPhotos(await fetchPhotoEntries(apiBuildingName));
+      }
       setPhotoForm({ caption: "", year: "" });
       setPhotoFile(null);
       setPhotoSubmitSuccess(true);
@@ -143,10 +277,28 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     setPhotoEditError(null);
 
     try {
-      updatePhotoDetails(photoEdit.id, {
-        year: Number(photoEdit.year) || undefined,
-        caption: photoEdit.caption,
+      const response = await fetch(`/api/content/photos/${photoEdit.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: Number(photoEdit.year) || undefined,
+          caption: photoEdit.caption,
+        }),
       });
+      if (!response.ok) {
+        throw new Error("Unable to update photo");
+      }
+      setDbPhotos((prev) =>
+        prev.map((photo) =>
+          photo.id === photoEdit.id
+            ? {
+                ...photo,
+                year: Number(photoEdit.year) || photo.year,
+                caption: photoEdit.caption,
+              }
+            : photo
+        )
+      );
       if (selectedPhoto?.id === photoEdit.id) {
         setSelectedPhoto((prev) =>
           prev
@@ -170,7 +322,13 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     if (!id) return;
     try {
       if (selectedPhoto?.id === id) setSelectedPhoto(null);
-      deletePhoto(id);
+      const response = await fetch(`/api/content/photos/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Unable to delete photo");
+      }
+      setDbPhotos((prev) => prev.filter((photo) => photo.id !== id));
     } catch {
       setPhotoEditError("Unable to delete photo right now.");
     }
@@ -279,6 +437,18 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
     }
   };
 
+  if (building && timelineLoading && timelineEntries.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
+        <MapPin className="w-12 h-12 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-bold text-foreground mb-2">Loading Timeline</h2>
+        <p className="text-muted-foreground text-center">
+          Pulling the latest archive entries for this building.
+        </p>
+      </div>
+    );
+  }
+
   if (!building || effectiveContent.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
@@ -305,6 +475,13 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
               ))}
             </div>
           </div>
+        )}
+
+        {photoLoadError && (
+          <p className="mb-4 text-center text-xs text-muted-foreground">{photoLoadError}</p>
+        )}
+        {timelineLoadError && (
+          <p className="mb-4 text-center text-xs text-muted-foreground">{timelineLoadError}</p>
         )}
 
         {filteredPhotos.length > 0 && (
@@ -399,6 +576,11 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
             <option value="classic">Classic (before 2000)</option>
           </select>
         </div>
+        {(timelineSourceNotice || timelineLoadError) && (
+          <div className="mt-3 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+            {timelineSourceNotice || timelineLoadError}
+          </div>
+        )}
       </div>
 
       {/* Content area */}
@@ -527,7 +709,7 @@ const TimelineScreen = ({ buildingId, onNavigate }: TimelineScreenProps) => {
 
           <div className="border-t border-border pt-3">
             {timelineEntries.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center">No static timeline entries yet.</p>
+              <p className="text-xs text-muted-foreground text-center">No timeline entries yet.</p>
             ) : (
               <div className="space-y-2 max-h-56 overflow-y-auto">
                 {timelineEntries.map((entry) => (

@@ -2,7 +2,6 @@
 
 var express = require('express');
 var router = express.Router();
-var dbms = require("./dbms");
 const db = require("./dbms_promise");
 var mysql = require('mysql');
 const path = require('path');
@@ -28,21 +27,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-
-router.post('/', function (req, res, next) {
-    
-    const dbRequest = req.body.dbRequest
-    //`SELECT * FROM Geo where buildingName=${buildingName};`
-
-
-    dbms.dbquery(`${dbRequest}`, function (error, results) {
-        if (error) {
-            res.status(500).json({ message: "things went bad :(" })
-        } else {
-            res.json(results)
-        }
-    })
-
+router.post('/', function (_req, res) {
+    res.status(410).json({
+        message: "Generic SQL queries are disabled. Use the fixed content routes instead."
+    });
 });
 
 // Safe, fixed query for sample content used by the Vite app
@@ -216,7 +204,7 @@ router.delete('/timeline', requireAuth, async function (req, res) {
 // Photos from database (optionally filtered by buildingName)
 router.get('/photos', async function (req, res) {
     const rawLimit = parseInt(req.query.limit, 10);
-    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 20) : 6;
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 200) : 100;
     const buildingName = req.query.buildingName ? String(req.query.buildingName) : null;
 
     const whereClause = buildingName ? `WHERE buildingName = ${mysql.escape(buildingName)}` : '';

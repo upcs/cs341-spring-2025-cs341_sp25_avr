@@ -61,6 +61,32 @@ const AboutScreen = ({ onNavigate }: AboutScreenProps) => {
         </motion.section>
 
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <h2 className="text-2xl font-bold text-foreground mb-3">Support The Archive</h2>
+          <div className="glass-card rounded-xl p-5 space-y-3">
+            <p className="text-sm text-foreground/80">
+              Sprint 4 adds a lightweight monetization concept for the release candidate: alumni sponsorship tiers and archive supporter access.
+            </p>
+            <div className="grid gap-2">
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-sm font-semibold text-foreground">Student Supporter</p>
+                <p className="mt-1 text-xs text-muted-foreground">Low-cost tier for release updates, archive spotlights, and launch announcements.</p>
+              </div>
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-sm font-semibold text-foreground">Alumni Sponsor</p>
+                <p className="mt-1 text-xs text-muted-foreground">Supports new archive uploads, QR quest upkeep, and long-term hosting.</p>
+              </div>
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-sm font-semibold text-foreground">Campus Partner</p>
+                <p className="mt-1 text-xs text-muted-foreground">For departments or donors who want to underwrite future digital history features.</p>
+              </div>
+            </div>
+            <div className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
+              Support checkout is intentionally staged as a release-candidate preview and will be wired to a real sponsorship flow later.
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
           <div className="glass-card rounded-xl p-5 text-center">
             <p className="text-foreground/70 text-sm italic">
               Thank you for trying our Time Machine made by UP Shiley students! 🎓

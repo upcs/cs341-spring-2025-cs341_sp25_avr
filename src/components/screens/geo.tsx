@@ -20,6 +20,7 @@ const MapScreen = ({ onNavigate, onBuildingSelect }: MapScreenProps) => {
   const [helpVisible, setHelpVisible] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [locationBlocked, setLocationBlocked] = useState(false);
+  const [showManualChooser, setShowManualChooser] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
@@ -65,6 +66,7 @@ const MapScreen = ({ onNavigate, onBuildingSelect }: MapScreenProps) => {
       const { latitude, longitude, accuracy } = pos.coords;
       setLocationError(null);
       setLocationBlocked(false);
+      setShowManualChooser(false);
 
       const userIcon = L.divIcon({
         className: "user-location-marker",
@@ -98,9 +100,17 @@ const MapScreen = ({ onNavigate, onBuildingSelect }: MapScreenProps) => {
       if (err.code === 1) {
         setLocationBlocked(true);
         setLocationError("Location access denied. Enable it in your browser settings.");
+      } else if (err.code === 2) {
+        setLocationBlocked(false);
+        setLocationError("Location is unavailable on this device or network.");
+      } else if (err.code === 3) {
+        setLocationBlocked(false);
+        setLocationError("Location request timed out.");
       } else {
+        setLocationBlocked(false);
         setLocationError("Unable to get location.");
       }
+      setShowManualChooser(true);
     };
 
     const startWatching = () => {
@@ -154,27 +164,64 @@ const MapScreen = ({ onNavigate, onBuildingSelect }: MapScreenProps) => {
       {locationError && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 glass-card rounded-xl px-4 py-2 shadow-lg text-center max-w-xs">
           <p className="text-xs text-muted-foreground">{locationError}</p>
-          {locationBlocked && (
-            <button
-              onClick={() => {
-                if (!("geolocation" in navigator)) return;
-                navigator.geolocation.getCurrentPosition(
-                  () => {
-                    setLocationBlocked(false);
-                    setLocationError(null);
-                  },
-                  () => {
+          <button
+            onClick={() => {
+              if (!("geolocation" in navigator)) return;
+              navigator.geolocation.getCurrentPosition(
+                () => {
+                  setLocationBlocked(false);
+                  setLocationError(null);
+                  setShowManualChooser(false);
+                },
+                (err) => {
+                  if (err.code === 1) {
                     setLocationBlocked(true);
                     setLocationError("Location access denied. Enable it in your browser settings.");
-                  },
-                  { enableHighAccuracy: true, timeout: 10000 }
-                );
-              }}
-              className="mt-2 text-xs font-semibold text-primary underline"
-            >
-              Try again
-            </button>
-          )}
+                  } else if (err.code === 2) {
+                    setLocationBlocked(false);
+                    setLocationError("Location is unavailable on this device or network.");
+                  } else if (err.code === 3) {
+                    setLocationBlocked(false);
+                    setLocationError("Location request timed out.");
+                  } else {
+                    setLocationBlocked(false);
+                    setLocationError("Unable to get location.");
+                  }
+                  setShowManualChooser(true);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+              );
+            }}
+            className="mt-2 text-xs font-semibold text-primary underline"
+          >
+            Try again
+          </button>
+          <button
+            onClick={() => setShowManualChooser((current) => !current)}
+            className="mt-2 ml-3 text-xs font-semibold text-primary underline"
+          >
+            {showManualChooser ? "Hide manual selection" : "Choose building manually"}
+          </button>
+        </div>
+      )}
+
+      {showManualChooser && (
+        <div className="absolute bottom-24 left-1/2 z-20 w-[min(92vw,26rem)] -translate-x-1/2 glass-card rounded-xl p-4 shadow-lg">
+          <p className="text-sm font-semibold text-foreground">Choose a building manually</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            If location is unavailable, you can still open a building directly.
+          </p>
+          <div className="mt-3 grid max-h-64 grid-cols-1 gap-2 overflow-y-auto">
+            {buildings.map((building) => (
+              <button
+                key={building.id}
+                onClick={() => onBuildingSelect(building.id)}
+                className="rounded-lg border border-border bg-background px-3 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                {building.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

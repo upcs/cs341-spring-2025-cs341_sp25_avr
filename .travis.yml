@@ -8,11 +8,10 @@ install:
   - npm --prefix initialApp install
 
 script:
-  - npm test
-  - npm --prefix initialApp test
+  - npm run coverage
 
 after_script:
+  - npx codecov -f coverage/lcov.info || echo "Frontend coverage upload skipped"
   - npx --prefix initialApp codecov -f initialApp/coverage/lcov.info || echo "Coverage upload skipped"
-
 
 

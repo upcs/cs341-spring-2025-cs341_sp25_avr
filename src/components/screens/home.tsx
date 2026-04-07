@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Info, Trophy, Camera } from "lucide-react";
 import type { Screen } from "@/pages/Index";
 import { useAppStore } from "@/store/appStore";
 import { buildings } from "@/data/geoTable";
 import WallyStamp from "@/components/wally-stamp";
+import { recordElapsedMetric } from "@/lib/performance";
 
 
 interface HomeScreenProps {
@@ -13,6 +15,14 @@ interface HomeScreenProps {
 const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
   const { stamps } = useAppStore();
   const questBuildings = buildings.slice(0, 12);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      recordElapsedMetric("home-screen-initial-render", 0, "Measured from page navigation start");
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <div className="relative min-h-screen flex overflow-hidden">
@@ -118,6 +128,24 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
           >
             <Info className="w-5 h-5" />
             About
+          </button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 0.6 }}
+          className="mt-6 w-full max-w-xs rounded-2xl border border-primary-foreground/20 bg-primary-foreground/12 p-4 text-left backdrop-blur-sm"
+        >
+          <p className="text-xs uppercase tracking-[0.18em] text-primary-foreground/70">Support The Archive</p>
+          <p className="mt-2 text-sm text-primary-foreground/90">
+            Preview the archive supporter tiers and sponsorship idea for the release candidate.
+          </p>
+          <button
+            onClick={() => onNavigate("about")}
+            className="mt-3 w-full rounded-xl bg-primary-foreground px-4 py-2 text-sm font-semibold text-primary"
+          >
+            Preview Support Plans
           </button>
         </motion.div>
       </div>

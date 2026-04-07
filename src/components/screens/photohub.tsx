@@ -1,8 +1,7 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Heart, MessageCircle, Upload, ChevronLeft, ChevronRight, X, Send, SortAsc, ImagePlus, Trash2 } from "lucide-react";
 import { buildings } from "@/data/geoTable";
-import { useAppStore } from "@/store/appStore";
 import { useAuth } from "@/components/auth-context";
 import type { Screen } from "@/pages/Index";
 
@@ -12,9 +11,24 @@ interface PhotoHubScreenProps {
 
 type SortOption = "newest" | "oldest" | "most-liked";
 
+type HubPhoto = {
+  id: string;
+  buildingId: string;
+  buildingName: string;
+  year: number;
+  imageUrl: string;
+  caption: string;
+  uploadedAt: string;
+  likes: number;
+  liked: boolean;
+  comments: Array<{ id: string; author: string; text: string }>;
+};
+
 const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
   const { readOnly } = useAuth();
-  const { photos, toggleLike, addComment, addPhoto, updatePhotoImage, deletePhoto } = useAppStore();
+  const [photos, setPhotos] = useState<HubPhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [showSort, setShowSort] = useState(false);
@@ -24,6 +38,48 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploadBuilding, setUploadBuilding] = useState(buildings[0].id);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+  const normalizeBuildingId = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const resolveBuildingId = (buildingName: string) => {
+    const normalized = normalizeBuildingId(buildingName);
+    return buildings.find((b) => normalizeBuildingId(b.id) === normalized || normalizeBuildingId(b.name) === normalized)?.id ?? normalized;
+  };
+
+  const loadPhotos = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const response = await fetch("/api/content/photos?limit=100");
+      if (!response.ok) {
+        throw new Error("Failed to load photos");
+      }
+      const data = await response.json();
+      const nextPhotos: HubPhoto[] = Array.isArray(data)
+        ? data.map((photo: { id: number | string; buildingName: string; year?: number; imageUrl: string; caption?: string }) => ({
+            id: String(photo.id),
+            buildingId: resolveBuildingId(photo.buildingName),
+            buildingName: photo.buildingName,
+            year: Number(photo.year) || new Date().getFullYear(),
+            imageUrl: photo.imageUrl,
+            caption: photo.caption || "Uploaded photo",
+            uploadedAt: new Date().toISOString(),
+            likes: 0,
+            liked: false,
+            comments: [],
+          }))
+        : [];
+      setPhotos(nextPhotos);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Unable to load photos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadPhotos();
+  }, []);
 
   // Buildings that have photos
   const buildingsWithPhotos = useMemo(() => {
@@ -85,32 +141,70 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
     const reader = new FileReader();
     reader.onload = () => setPreviewImage(reader.result as string);
     reader.readAsDataURL(file);
+    setUploadFile(file);
   };
 
-  const handleUpload = () => {
-    if (!previewImage) return;
-    addPhoto({
-      buildingId: uploadBuilding,
-      imageUrl: previewImage,
-      caption: uploadCaption || "Uploaded photo",
-    });
+  const handleUpload = async () => {
+    if (!uploadFile) return;
+    const formData = new FormData();
+    const building = buildings.find((b) => b.id === uploadBuilding);
+    formData.append("photo", uploadFile);
+    formData.append("buildingName", building?.name ?? uploadBuilding);
+    formData.append("caption", uploadCaption || "Uploaded photo");
+    try {
+      const response = await fetch("/api/content/photos/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+      await loadPhotos();
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Unable to upload photo.");
+      return;
+    }
     setShowUpload(false);
     setPreviewImage(null);
     setUploadCaption("");
+    setUploadFile(null);
   };
 
   const handleComment = (photoId: string) => {
     if (!commentText.trim()) return;
-    addComment(photoId, commentText.trim());
+    setPhotos((current) =>
+      current.map((photo) =>
+        photo.id === photoId
+          ? {
+              ...photo,
+              comments: [...photo.comments, { id: crypto.randomUUID(), author: "Guest", text: commentText.trim() }],
+            }
+          : photo
+      )
+    );
     setCommentText("");
     setCommentingOn(null);
   };
 
-  const handleChangePhoto = (photoId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangePhoto = async (photoId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => updatePhotoImage(photoId, reader.result as string);
+    reader.onload = async () => {
+      try {
+        const response = await fetch(`/api/content/photos/${photoId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl: reader.result }),
+        });
+        if (!response.ok) {
+          throw new Error("Unable to update photo");
+        }
+        await loadPhotos();
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : "Unable to update photo.");
+      }
+    };
     reader.readAsDataURL(file);
   };
 
@@ -127,6 +221,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
           </button>
           <button
             onClick={() => !readOnly && setShowUpload(true)}
+            aria-label="Open upload panel"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-foreground/20 text-sm font-medium hover:bg-primary-foreground/30 transition-colors"
             disabled={readOnly}
           >
@@ -138,16 +233,17 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
 
       {/* Building filter navigation */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card">
-        <button onClick={() => navigateFilter("prev")} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+        <button aria-label="Previous building filter" onClick={() => navigateFilter("prev")} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
           <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
         <div className="flex-1 text-center">
           <span className="font-display font-semibold text-foreground">{currentFilterName}</span>
         </div>
-        <button onClick={() => navigateFilter("next")} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+        <button aria-label="Next building filter" onClick={() => navigateFilter("next")} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
           <ChevronRight className="w-5 h-5 text-foreground" />
         </button>
         <button
+          aria-label="Sort photos"
           onClick={() => setShowSort(!showSort)}
           className="p-1.5 rounded-lg hover:bg-muted transition-colors relative"
         >
@@ -183,9 +279,14 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
 
       {/* Photo grid */}
       <div className="p-4">
-        {filteredPhotos.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading photos...</p>
+          </div>
+        ) : filteredPhotos.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No photos yet for this building.</p>
+            {loadError && <p className="mt-2 text-xs text-muted-foreground">{loadError}</p>}
             {!readOnly && (
               <button
                 onClick={() => setShowUpload(true)}
@@ -213,7 +314,19 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => handleChangePhoto(photo.id, e)} />
                     </label>
                     <button
-                      onClick={() => deletePhoto(photo.id)}
+                      onClick={async () => {
+                        try {
+                          const response = await fetch(`/api/content/photos/${photo.id}`, {
+                            method: "DELETE",
+                          });
+                          if (!response.ok) {
+                            throw new Error("Unable to delete photo");
+                          }
+                          await loadPhotos();
+                        } catch (error) {
+                          setLoadError(error instanceof Error ? error.message : "Unable to delete photo.");
+                        }
+                      }}
                       className="p-2 rounded-full bg-card/80 hover:bg-destructive/80 transition-colors"
                     >
                       <Trash2 className="w-4 h-4 text-foreground" />
@@ -224,7 +337,20 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
                   <p className="text-xs text-foreground line-clamp-2 mb-2">{photo.caption}</p>
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => !readOnly && toggleLike(photo.id)}
+                      onClick={() =>
+                        !readOnly &&
+                        setPhotos((current) =>
+                          current.map((entry) =>
+                            entry.id === photo.id
+                              ? {
+                                  ...entry,
+                                  liked: !entry.liked,
+                                  likes: entry.liked ? Math.max(0, entry.likes - 1) : entry.likes + 1,
+                                }
+                              : entry
+                          )
+                        )
+                      }
                       className="flex items-center gap-1 text-xs"
                       disabled={readOnly}
                     >
