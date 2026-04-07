@@ -7,6 +7,8 @@ import { useAppStore } from "@/store/appStore";
 import type { Screen } from "@/pages/Index";
 import WallyStamp from "@/components/wally-stamp";
 
+//test
+
 interface QuestScreenProps {
   onNavigate: (screen: Screen) => void;
 }
