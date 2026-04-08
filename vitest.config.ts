@@ -4,11 +4,24 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  assetsInclude: ["**/*.JPG", "**/*.jpg", "**/*.jpeg", "**/*.png"],
   test: {
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      reportsDirectory: "./coverage",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "dist/**",
+        "node_modules/**",
+        "src/test/**",
+        "**/*.d.ts",
+      ],
+    },
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },

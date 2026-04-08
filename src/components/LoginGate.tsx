@@ -1,7 +1,8 @@
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { AuthProvider } from "./auth-context";
-import { forgotPassword, getSession, login, logout, resetPassword, signup, verifyEmail } from "@/lib/auth-client";
+import { forgotPassword, getSession, login, logout, resendVerification, resetPassword, signup, verifyEmail } from "@/lib/auth-client";
+import { isBackendUnavailable } from "@/lib/backend-status";
 
 type AuthState = "loading" | "authenticated" | "guest" | "unauthenticated";
 type AuthMode = "login" | "signup" | "forgot" | "reset";
@@ -33,6 +34,8 @@ const LoginGate = ({ children }: LoginGateProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [displayName, setDisplayName] = useState<string>("");
   const [resetToken, setResetToken] = useState<string | null>(null);
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [offlineFallback, setOfflineFallback] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,11 +67,13 @@ const LoginGate = ({ children }: LoginGateProps) => {
         if (cancelled) return;
         setDisplayName(data.name || data.email || "");
         setAuthState(data.authenticated ? "authenticated" : "unauthenticated");
+        setOfflineFallback(isBackendUnavailable());
       })
       .catch(() => {
         if (cancelled) return;
         setAuthState("unauthenticated");
         setError("Unable to verify your session.");
+        setOfflineFallback(isBackendUnavailable());
       });
 
     return () => {
@@ -85,6 +90,7 @@ const LoginGate = ({ children }: LoginGateProps) => {
     setInfo(null);
     setVerificationUrl(null);
     setResetUrl(null);
+    setShowResendVerification(false);
 
     try {
       const data =
@@ -101,12 +107,14 @@ const LoginGate = ({ children }: LoginGateProps) => {
         setMode("login");
         setInfo(data.message || "Check your email to verify your account.");
         setVerificationUrl(data.verificationUrl || null);
+        setOfflineFallback(isBackendUnavailable());
         return;
       }
 
       if (mode === "forgot") {
         setInfo(data.message || "Password reset link ready.");
         setResetUrl(data.resetUrl || null);
+        setOfflineFallback(isBackendUnavailable());
         return;
       }
 
@@ -115,13 +123,18 @@ const LoginGate = ({ children }: LoginGateProps) => {
         setMode("login");
         setResetToken(null);
         setForm(emptyForm);
+        setOfflineFallback(isBackendUnavailable());
         return;
       }
 
       setDisplayName(data.name || data.email || "");
       setAuthState("authenticated");
+      setOfflineFallback(isBackendUnavailable());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      const message = err instanceof Error ? err.message : "Authentication failed";
+      setError(message);
+      setShowResendVerification(message.toLowerCase().includes("not verified"));
+      setOfflineFallback(isBackendUnavailable());
     } finally {
       setSubmitting(false);
     }
@@ -143,6 +156,11 @@ const LoginGate = ({ children }: LoginGateProps) => {
         <div className="relative">
           <div className="fixed right-4 top-4 z-50 flex items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-2 shadow-sm backdrop-blur">
             {displayName && <span className="text-xs font-medium text-foreground">{displayName}</span>}
+            {offlineFallback && (
+              <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Local Auth
+              </span>
+            )}
             <button
               type="button"
               onClick={async () => {
@@ -206,6 +224,11 @@ const LoginGate = ({ children }: LoginGateProps) => {
                   ? "Set a new password for your @up.edu account."
               : "Sign in with the @up.edu account you created for the campus archive."}
           </p>
+          {offlineFallback && (
+            <p className="mt-3 rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              Auth API unavailable. The app is using browser-local demo accounts for fallback access; backend auth remains the intended production mode.
+            </p>
+          )}
         </div>
 
         <button
@@ -282,6 +305,24 @@ const LoginGate = ({ children }: LoginGateProps) => {
             >
               Open verification link
             </a>
+          )}
+          {showResendVerification && form.email.trim() && (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const data = await resendVerification(form.email);
+                  setInfo(data.message || "A fresh verification link is ready.");
+                  setVerificationUrl(data.verificationUrl || null);
+                  setError(null);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Unable to resend verification");
+                }
+              }}
+              className="block text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Get a new verification link
+            </button>
           )}
           {resetUrl && (
             <a

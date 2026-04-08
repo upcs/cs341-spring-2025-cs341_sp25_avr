@@ -1,3 +1,5 @@
+import archiveContentSql from "../../initialApp/public/archiveContent/sqlScripts/create_content_table.sql?raw";
+
 // Building data from the University of Portland campus
 export interface Building {
   id: string;
@@ -45,6 +47,47 @@ const archiveAssetMap = Object.fromEntries(
 );
 
 const resolveStaticImage = (path: string) => archiveAssetMap[path] || path;
+
+function normalizeArchiveImagePathKey(path: string) {
+  return path.replace(/\\/g, "/").trim().toLowerCase();
+}
+
+const invalidArchiveImagePaths = new Set([
+  "/archiveContent/shiley/1969.jpg",
+  "/archiveContent/mago/1972.jpg",
+  "/archiveContent/mago/1973.jpg",
+  "/archiveContent/merlo/2002.jpg",
+  "/archiveContent/chapel/1937.jpg",
+  "/archiveContent/chapel/1996.jpg",
+  "/archiveContent/chapel/2009.jpg",
+  "/archiveContent/commons/2010.JPG",
+  "/archiveContent/waldschmidt/1958.jpg",
+  "/archiveContent/waldschmidt/1975.jpg",
+  "/archiveContent/db/1927.jpg",
+  "/archiveContent/db/1982.jpg",
+  "/archiveContent/db/2017.jpg",
+  "/archiveContent/db/2019.jpg",
+  "/archiveContent/fields/2009.jpg",
+  "/archiveContent/beauchamp/2015.jpg",
+  "/archiveContent/baseball/2004.jpg",
+  "/archiveContent/buckley/2019.jpg",
+  "/archiveContent/chiles/1997.jpg",
+  "/archiveContent/library/1958.jpg",
+  "/archiveContent/library/1978.jpg",
+  "/archiveContent/library/2013.jpg",
+  "/archiveContent/phouse/1949.JPG",
+  "/archiveContent/phouse/2015.jpg",
+  "/archiveContent/franz/1996.jpg",
+].map(normalizeArchiveImagePathKey));
+
+export function isKnownBrokenArchiveImage(path: string | null | undefined) {
+  if (!path) return false;
+  return invalidArchiveImagePaths.has(normalizeArchiveImagePathKey(path));
+}
+
+function resolveArchiveImage(path: string) {
+  return isKnownBrokenArchiveImage(path) ? null : path;
+}
 
 export const buildings: Building[] = [
   {
@@ -129,7 +172,72 @@ export const buildings: Building[] = [
   },
 ];
 
-export const buildingContent: Record<string, BuildingContent[]> = {
+const normalizeBuildingKey = (value: string) =>
+  value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+const buildingIdLookup = new Map<string, string>();
+const buildingNameLookup = new Map<string, string>();
+
+for (const building of buildings) {
+  buildingIdLookup.set(normalizeBuildingKey(building.id), building.id);
+  buildingIdLookup.set(normalizeBuildingKey(building.name), building.id);
+  buildingNameLookup.set(building.id, building.name);
+}
+
+function normalizeArchiveImagePath(rawPath: string) {
+  let imagePath = rawPath.replace(/''/g, "'").replace(/\\/g, "/");
+  imagePath = imagePath.replace(/^\/?initialApp\/public/, "");
+  imagePath = imagePath.replace(/^public/, "");
+  if (!imagePath.startsWith("/")) {
+    imagePath = `/${imagePath}`;
+  }
+  return imagePath;
+}
+
+function parseArchiveSqlRows() {
+  const tuplePattern = /\('([^']*(?:''[^']*)*)',\s*(\d+),\s*'([^']*(?:''[^']*)*)',\s*'([^']*(?:''[^']*)*)'\)/g;
+  const parsedRows: Array<BuildingContent> = [];
+  const parsedPhotos: Array<ArchivePhoto> = [];
+
+  for (const match of archiveContentSql.matchAll(tuplePattern)) {
+    const [, rawBuildingName, rawYear, rawDescription, rawImagePath] = match;
+    const buildingId = buildingIdLookup.get(normalizeBuildingKey(rawBuildingName));
+    if (!buildingId) {
+      continue;
+    }
+
+    const year = Number(rawYear);
+    const description = rawDescription.replace(/''/g, "'");
+    const imagePath = normalizeArchiveImagePath(rawImagePath);
+    const resolvedImageUrl = resolveArchiveImage(imagePath);
+    const buildingName = buildingNameLookup.get(buildingId) ?? rawBuildingName.replace(/''/g, "'");
+
+    parsedRows.push({
+      buildingId,
+      year,
+      description,
+      imagePath: resolvedImageUrl ? imagePath : undefined,
+    });
+
+    if (resolvedImageUrl) {
+      parsedPhotos.push({
+        id: `${buildingId}-${year}-archive`,
+        buildingId,
+        buildingName,
+        year,
+        caption: description,
+        imageUrl: resolvedImageUrl,
+      });
+    }
+  }
+
+  return {
+    parsedRows,
+    parsedPhotos,
+  };
+}
+
+const curatedBuildingContent: Record<string, BuildingContent[]> = {
   shiley: [
     { buildingId: "shiley", year: 1948, description: "The original engineering building was established as part of the university's commitment to technical education in the post-war era." },
     { buildingId: "shiley", year: 1965, description: "Major renovations expanded the engineering facilities to accommodate growing student enrollment and new programs." },
@@ -187,14 +295,14 @@ export const buildingContent: Record<string, BuildingContent[]> = {
   ],
 };
 
-export const archivePhotos: ArchivePhoto[] = [
+const curatedArchivePhotos: ArchivePhoto[] = [
   {
     id: "shiley-1948",
     buildingId: "shiley",
     buildingName: "shiley",
     year: 1948,
     caption: "Historic view of the original engineering building.",
-    imageUrl: resolveStaticImage("/archiveContent/shiley/1948.jpg"),
+    imageUrl: "/archiveContent/shiley/1948.jpg",
   },
   {
     id: "shiley-2009",
@@ -202,7 +310,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "shiley",
     year: 2009,
     caption: "Donald P. Shiley School of Engineering after major renewal.",
-    imageUrl: resolveStaticImage("/archiveContent/shiley/2009.jpg"),
+    imageUrl: "/archiveContent/shiley/2009.jpg",
   },
   {
     id: "chapel-1986",
@@ -210,7 +318,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "chapel",
     year: 1986,
     caption: "The Chapel of Christ the Teacher shortly after dedication.",
-    imageUrl: resolveStaticImage("/archiveContent/chapel/1986.jpg"),
+    imageUrl: "/archiveContent/chapel/1986.jpg",
   },
   {
     id: "chapel-2009",
@@ -218,7 +326,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "chapel",
     year: 2009,
     caption: "Later exterior view of the chapel and its grounds.",
-    imageUrl: resolveStaticImage("/archiveContent/chapel/2009.jpg"),
+    imageUrl: "",
   },
   {
     id: "waldschmidt-1892",
@@ -226,7 +334,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "waldschmidt",
     year: 1892,
     caption: "One of the earliest surviving images of Waldschmidt Hall.",
-    imageUrl: resolveStaticImage("/archiveContent/waldschmidt/1892.jpg"),
+    imageUrl: "/archiveContent/waldschmidt/1892.jpg",
   },
   {
     id: "waldschmidt-2021",
@@ -234,7 +342,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "waldschmidt",
     year: 2021,
     caption: "Waldschmidt Hall in its modern administrative role.",
-    imageUrl: resolveStaticImage("/archiveContent/waldschmidt/2021.jpg"),
+    imageUrl: "/archiveContent/waldschmidt/2021.jpg",
   },
   {
     id: "franz-1994",
@@ -242,7 +350,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "franz",
     year: 1994,
     caption: "Franz Hall before its later science-facility modernization.",
-    imageUrl: resolveStaticImage("/archiveContent/franz/1994.JPG"),
+    imageUrl: "/archiveContent/franz/1994.JPG",
   },
   {
     id: "franz-1996",
@@ -250,7 +358,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "franz",
     year: 1996,
     caption: "Franz Hall in the mid-1990s.",
-    imageUrl: resolveStaticImage("/archiveContent/franz/1996.jpg"),
+    imageUrl: "",
   },
   {
     id: "library-1958",
@@ -258,7 +366,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "library",
     year: 1958,
     caption: "Clark Library around its opening era.",
-    imageUrl: resolveStaticImage("/archiveContent/library/1958.jpg"),
+    imageUrl: "",
   },
   {
     id: "library-2013",
@@ -266,7 +374,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "library",
     year: 2013,
     caption: "Clark Library in the digital archive era.",
-    imageUrl: resolveStaticImage("/archiveContent/library/2013.jpg"),
+    imageUrl: "",
   },
   {
     id: "chiles-1984",
@@ -274,7 +382,7 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "chiles",
     year: 1984,
     caption: "Early years of the Chiles Center arena.",
-    imageUrl: resolveStaticImage("/archiveContent/chiles/1984.jpg"),
+    imageUrl: "/archiveContent/chiles/1984.jpg",
   },
   {
     id: "shiley-marcos-2025",
@@ -282,9 +390,66 @@ export const archivePhotos: ArchivePhoto[] = [
     buildingName: "shiley marcos",
     year: 2025,
     caption: "Design and innovation space in the new Shiley-Marcos Center.",
-    imageUrl: resolveStaticImage("/images/04_01_2025_X-Design.png"),
+    imageUrl: "/images/04_01_2025_X-Design.png",
   },
 ];
+
+const { parsedRows: parsedArchiveRows, parsedPhotos: parsedArchivePhotos } = parseArchiveSqlRows();
+
+export const buildingContent: Record<string, BuildingContent[]> = (() => {
+  const merged = new Map<string, Map<number, BuildingContent>>();
+
+  const pushRow = (row: BuildingContent) => {
+    const byBuilding = merged.get(row.buildingId) ?? new Map<number, BuildingContent>();
+    if (!byBuilding.has(row.year)) {
+      byBuilding.set(row.year, row);
+    }
+    merged.set(row.buildingId, byBuilding);
+  };
+
+  for (const row of parsedArchiveRows) {
+    pushRow(row);
+  }
+
+  for (const row of Object.values(curatedBuildingContent).flat()) {
+    pushRow(row);
+  }
+
+  return Object.fromEntries(
+    Array.from(merged.entries()).map(([buildingId, rows]) => [
+      buildingId,
+      Array.from(rows.values()).sort((a, b) => a.year - b.year),
+    ])
+  );
+})();
+
+export const archivePhotos: ArchivePhoto[] = (() => {
+  const merged = new Map<string, ArchivePhoto>();
+
+  const pushPhoto = (photo: ArchivePhoto) => {
+    const key = `${photo.buildingId}:${photo.year}`;
+    if (!merged.has(key)) {
+      merged.set(key, photo);
+    }
+  };
+
+  for (const photo of parsedArchivePhotos) {
+    pushPhoto(photo);
+  }
+
+  for (const photo of curatedArchivePhotos) {
+    if (photo.imageUrl) {
+      pushPhoto(photo);
+    }
+  }
+
+  return Array.from(merged.values()).sort((a, b) => {
+    if (a.buildingId === b.buildingId) {
+      return a.year - b.year;
+    }
+    return a.buildingId.localeCompare(b.buildingId);
+  });
+})();
 
 // Campus center coordinates
 export const CAMPUS_CENTER = { lat: 45.5730, lng: -122.7275 };

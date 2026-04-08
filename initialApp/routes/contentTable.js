@@ -2,7 +2,6 @@
 
 var express = require('express');
 var router = express.Router();
-var dbms = require("./dbms");
 const db = require("./dbms_promise");
 var mysql = require('mysql');
 const path = require('path');
@@ -28,21 +27,26 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+function buildBuildingMatchClause(rawBuildingName, rawBuildingId) {
+    const terms = Array.from(
+        new Set(
+            [rawBuildingName, rawBuildingId]
+                .map((value) => (value ? String(value).trim() : ""))
+                .filter(Boolean)
+        )
+    );
 
-router.post('/', function (req, res, next) {
-    
-    const dbRequest = req.body.dbRequest
-    //`SELECT * FROM Geo where buildingName=${buildingName};`
+    if (terms.length === 0) {
+        return null;
+    }
 
+    return `buildingName IN (${terms.map((term) => mysql.escape(term)).join(", ")})`;
+}
 
-    dbms.dbquery(`${dbRequest}`, function (error, results) {
-        if (error) {
-            res.status(500).json({ message: "things went bad :(" })
-        } else {
-            res.json(results)
-        }
-    })
-
+router.post('/', function (_req, res) {
+    res.status(410).json({
+        message: "Generic SQL queries are disabled. Use the fixed content routes instead."
+    });
 });
 
 // Safe, fixed query for sample content used by the Vite app
@@ -67,15 +71,18 @@ router.get('/sample', async function (req, res) {
 // Timeline entries for a specific building
 router.get('/by-building', async function (req, res) {
     const buildingName = req.query.buildingName ? String(req.query.buildingName) : null;
-    if (!buildingName) {
-        res.status(400).json({ message: "buildingName is required" });
+    const buildingId = req.query.buildingId ? String(req.query.buildingId) : null;
+    const whereClause = buildBuildingMatchClause(buildingName, buildingId);
+
+    if (!whereClause) {
+        res.status(400).json({ message: "buildingName or buildingId is required" });
         return;
     }
 
     const query = `
         SELECT buildingName, year, description, imagePath
         FROM Content
-        WHERE buildingName = ${mysql.escape(buildingName)}
+        WHERE ${whereClause}
         ORDER BY year ASC;
     `;
 
@@ -216,10 +223,12 @@ router.delete('/timeline', requireAuth, async function (req, res) {
 // Photos from database (optionally filtered by buildingName)
 router.get('/photos', async function (req, res) {
     const rawLimit = parseInt(req.query.limit, 10);
-    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 20) : 6;
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 200) : 100;
     const buildingName = req.query.buildingName ? String(req.query.buildingName) : null;
+    const buildingId = req.query.buildingId ? String(req.query.buildingId) : null;
 
-    const whereClause = buildingName ? `WHERE buildingName = ${mysql.escape(buildingName)}` : '';
+    const buildingMatchClause = buildBuildingMatchClause(buildingName, buildingId);
+    const whereClause = buildingMatchClause ? `WHERE ${buildingMatchClause}` : '';
     const query = `
         SELECT id, buildingName, year, imageUrl, caption
         FROM Photos

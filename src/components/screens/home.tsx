@@ -1,9 +1,11 @@
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Info, Trophy, Camera } from "lucide-react";
 import type { Screen } from "@/pages/Index";
 import { useAppStore } from "@/store/appStore";
 import { buildings } from "@/data/geoTable";
 import WallyStamp from "@/components/wally-stamp";
+import { recordElapsedMetric } from "@/lib/performance";
 
 
 interface HomeScreenProps {
@@ -13,6 +15,25 @@ interface HomeScreenProps {
 const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
   const { stamps } = useAppStore();
   const questBuildings = buildings.slice(0, 12);
+  const [showBadgePanel, setShowBadgePanel] = useState(false);
+  const collectedCount = questBuildings.filter((building) => stamps.has(building.id)).length;
+  const completionPercent = questBuildings.length === 0 ? 0 : (collectedCount / questBuildings.length) * 100;
+  const badgeRows = useMemo(
+    () =>
+      questBuildings.map((building) => ({
+        ...building,
+        collected: stamps.has(building.id),
+      })),
+    [questBuildings, stamps]
+  );
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      recordElapsedMetric("home-screen-initial-render", 0, "Measured from page navigation start");
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <div className="relative min-h-screen flex overflow-hidden">
@@ -29,28 +50,86 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
       </div>
 
-      {/* Stamp sidebar (left) - matches mockup with ? stamps on left */}
-      <div className="relative z-10 flex flex-col gap-2 py-4 pl-2 pr-1">
-        {questBuildings.slice(0, 8).map((b) => {
-          const collected = stamps.has(b.id);
-          return (
-            <motion.div
-              key={b.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="cursor-pointer transition-all hover:scale-105"
-              title={b.name}
+      <motion.div
+        initial={{ opacity: 0, y: -18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.6 }}
+        className="absolute left-4 top-5 z-20 w-[min(calc(100vw-2rem),34rem)] sm:left-5"
+        onMouseEnter={() => setShowBadgePanel(true)}
+        onMouseLeave={() => setShowBadgePanel(false)}
+      >
+        <div
+          tabIndex={0}
+          onFocus={() => setShowBadgePanel(true)}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setShowBadgePanel(false);
+            }
+          }}
+          className="rounded-2xl border border-primary-foreground/25 bg-primary-foreground/14 px-4 py-3 text-primary-foreground backdrop-blur-md shadow-xl outline-none"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-left">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-primary-foreground/65">Campus Quest Progress</p>
+              <p className="mt-1 text-sm font-semibold">
+                {collectedCount} of {questBuildings.length} badges collected
+              </p>
+            </div>
+            <button
               onClick={() => onNavigate("quest")}
+              className="shrink-0 rounded-full border border-primary-foreground/20 bg-primary-foreground/12 px-3 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/22"
             >
-              <WallyStamp collected={collected} size="sm" />
-            </motion.div>
-          );
-        })}
-      </div>
+              Open Quest
+            </button>
+          </div>
+          <div className="mt-3 h-3 overflow-hidden rounded-full bg-primary-foreground/18">
+            <div
+              className="h-full rounded-full bg-accent transition-[width] duration-500 ease-out"
+              style={{ width: `${completionPercent}%` }}
+            />
+          </div>
+          <p className="mt-2 text-left text-xs text-primary-foreground/72">
+            Hover or focus to preview every badge, including the ones you still need.
+          </p>
+        </div>
+
+        {showBadgePanel && (
+          <div className="mt-3 rounded-3xl border border-primary-foreground/20 bg-background/95 p-4 shadow-2xl backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Badge Overview</p>
+                <p className="mt-1 text-sm font-semibold text-foreground">Collected and remaining campus stamps</p>
+              </div>
+              <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+                {Math.round(completionPercent)}%
+              </span>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {badgeRows.map((building) => (
+                <div
+                  key={building.id}
+                  className={`flex items-center gap-3 rounded-2xl border px-3 py-2 ${
+                    building.collected
+                      ? "border-accent/40 bg-accent/10"
+                      : "border-border bg-muted/35"
+                  }`}
+                >
+                  <WallyStamp collected={building.collected} size="sm" />
+                  <div className="min-w-0 text-left">
+                    <p className="text-xs font-semibold text-foreground line-clamp-2">{building.name}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {building.collected ? "Collected" : "Incomplete"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </motion.div>
 
       {/* Main content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 max-w-lg mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-10 pt-32 text-center max-w-lg mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -118,6 +197,24 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
           >
             <Info className="w-5 h-5" />
             About
+          </button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 0.6 }}
+          className="mt-6 w-full max-w-xs rounded-2xl border border-primary-foreground/20 bg-primary-foreground/12 p-4 text-left backdrop-blur-sm"
+        >
+          <p className="text-xs uppercase tracking-[0.18em] text-primary-foreground/70">Support The Archive</p>
+          <p className="mt-2 text-sm text-primary-foreground/90">
+            Preview the archive supporter tiers and sponsorship idea for the release candidate.
+          </p>
+          <button
+            onClick={() => onNavigate("about")}
+            className="mt-3 w-full rounded-xl bg-primary-foreground px-4 py-2 text-sm font-semibold text-primary"
+          >
+            Preview Support Plans
           </button>
         </motion.div>
       </div>

@@ -25,8 +25,8 @@ export interface Comment {
 interface AppState {
   // Stamps
   stamps: Set<string>;
-  toggleStamp: (id: string) => void;
   addStamp: (id: string) => void;
+  resetStamps: () => void;
 
   // Photos
   photos: Photo[];
@@ -55,19 +55,13 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       stamps: new Set<string>(),
-      toggleStamp: (id) =>
-        set((state) => {
-          const next = new Set(state.stamps);
-          if (next.has(id)) next.delete(id);
-          else next.add(id);
-          return { stamps: next };
-        }),
       addStamp: (id) =>
         set((state) => {
           const next = new Set(state.stamps);
           next.add(id);
           return { stamps: next };
         }),
+      resetStamps: () => set({ stamps: new Set<string>() }),
 
       photos: samplePhotos,
       addPhoto: (photo) =>
@@ -133,16 +127,23 @@ export const useAppStore = create<AppState>()(
       name: "avr-app-store",
       storage: createJSONStorage(() => window.localStorage),
       partialize: (state) => ({
-        stamps: Array.from(state.stamps),
         photos: state.photos,
       }),
       merge: (persistedState, currentState) => {
-        const persisted = persistedState as { stamps?: string[]; photos?: Photo[] } | undefined;
+        const persisted = persistedState as { photos?: Photo[] } | undefined;
         return {
           ...currentState,
           ...persisted,
-          stamps: new Set(persisted?.stamps ?? []),
+          stamps: new Set<string>(),
           photos: persisted?.photos?.length ? persisted.photos : currentState.photos,
+        };
+      },
+      version: 4,
+      migrate: (persistedState) => {
+        const persisted = (persistedState ?? {}) as { photos?: Photo[] };
+        return {
+          ...persisted,
+          stamps: [],
         };
       },
     }
