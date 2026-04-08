@@ -14,6 +14,16 @@ vi.mock("@/data/geoTable", () => ({
       { buildingId: "chapel", year: 1986, description: "Chapel history" },
     ],
   },
+  archivePhotos: [
+    {
+      id: "chapel-1986",
+      buildingId: "chapel",
+      buildingName: "chapel",
+      year: 1986,
+      caption: "The Chapel of Christ the Teacher shortly after dedication.",
+      imageUrl: "/archiveContent/chapel/1986.jpg",
+    },
+  ],
 }));
 
 vi.mock("@/store/appStore", () => ({
@@ -91,9 +101,10 @@ describe("TimelineScreen", () => {
       </AuthProvider>
     );
 
-    expect(screen.getByText(/No History Available/i)).toBeInTheDocument();
+    expect(screen.getByText(/Building Not Found/i)).toBeInTheDocument();
     expect(screen.getByText(/Sample History/i)).toBeInTheDocument();
     expect(screen.getByText(/Chapel history/i)).toBeInTheDocument();
+    expect(screen.getByText(/Chapel of Christ the Teacher/i)).toBeInTheDocument();
   });
 
   it("renders backend timeline entries when they are available", async () => {
@@ -107,6 +118,9 @@ describe("TimelineScreen", () => {
       expect(screen.getAllByText(/Backend chapel history/i).length).toBeGreaterThan(0);
     });
 
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/content/by-building?buildingName=Chapel+of+Christ+the+Teacher&buildingId=chapel")
+    );
     expect(screen.queryAllByText(/^Chapel history$/i)).toHaveLength(0);
   });
 
@@ -138,6 +152,112 @@ describe("TimelineScreen", () => {
     });
 
     expect(screen.getByText(/Live timeline unavailable/i)).toBeInTheDocument();
+  });
+
+  it("falls back to bundled timeline entries when the backend returns no rows", async () => {
+    mockFetch.mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/api/content/by-building")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      }
+
+      if (url.includes("/api/content/photos?")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } })
+        );
+      }
+
+      return Promise.resolve(new Response("Not found", { status: 404 }));
+    });
+
+    render(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+        <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Chapel history/i).length).toBeGreaterThan(0);
+    });
+
+    expect(screen.getByText(/No live archive rows yet/i)).toBeInTheDocument();
+  });
+
+  it("shows a changing archive image for the current timeline entry", async () => {
+    mockFetch.mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/api/content/by-building")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      }
+
+      if (url.includes("/api/content/photos?")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } })
+        );
+      }
+
+      return Promise.resolve(new Response("Not found", { status: 404 }));
+    });
+
+    render(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+        <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByAltText(/shortly after dedication/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Archive image from this year|Archive image near/i)).toBeInTheDocument();
+    expect(screen.getByText(/Photo year 1986/i)).toBeInTheDocument();
+  });
+
+  it("resolves a building when the timeline screen receives the building name instead of the id", async () => {
+    mockFetch.mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/api/content/by-building")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      }
+
+      if (url.includes("/api/content/photos?")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } })
+        );
+      }
+
+      return Promise.resolve(new Response("Not found", { status: 404 }));
+    });
+
+    render(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+        <TimelineScreen buildingId="Chapel of Christ the Teacher" onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Chapel history/i).length).toBeGreaterThan(0);
+    });
+
+    expect(screen.getByRole("heading", { name: /Chapel of Christ the Teacher/i })).toBeInTheDocument();
   });
 
   it("submits a new timeline entry for authenticated users", async () => {

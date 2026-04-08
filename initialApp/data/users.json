@@ -1,13 +1,1 @@
-[
-  {
-    "id": "48fbe660-9153-40ed-b115-bbf85e323ed8",
-    "name": "Makengo",
-    "email": "lokombo27@up.edu",
-    "passwordHash": "a14d2302769dbe35430019a1d7deb77f:ac830dc5892741328444d2fdc7d4e864b48af56d579f4b164dbf39115a4634f64eb7f5b25c7bad023bb8a3fa4f09823ef6472bf43757173786e5b652c1029130",
-    "verified": true,
-    "verificationToken": null,
-    "verificationExpiresAt": null,
-    "createdAt": "2026-03-19T10:10:26.852Z",
-    "verifiedAt": "2026-03-19T10:10:47.630Z"
-  }
-]
+[]

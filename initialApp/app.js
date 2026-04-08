@@ -9,7 +9,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var geoRouter = require('./routes/geoTable.js');
 var contentRouter = require('./routes/contentTable.js')
@@ -27,11 +26,17 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Redirect the legacy static entrypoint to the app root so `/index.html`
+// does not expose the older standalone page from `initialApp/public`.
+app.get('/index.html', (_req, res) => {
+  res.redirect(301, '/');
+});
+
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+
 if (hasFrontendBuild) {
-  app.use(express.static(path.join(__dirname, 'public'), { index: false }));
   app.use(express.static(frontendDistPath));
-} else {
-  app.use(express.static(path.join(__dirname, 'public')));
 }
 
 app.use('/api/auth', authRouter);
@@ -40,9 +45,6 @@ app.use('/geoTable', geoRouter);
 app.use('/coordinates', geoRouter)
 app.use('/contentTable', contentRouter);
 app.use('/api/content', contentRouter);
-if (!hasFrontendBuild) {
-  app.use('/', indexRouter);
-}
 
 //Error test
 app.get('/test-error', (req, res) => {
@@ -82,6 +84,44 @@ if (hasFrontendBuild) {
 
     res.sendFile(path.join(frontendDistPath, 'index.html'));
   });
+} else {
+  app.get('*', (req, res, next) => {
+    if (
+      req.path.startsWith('/api/') ||
+      req.path.startsWith('/assets/') ||
+      req.path.startsWith('/users') ||
+      req.path.startsWith('/geoTable') ||
+      req.path.startsWith('/coordinates') ||
+      req.path.startsWith('/contentTable') ||
+      req.path.startsWith('/archiveContent') ||
+      req.path.startsWith('/uploads')
+    ) {
+      return next();
+    }
+
+    res.status(503).type('html').send(`
+      <!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Frontend Build Missing</title>
+          <style>
+            body { font-family: Arial, sans-serif; background: #111827; color: #f9fafb; margin: 0; }
+            main { max-width: 42rem; margin: 10vh auto; padding: 2rem; }
+            code { background: rgba(255,255,255,0.08); padding: 0.15rem 0.35rem; border-radius: 0.35rem; }
+          </style>
+        </head>
+        <body>
+          <main>
+            <h1>Frontend build missing</h1>
+            <p>The current React app has not been built yet, so the legacy placeholder page is disabled.</p>
+            <p>Run <code>npm start</code> from the repo root, or run <code>npm run build</code> before starting the Express server directly.</p>
+          </main>
+        </body>
+      </html>
+    `);
+  });
 }
 
 // Error Handling
@@ -110,7 +150,7 @@ app.use(function (err, req, res, next) {
 if (require.main === module) {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running at http://cs341avr.campus.up.edu`);
+    console.log(`Server running at https://cs341s26upadv.campus.up.edu/`);
     console.log(`Server running at http://localhost:${PORT}`);
   });
 }

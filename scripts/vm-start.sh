@@ -30,7 +30,7 @@ echo "Backend:   http://localhost:${PORT}/"
 if [ -n "$LOCAL_IP" ]; then
   echo "IP URL:    http://${LOCAL_IP}:${PORT}/"
 fi
-echo "VM URL:   http://cs341avr.campus.up.edu"
+echo "VM URL:   https://cs341s26upadv.campus.up.edu/"
 echo "Logs:     $LOG_DIR/frontend-build.log and $LOG_DIR/backend.log"
 
 trap 'kill $BACKEND_PID' INT TERM

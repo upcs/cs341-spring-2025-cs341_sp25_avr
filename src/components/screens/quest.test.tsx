@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import QuestScreen from "@/components/screens/quest";
 
 const addStamp = vi.fn();
@@ -27,38 +27,20 @@ describe("QuestScreen", () => {
     addStamp.mockReset();
   });
 
-  it("renders the manual QR fallback on the main quest screen", async () => {
+  it("renders scan-only guidance on the main quest screen", async () => {
     render(<QuestScreen onNavigate={() => {}} />);
 
-    expect(screen.getByText(/Manual QR fallback/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/https:\/\/scanned.page\/p\/qEK1lt/i)).toBeInTheDocument();
+    expect(screen.getByText(/Scan Required/i)).toBeInTheDocument();
+    expect(screen.getByText(/Badge progress always starts at zero/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Scan QR Code/i })).toBeInTheDocument();
   });
 
-  it("shows an error for an invalid manual QR code", async () => {
+  it("does not render upload or manual redemption controls", async () => {
     render(<QuestScreen onNavigate={() => {}} />);
 
-    fireEvent.change(screen.getByPlaceholderText(/https:\/\/scanned.page\/p\/qEK1lt/i), {
-      target: { value: "https://example.com/not-a-campus-code" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Redeem QR Link/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/not one of the campus quest codes/i)).toBeInTheDocument();
-    });
-  });
-
-  it("unlocks a stamp from a known manual QR value", async () => {
-    render(<QuestScreen onNavigate={() => {}} />);
-
-    fireEvent.change(screen.getByPlaceholderText(/https:\/\/scanned.page\/p\/qEK1lt/i), {
-      target: { value: "https://scanned.page/p/qEK1lt" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Redeem QR Link/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Unlocked Shiley School of Engineering/i)).toBeInTheDocument();
-    });
-
-    expect(addStamp).toHaveBeenCalledWith("shiley");
+    expect(screen.queryByRole("button", { name: /Upload QR Image/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Redeem QR Link/i })).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/https:\/\/scanned.page\/p\/qEK1lt/i)).not.toBeInTheDocument();
+    expect(addStamp).not.toHaveBeenCalled();
   });
 });

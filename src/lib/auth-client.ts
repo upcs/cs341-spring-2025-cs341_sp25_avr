@@ -23,10 +23,42 @@ type LocalUser = {
   resetToken: string | null;
 };
 
-const USERS_KEY = "avr_local_users";
-const SESSION_KEY = "avr_local_session";
+const AUTH_STORAGE_VERSION = "2026-04-07-reset";
+const VERSION_KEY = "avr_local_auth_version";
+const USERS_KEY = `avr_local_users:${AUTH_STORAGE_VERSION}`;
+const SESSION_KEY = `avr_local_session:${AUTH_STORAGE_VERSION}`;
+const LEGACY_AUTH_KEYS = [
+  "avr_local_users",
+  "avr_local_session",
+];
 
 class BackendUnavailableError extends Error {}
+
+function clearLegacyLocalAuthStorage() {
+  try {
+    const currentVersion = window.localStorage.getItem(VERSION_KEY);
+    if (currentVersion === AUTH_STORAGE_VERSION) {
+      return;
+    }
+
+    for (const key of LEGACY_AUTH_KEYS) {
+      window.localStorage.removeItem(key);
+    }
+
+    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+      const key = window.localStorage.key(index);
+      if (key?.startsWith("avr_local_users:") || key?.startsWith("avr_local_session:")) {
+        window.localStorage.removeItem(key);
+      }
+    }
+
+    window.localStorage.setItem(VERSION_KEY, AUTH_STORAGE_VERSION);
+  } catch {
+    // Ignore storage access errors and fall back to empty in-memory behavior.
+  }
+}
+
+clearLegacyLocalAuthStorage();
 
 function normalizeFrontendUrl(urlValue: string | null | undefined) {
   if (!urlValue) return null;
