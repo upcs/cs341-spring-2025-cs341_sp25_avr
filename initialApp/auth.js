@@ -5,6 +5,7 @@ const path = require('path');
 const AUTH_COOKIE_NAME = 'avr_auth';
 const USERS_FILE = path.join(__dirname, 'data', 'users.json');
 const VERIFY_TOKEN_TTL_MS = 1000 * 60 * 60 * 24;
+const RESET_TOKEN_TTL_MS = 1000 * 60 * 30;
 
 function ensureUserStore() {
   const dir = path.dirname(USERS_FILE);
@@ -153,11 +154,67 @@ function verifyUserByToken(token) {
   return { ok: true, user };
 }
 
+function createPasswordReset(email) {
+  const user = findUserByEmail(email);
+  if (!user) {
+    return {
+      ok: true,
+      message: 'If that @up.edu account exists, a password reset link is ready.',
+      user: null,
+    };
+  }
+
+  user.resetToken = crypto.randomBytes(24).toString('hex');
+  user.resetExpiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
+  saveUser(user);
+
+  return {
+    ok: true,
+    message: 'If that @up.edu account exists, a password reset link is ready.',
+    user,
+  };
+}
+
+function resetPasswordByToken(token, password) {
+  if (!token) {
+    return { ok: false, message: 'Reset token is required' };
+  }
+
+  const rawPassword = String(password || '');
+  if (rawPassword.length < 8) {
+    return { ok: false, message: 'Password must be at least 8 characters' };
+  }
+
+  const user = readUsers().find((entry) => entry.resetToken === token) || null;
+  if (!user) {
+    return { ok: false, message: 'Invalid password reset link' };
+  }
+
+  if (!user.resetExpiresAt || new Date(user.resetExpiresAt).getTime() < Date.now()) {
+    return { ok: false, message: 'Password reset link has expired' };
+  }
+
+  user.passwordHash = hashPassword(rawPassword);
+  user.resetToken = null;
+  user.resetExpiresAt = null;
+  user.resetAt = new Date().toISOString();
+  saveUser(user);
+
+  return { ok: true, user };
+}
+
 function buildVerificationUrl(req, token) {
   const forwardedProto = req.headers['x-forwarded-proto'];
   const protocol = forwardedProto || req.protocol || 'http';
   const host = req.get('host');
   return `${protocol}://${host}/?verify=${token}`;
+}
+
+function buildResetUrl(req, token) {
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const protocol = forwardedProto || req.protocol || 'http';
+  const host = req.get('host');
+  return `${protocol}://${host}/?reset=${token}`;
 }
 
 function getAuthenticatedUser(req) {
@@ -183,6 +240,8 @@ module.exports = {
   authenticateUser,
   createUser,
   buildVerificationUrl,
+  buildResetUrl,
+  createPasswordReset,
   getAuthenticatedUser,
   getTokenForUser,
   isAuthenticated,
@@ -190,5 +249,6 @@ module.exports = {
   normalizeEmail,
   readUsers,
   requireAuth,
+  resetPasswordByToken,
   verifyUserByToken,
 };
