@@ -3,6 +3,7 @@ import { MapPin, Info, Trophy, Camera } from "lucide-react";
 import type { Screen } from "@/pages/Index";
 import { useAppStore } from "@/store/appStore";
 import { buildings } from "@/data/geoTable";
+import { useRef } from "react";
 
 // Directs you to photo hub, map or timeline
 
@@ -13,6 +14,10 @@ interface HomeScreenProps {
 const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
   const { stamps } = useAppStore();
   const questBuildings = buildings.slice(0, 12);
+
+  // Performance testing
+  const startTimeRef = useRef(performance.now());
+  const hasLogged = useRef(false);
 
   return (
     <div className="relative min-h-screen flex overflow-hidden">
@@ -90,6 +95,9 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9, duration: 0.6 }}
+
+          // Performance testing
+          onAnimationComplete={logPerformance}
           className="flex flex-col gap-3 w-full max-w-xs"
         >
           <button
