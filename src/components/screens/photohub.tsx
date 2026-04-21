@@ -87,7 +87,9 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
     reader.readAsDataURL(file);
   };
 
+
   const handleUpload = () => {
+    // Don't upload if no image was selected
     if (!previewImage) return;
     addPhoto({
       buildingId: uploadBuilding,
@@ -99,6 +101,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
     setUploadCaption("");
   };
 
+  // Handles comment/comment sorting
   const handleComment = (photoId: string) => {
     if (!commentText.trim()) return;
     addComment(photoId, commentText.trim());
