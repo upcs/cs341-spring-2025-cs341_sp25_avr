@@ -301,6 +301,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
     }
   };
 
+  // Handles comment/comment sorting
   const handleComment = (photoId: string) => {
     if (!commentText.trim()) return;
     setPhotos((current) =>

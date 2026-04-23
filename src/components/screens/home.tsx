@@ -8,6 +8,7 @@ import WallyStamp from "@/components/wally-stamp";
 import { recordElapsedMetric } from "@/lib/performance";
 import tourVideo from "../../../initialApp/public/images/Tour_video.mp4";
 
+// Directs you to photo hub, map or timeline
 
 interface HomeScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -107,6 +108,10 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
       setBackgroundVideoError(true);
     }
   };
+
+  // Performance testing
+  const startTimeRef = useRef(performance.now());
+  const hasLogged = useRef(false);
 
   return (
     <div className="relative flex min-h-screen min-h-[100dvh] w-full overflow-hidden">
@@ -270,6 +275,9 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9, duration: 0.6 }}
+
+          // Performance testing
+          onAnimationComplete={logPerformance}
           className="flex flex-col gap-3 w-full max-w-xs"
         >
           <button

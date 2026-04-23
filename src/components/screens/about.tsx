@@ -2,6 +2,10 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Mail } from "lucide-react";
 import type { Screen } from "@/pages/Index";
 
+// This is the home page set up/main screen
+
+// It directs you to all of the other pages
+
 interface AboutScreenProps {
   onNavigate: (screen: Screen) => void;
 }
