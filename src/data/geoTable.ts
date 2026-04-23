@@ -68,7 +68,7 @@ export const buildings: Building[] = [
     description: "Dedicated in 1986, the Chapel of Christ the Teacher is the spiritual heart of campus. Designed by architect Pietro Belluschi, it features stunning stained glass windows and a distinctive copper roof. The chapel hosts daily Mass, weddings, and university celebrations."
   },
   {
-    id: "commons", name: "The Commons (Bauccio Commons)", lat: 45.570989, lng: -122.727184, radius: 50,
+    id: "commons", name: "Bauccio Commons", lat: 45.570989, lng: -122.727184, radius: 50,
     year: 2014, category: "campus-life",
     description: "Bauccio Commons is the university's main dining facility, named after Pat Bauccio, founder of Bon Appétit Management Company. Opened in 2014, it replaced the old Commons and features farm-to-table dining, multiple food stations, and sustainable design with LEED certification."
   },
@@ -88,7 +88,7 @@ export const buildings: Building[] = [
     description: "The Shiley-Marcos Center for Design & Innovation opened in January 2024 as UP's newest building. This cutting-edge facility blends art and science with makerspaces, robotics labs, design studios, and interdisciplinary collaboration spaces. It supports engineering, arts, and entrepreneurship programs."
   },
   {
-    id: "fields", name: "Athletic Fields", lat: 45.575874, lng: -122.731994, radius: 60,
+    id: "fields", name: "Fields & Schoenfeld", lat: 45.575874, lng: -122.731994, radius: 60,
     category: "athletic",
     description: "The university's outdoor athletic and recreation fields used for intramural sports, club teams, and physical education classes. Located on the north end of campus with views of the surrounding Portland neighborhood."
   },
