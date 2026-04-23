@@ -258,6 +258,22 @@ function handlePhotoCapture(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
+  // File type check
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type)) {
+    alert("Only JPEG, PNG, or WebP images are allowed.");
+    event.target.value = "";
+    return;
+  }
+
+  // File size check (e.g. 5MB max)
+  const maxSizeBytes = 5 * 1024 * 1024;
+  if (file.size > maxSizeBytes) {
+    alert("Image must be under 5MB.");
+    event.target.value = "";
+    return;
+  }
+
   if (!currentBuilding && typeof globalThis.currentBuilding !== "undefined") {
     currentBuilding = globalThis.currentBuilding;
   }
@@ -270,6 +286,7 @@ function handlePhotoCapture(event) {
     }
     return;
   }
+  
 
   // one photo per building
   if (capturedPhotos[currentBuilding]) {
