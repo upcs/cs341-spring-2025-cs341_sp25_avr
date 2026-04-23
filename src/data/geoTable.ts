@@ -1,16 +1,8 @@
 import archiveContentSql from "../../initialApp/public/archiveContent/sqlScripts/create_content_table.sql?raw";
+import { buildings } from "./buildings";
 
-// Building data from the University of Portland campus
-export interface Building {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  radius: number;
-  year?: number;
-  description?: string;
-  category?: "academic" | "residence" | "athletic" | "campus-life" | "admin";
-}
+export { buildings, CAMPUS_CENTER, DEFAULT_ZOOM } from "./buildings";
+export type { Building } from "./buildings";
 
 export interface BuildingContent {
   buildingId: string;
@@ -29,11 +21,11 @@ export interface ArchivePhoto {
 }
 
 const archiveAssetModules = {
-  ...import.meta.glob("../../initialApp/public/archiveContent/**/*.{jpg,JPG,jpeg,png}", {
+  ...import.meta.glob("../../initialApp/public/archiveContent/**/*.{jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,webp,WEBP,avif,AVIF,bmp,BMP,tif,TIF,tiff,TIFF,heic,HEIC,heif,HEIF}", {
     eager: true,
     import: "default",
   }),
-  ...import.meta.glob("../../initialApp/public/images/**/*.{jpg,JPG,jpeg,png}", {
+  ...import.meta.glob("../../initialApp/public/images/**/*.{jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,webp,WEBP,avif,AVIF,bmp,BMP,tif,TIF,tiff,TIFF,heic,HEIC,heif,HEIF}", {
     eager: true,
     import: "default",
   }),
@@ -46,7 +38,7 @@ const archiveAssetMap = Object.fromEntries(
   ])
 );
 
-const resolveStaticImage = (path: string) => archiveAssetMap[path] || path;
+export const resolveStaticImage = (path: string) => archiveAssetMap[path] || path;
 
 function normalizeArchiveImagePathKey(path: string) {
   return path.replace(/\\/g, "/").trim().toLowerCase();
@@ -89,89 +81,6 @@ function resolveArchiveImage(path: string) {
   return isKnownBrokenArchiveImage(path) ? null : path;
 }
 
-export const buildings: Building[] = [
-  {
-    id: "shiley", name: "Shiley School of Engineering", lat: 45.571874, lng: -122.727942, radius: 45,
-    year: 1948, category: "academic",
-    description: "Home to the Donald P. Shiley School of Engineering. Named after inventor and philanthropist Donald Shiley, the school offers programs in civil, electrical, mechanical, and computer science engineering. The building features modern labs and collaborative learning spaces."
-  },
-  {
-    id: "mago", name: "Mago Hunt Center", lat: 45.57331, lng: -122.72814, radius: 30,
-    year: 2007, category: "campus-life",
-    description: "The Mago Hunt Center for Nursing and Health Sciences serves as the hub for UP's acclaimed nursing program. Named after benefactors, it contains simulation labs, clinical practice rooms, and state-of-the-art healthcare training equipment."
-  },
-  {
-    id: "merlo", name: "Merlo Field", lat: 45.574692, lng: -122.727368, radius: 60,
-    year: 2002, category: "athletic",
-    description: "Merlo Field is a 4,892-seat soccer stadium and the home of the UP Pilots soccer teams. Named after Harry A. Merlo, a Portland lumber executive, it has hosted multiple NCAA tournament matches and is considered one of the best college soccer venues in the nation."
-  },
-  {
-    id: "chapel", name: "Chapel of Christ the Teacher", lat: 45.571187, lng: -122.726441, radius: 30,
-    year: 1986, category: "campus-life",
-    description: "Dedicated in 1986, the Chapel of Christ the Teacher is the spiritual heart of campus. Designed by architect Pietro Belluschi, it features stunning stained glass windows and a distinctive copper roof. The chapel hosts daily Mass, weddings, and university celebrations."
-  },
-  {
-    id: "commons", name: "The Commons (Bauccio Commons)", lat: 45.570989, lng: -122.727184, radius: 50,
-    year: 2014, category: "campus-life",
-    description: "Bauccio Commons is the university's main dining facility, named after Pat Bauccio, founder of Bon Appétit Management Company. Opened in 2014, it replaced the old Commons and features farm-to-table dining, multiple food stations, and sustainable design with LEED certification."
-  },
-  {
-    id: "waldschmidt", name: "Waldschmidt Hall", lat: 45.571798, lng: -122.724533, radius: 30,
-    year: 1891, category: "admin",
-    description: "The oldest building on campus, originally built in 1891 as 'West Hall' for the short-lived Portland University. Purchased in 1901 by Archbishop Christie for Columbia University (later renamed UP in 1935). It serves as the main administrative building and is a campus landmark listed on the National Register of Historic Places."
-  },
-  {
-    id: "db", name: "Dundon-Berchtold Hall", lat: 45.572485, lng: -122.724856, radius: 50,
-    year: 2019, category: "academic",
-    description: "Opened in September 2019, Dundon-Berchtold Hall is a transformational 52,000 sq ft academic center housing the College of Arts and Sciences. It features flexible classrooms, a 200-seat auditorium, faculty offices, and collaborative study spaces. The $28 million building was named after major donors."
-  },
-  {
-    id: "shiley-marcos", name: "Shiley-Marcos Center", lat: 45.571907, lng: -122.729026, radius: 30,
-    year: 2024, category: "academic",
-    description: "The Shiley-Marcos Center for Design & Innovation opened in January 2024 as UP's newest building. This cutting-edge facility blends art and science with makerspaces, robotics labs, design studios, and interdisciplinary collaboration spaces. It supports engineering, arts, and entrepreneurship programs."
-  },
-  {
-    id: "fields", name: "Athletic Fields", lat: 45.575874, lng: -122.731994, radius: 60,
-    category: "athletic",
-    description: "The university's outdoor athletic and recreation fields used for intramural sports, club teams, and physical education classes. Located on the north end of campus with views of the surrounding Portland neighborhood."
-  },
-  {
-    id: "beauchamp", name: "Beauchamp Recreation Center", lat: 45.575249, lng: -122.730305, radius: 60,
-    year: 1997, category: "athletic",
-    description: "The Beauchamp Recreation & Wellness Center provides fitness and recreation facilities for the UP community. It features a gym, weight room, indoor track, swimming pool, and group fitness studios. Named after a generous university benefactor."
-  },
-  {
-    id: "chiles", name: "Chiles Center", lat: 45.575107, lng: -122.728492, radius: 60,
-    year: 1984, category: "athletic",
-    description: "The Earle A. and Virginia H. Chiles Center is a 4,852-seat multi-purpose arena. Dedicated on October 20, 1984, it hosts Pilots basketball, volleyball, concerts, and graduation ceremonies. Its distinctive dome roof is a campus landmark visible from across North Portland."
-  },
-  {
-    id: "baseball", name: "Joe Etzel Field", lat: 45.573995, lng: -122.729502, radius: 80,
-    year: 2012, category: "athletic",
-    description: "Joe Etzel Field is the home of UP Pilots baseball. Named after legendary coach Joe Etzel who led the program for over 30 years, the field features a modern grandstand, press box, batting cages, and artificial turf. It underwent major renovations in 2012."
-  },
-  {
-    id: "library", name: "Clark Library", lat: 45.572786, lng: -122.726733, radius: 40,
-    year: 1958, category: "academic",
-    description: "The Wilson W. Clark Memorial Library opened in 1958 and serves as the academic research hub of campus. It houses over 300,000 volumes, special collections, digital archives, and quiet study spaces. The library was significantly expanded in 1985 and digitized its archives in 2010."
-  },
-  {
-    id: "phouse", name: "Pilot House", lat: 45.573091, lng: -122.725589, radius: 30,
-    year: 2012, category: "campus-life",
-    description: "The Pilot House is a student gathering space offering food, coffee, and a casual hangout atmosphere. Renovated and modernized, it serves as an alternative dining option and social hub with game areas and late-night hours popular with students."
-  },
-  {
-    id: "franz", name: "Franz Hall", lat: 45.572661, lng: -122.727712, radius: 35,
-    year: 1961, category: "academic",
-    description: "Franz Hall houses the sciences, including biology, chemistry, and environmental science departments. Built in 1961 and named after a university benefactor, it contains research laboratories, lecture halls, and a greenhouse. The building was fully modernized in 2015 with cutting-edge lab facilities."
-  },
-  {
-    id: "buckley", name: "Buckley Center", lat: 45.572048, lng: -122.726039, radius: 55,
-    year: 1960, category: "academic",
-    description: "Buckley Center is a central academic and events building featuring classrooms, the Buckley Center Auditorium, faculty offices, and student services. Built in 1960, it hosts lectures, performances, film screenings, and university events. The auditorium was renovated in 1999."
-  },
-];
-
 const normalizeBuildingKey = (value: string) =>
   value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
@@ -194,6 +103,17 @@ function normalizeArchiveImagePath(rawPath: string) {
   return imagePath;
 }
 
+export function resolveDisplayImagePath(path: string | null | undefined) {
+  if (!path) return null;
+  if (/^(data:|blob:|https?:\/\/)/i.test(path)) {
+    return path;
+  }
+
+  const normalizedPath = normalizeArchiveImagePath(path);
+  const archiveImage = resolveArchiveImage(normalizedPath);
+  return archiveImage ? resolveStaticImage(archiveImage) : null;
+}
+
 function parseArchiveSqlRows() {
   const tuplePattern = /\('([^']*(?:''[^']*)*)',\s*(\d+),\s*'([^']*(?:''[^']*)*)',\s*'([^']*(?:''[^']*)*)'\)/g;
   const parsedRows: Array<BuildingContent> = [];
@@ -209,14 +129,14 @@ function parseArchiveSqlRows() {
     const year = Number(rawYear);
     const description = rawDescription.replace(/''/g, "'");
     const imagePath = normalizeArchiveImagePath(rawImagePath);
-    const resolvedImageUrl = resolveArchiveImage(imagePath);
+    const resolvedImageUrl = resolveDisplayImagePath(imagePath);
     const buildingName = buildingNameLookup.get(buildingId) ?? rawBuildingName.replace(/''/g, "'");
 
     parsedRows.push({
       buildingId,
       year,
       description,
-      imagePath: resolvedImageUrl ? imagePath : undefined,
+      imagePath: resolvedImageUrl ?? undefined,
     });
 
     if (resolvedImageUrl) {
@@ -427,9 +347,16 @@ export const archivePhotos: ArchivePhoto[] = (() => {
   const merged = new Map<string, ArchivePhoto>();
 
   const pushPhoto = (photo: ArchivePhoto) => {
+    const imageUrl = resolveDisplayImagePath(photo.imageUrl);
+    if (!imageUrl) {
+      return;
+    }
     const key = `${photo.buildingId}:${photo.year}`;
     if (!merged.has(key)) {
-      merged.set(key, photo);
+      merged.set(key, {
+        ...photo,
+        imageUrl,
+      });
     }
   };
 
@@ -438,9 +365,7 @@ export const archivePhotos: ArchivePhoto[] = (() => {
   }
 
   for (const photo of curatedArchivePhotos) {
-    if (photo.imageUrl) {
-      pushPhoto(photo);
-    }
+    pushPhoto(photo);
   }
 
   return Array.from(merged.values()).sort((a, b) => {
@@ -450,7 +375,3 @@ export const archivePhotos: ArchivePhoto[] = (() => {
     return a.buildingId.localeCompare(b.buildingId);
   });
 })();
-
-// Campus center coordinates
-export const CAMPUS_CENTER = { lat: 45.5730, lng: -122.7275 };
-export const DEFAULT_ZOOM = 16;

@@ -6,6 +6,7 @@ const AUTH_COOKIE_NAME = 'avr_auth';
 const USERS_FILE = path.join(__dirname, 'data', 'users.json');
 const VERIFY_TOKEN_TTL_MS = 1000 * 60 * 60 * 24;
 const RESET_TOKEN_TTL_MS = 1000 * 60 * 30;
+const DEFAULT_ADMIN_EMAILS = ['admin@up.edu'];
 
 function ensureUserStore() {
   const dir = path.dirname(USERS_FILE);
@@ -45,6 +46,12 @@ function readUsers() {
         changed = true;
       }
 
+      const normalizedRole = resolveUserRole(normalizedUser.email, normalizedUser.role);
+      if (normalizedUser.role !== normalizedRole) {
+        normalizedUser.role = normalizedRole;
+        changed = true;
+      }
+
       return normalizedUser;
     });
 
@@ -70,6 +77,28 @@ function saveUser(updatedUser) {
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
+}
+
+function getConfiguredAdminEmails() {
+  const configured = String(process.env.AVR_ADMIN_EMAILS || '')
+    .split(',')
+    .map((entry) => normalizeEmail(entry))
+    .filter(Boolean);
+
+  return new Set([...DEFAULT_ADMIN_EMAILS, ...configured].map((entry) => normalizeEmail(entry)));
+}
+
+function resolveUserRole(email, role) {
+  const normalizedRole = String(role || '').trim().toLowerCase();
+  if (normalizedRole === 'admin') {
+    return 'admin';
+  }
+
+  return getConfiguredAdminEmails().has(normalizeEmail(email)) ? 'admin' : 'member';
+}
+
+function isAdminUser(user) {
+  return resolveUserRole(user && user.email, user && user.role) === 'admin';
 }
 
 function isValidUpEmail(email) {
@@ -131,6 +160,7 @@ function createUser({ name, email, password }) {
     id: crypto.randomUUID(),
     name: trimmedName,
     email: normalizedEmail,
+    role: resolveUserRole(normalizedEmail),
     passwordHash: hashPassword(rawPassword),
     verified: false,
     verificationToken: crypto.randomBytes(24).toString('hex'),
@@ -286,6 +316,22 @@ function requireAuth(req, res, next) {
   res.status(401).json({ message: 'Authentication required' });
 }
 
+function requireAdmin(req, res, next) {
+  const user = getAuthenticatedUser(req);
+  if (!user) {
+    res.status(401).json({ message: 'Authentication required' });
+    return;
+  }
+
+  if (!isAdminUser(user)) {
+    res.status(403).json({ message: 'Admin access required' });
+    return;
+  }
+
+  req.authUser = user;
+  next();
+}
+
 module.exports = {
   AUTH_COOKIE_NAME,
   authenticateUser,
@@ -295,12 +341,15 @@ module.exports = {
   createPasswordReset,
   getAuthenticatedUser,
   getTokenForUser,
+  isAdminUser,
   isAuthenticated,
   isValidUpEmail,
   normalizeEmail,
   readUsers,
+  requireAdmin,
   refreshVerificationToken,
   requireAuth,
+  resolveUserRole,
   resetPasswordByToken,
   verifyUserByToken,
 };

@@ -8,10 +8,14 @@ const mockFetch = vi.fn();
 vi.mock("@/data/geoTable", () => ({
   buildings: [
     { id: "chapel", name: "Chapel of Christ the Teacher", lat: 0, lng: 0, radius: 10 },
+    { id: "fields", name: "Athletic Fields", lat: 0, lng: 0, radius: 10 },
   ],
   buildingContent: {
     chapel: [
       { buildingId: "chapel", year: 1986, description: "Chapel history" },
+    ],
+    fields: [
+      { buildingId: "fields", year: 2009, description: "Fields history" },
     ],
   },
   archivePhotos: [
@@ -24,6 +28,7 @@ vi.mock("@/data/geoTable", () => ({
       imageUrl: "/archiveContent/chapel/1986.jpg",
     },
   ],
+  resolveDisplayImagePath: (path: string | null | undefined) => path ?? null,
 }));
 
 vi.mock("@/store/appStore", () => ({
@@ -96,7 +101,7 @@ beforeEach(() => {
 describe("TimelineScreen", () => {
   it("renders sample history and static archive photos when no building content exists", () => {
     render(
-      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
         <TimelineScreen buildingId="unknown" onNavigate={() => {}} />
       </AuthProvider>
     );
@@ -109,7 +114,7 @@ describe("TimelineScreen", () => {
 
   it("renders backend timeline entries when they are available", async () => {
     render(
-      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
         <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
       </AuthProvider>
     );
@@ -142,7 +147,7 @@ describe("TimelineScreen", () => {
     });
 
     render(
-      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
         <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
       </AuthProvider>
     );
@@ -177,7 +182,7 @@ describe("TimelineScreen", () => {
     });
 
     render(
-      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
         <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
       </AuthProvider>
     );
@@ -212,7 +217,7 @@ describe("TimelineScreen", () => {
     });
 
     render(
-      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
         <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
       </AuthProvider>
     );
@@ -223,6 +228,42 @@ describe("TimelineScreen", () => {
 
     expect(screen.getByText(/Archive image from this year|Archive image near/i)).toBeInTheDocument();
     expect(screen.getByText(/Photo year 1986/i)).toBeInTheDocument();
+  });
+
+  it("always shows an image when a timeline year has no archive photo", async () => {
+    mockFetch.mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/api/content/by-building")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      }
+
+      if (url.includes("/api/content/photos?")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } })
+        );
+      }
+
+      return Promise.resolve(new Response("Not found", { status: 404 }));
+    });
+
+    render(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
+        <TimelineScreen buildingId="fields" onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByAltText(/Athletic Fields campus view/i)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/No building photo for this moment/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/does not have a usable building photo yet/i)).not.toBeInTheDocument();
   });
 
   it("resolves a building when the timeline screen receives the building name instead of the id", async () => {
@@ -248,7 +289,7 @@ describe("TimelineScreen", () => {
     });
 
     render(
-      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
         <TimelineScreen buildingId="Chapel of Christ the Teacher" onNavigate={() => {}} />
       </AuthProvider>
     );
@@ -262,7 +303,7 @@ describe("TimelineScreen", () => {
 
   it("submits a new timeline entry for authenticated users", async () => {
     render(
-      <AuthProvider value={{ authenticated: true, readOnly: false, displayName: "Tester" }}>
+      <AuthProvider value={{ authenticated: true, readOnly: false, displayName: "Tester", userKey: "user:tester@up.edu" }}>
         <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
       </AuthProvider>
     );

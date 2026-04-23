@@ -4,7 +4,7 @@ import QuestScreen from "@/components/screens/quest";
 
 const addStamp = vi.fn();
 
-vi.mock("@/data/geoTable", () => ({
+vi.mock("@/data/buildings", () => ({
   buildings: [
     { id: "shiley", name: "Shiley School of Engineering" },
     { id: "chapel", name: "Chapel of Christ the Teacher" },

@@ -1,159 +1,141 @@
 [![Codecov Coverage](https://img.shields.io/codecov/c/github/upcs/cs341-spring-2025-cs341_sp25_avr/main.svg?style=flat-square)](https://codecov.io/gh/upcs/cs341-spring-2025-cs341_sp25_avr)
 
-# Campus History Web Application
+# Campus History Web App
 
-The Campus History Web Application is an interactive archive for the University of Portland. Users can browse location history, archive photos, and a campus stamp quest from a mobile-friendly React app. The production runtime is a Vite-built frontend served by the Express app in `initialApp/`.
+This README is the **Sprint 5 / Alpha release report** for the University of Portland 125th Anniversary Campus History web app.
 
-Website: [http://cs341avr.campus.up.edu/](http://cs341avr.campus.up.edu/)
+Live site:
 
-## Sprint 4 Release Candidate Summary
+- `https://cs341s26upadv.campus.up.edu/`
 
-Completed release-candidate work:
-- Timeline reads are now backend-first through `/api/content/by-building`, with bundled archive entries used only as fallback when the backend is unavailable.
-- Timeline create, update, and delete continue through the authenticated `/api/content/timeline` routes.
-- The unsafe generic SQL passthrough route was disabled and now returns `410 Gone`.
-- Guest mode, authenticated mode, photo hub, and quest flows now have expanded UI tests.
-- The quest screen now exposes manual QR fallback errors on the main screen instead of only inside the camera modal.
-- A lightweight monetization preview was added through the "Support The Archive" CTA and sponsor tiers.
-- Performance instrumentation was added for home render and timeline render events.
-- Sprint 4 planning and retrospective docs live in `.plans/`.
+Users can watch the home page video, open the campus map, read building timelines, browse and submit photos, use the campus quest, continue as a named guest, or sign in with an `@up.edu` account.
 
-Key product areas:
-- Home
-- Map / building selection
-- Timeline
-- Photo Hub
-- Campus Stamp Quest
-- Login, signup, guest mode, and password reset flows
+## How To Run
 
-## Run Locally
-
-Install dependencies:
+Install packages:
 
 ```bash
 npm install
 npm --prefix initialApp install
 ```
 
-Development modes:
+Run frontend and backend together:
 
 ```bash
-npm run dev
 npm run dev:full
 ```
 
-- `npm run dev` starts the Vite frontend on `http://localhost:3000`
-- `npm run dev:full` starts the frontend on `3000` and the Express backend on `4000`
-
-Production-style local run:
+Run the production-like Express build:
 
 ```bash
 npm start
 ```
 
-`npm start` builds the frontend and serves it from the Express server on `http://localhost:4000`.
-
-## Deployment
-
-VM deployment entrypoint:
+Run checks:
 
 ```bash
-sudo bash deploy/setup-vm.sh
-```
-
-What it configures:
-- installs the `deploy/cs341-avr.service` systemd unit
-- installs the `deploy/cs341avr.campus.up.edu.nginx.conf` Nginx site
-- restarts the app service
-- reloads Nginx
-
-Useful commands:
-
-```bash
-systemctl status cs341-avr
-systemctl status nginx
-npm start
-```
-
-## Testing And Coverage
-
-Automated checks run in this repo snapshot:
-
-```bash
-npm test
-npm run test:coverage
 npm run build
+npm run coverage
 ```
 
-Results from this implementation pass:
-- `npm test`: 6 test files, 16 tests passed
-- `npm run test:coverage`: passed
-- `npm run build`: passed
-- `npm --prefix initialApp test`: passed
-- `npm --prefix initialApp run test:strict`: passed
+## Sprint 5 Performance
 
-Story-focused coverage improved for the key Sprint 4 screens:
-- `src/components/LoginGate.tsx`: 75.08% statements
-- `src/components/screens/geo.tsx`: 56.31% statements
-- `src/components/screens/timeline.tsx`: 70.30% statements
-- `src/components/screens/photohub.tsx`: 71.11% statements
-- `src/components/screens/quest.tsx`: 59.73% statements
+Measurement method: local production build served by Express on `http://localhost:4000/`. The HTTP timing numbers are `curl` transfer timings on localhost, so they are best for comparing this sprint's before/after asset cost, not for predicting a real user's network time.
 
-Sprint 4 story tests materially improved coverage of the release-critical flows that were weak or missing before this pass: guest auth, manual building selection, backend timeline loading/fallback, authenticated timeline creation, photo hub browsing/filtering/upload entry, and quest manual QR fallback. Current total frontend statement coverage is still low at 18.83% because the project includes many generated/shared UI primitives and untouched screens that are not yet covered by story tests.
+| Measurement | Before Sprint 5 | Final Sprint 5 |
+| --- | ---: | ---: |
+| Production build time | 2.39 s | 2.11 s |
+| Main entry JS | 899,338 bytes | 473,719 bytes |
+| Main entry JS gzip | 272.89 kB | 152.65 kB |
+| Main CSS | 85,678 bytes | 70,642 bytes |
+| Main CSS gzip | 18.65 kB | 12.17 kB |
+| HTML transfer | 0.007802 s | 0.006891 s |
+| Main JS transfer | 0.005033 s | 0.003620 s |
+| Main CSS transfer | 0.001459 s | 0.002306 s |
+| HTML + main JS + main CSS transfer | 0.014294 s | 0.012817 s |
+
+Runtime improvement made: the app now lazy-loads non-home screens and separates lightweight building coordinates from heavy archive/timeline image metadata. This removed the Vite large-chunk warning and reduced the blocking main JS by 425,619 bytes, about 47.3%.
 
 ## Browser Compatibility
 
-Target browsers for Sprint 4 sign-off:
+Compatibility work completed:
 
-| Browser | Target |
-|---|---|
-| Chrome (desktop) | Supported |
-| Firefox (desktop) | Supported |
-| Safari (desktop) | Supported |
-| Mobile Safari / Chrome Android | Supported |
+- The map now uses a graceful geolocation denial path with a manual building chooser, so Firefox/Safari users who block location can still reach building timelines.
+- The home video has an autoplay fallback button for mobile Safari and other browsers that require a user gesture before video playback.
+- Lazy-loaded screens use a loading fallback instead of showing a blank screen on slower browsers.
+- `requestIdleCallback` preloading has a `setTimeout` fallback for browsers without that API.
+- API failures in timeline/photo flows show user-facing fallback content or error messages instead of crashing.
 
-This shell session implemented the browser-check checklist and automated UI tests, but it did not perform native manual browser sign-off. Final manual verification steps are listed in `.plans/03-sprint4-release-checklist.md`.
+Known issues:
 
-## Performance Measurement
+- OpenStreetMap tiles require network access; the map shell still loads, but map imagery may be blank offline.
+- Camera-based quest scanning still depends on browser camera support and user permission.
+- The background video may need a tap on stricter mobile autoplay settings.
+- Manual browser smoke testing should still be repeated on Chrome, Firefox, Safari, and one mobile browser immediately before final submission.
 
-Instrumentation is now recorded through `src/lib/performance.ts`.
+## Test Coverage
 
-Tracked metrics:
-- `home-screen-initial-render`
-- `timeline-screen-render`
+Final automated coverage from `npm run coverage`:
 
-Where to read them:
-- open the app in a browser
-- use DevTools console during development, or inspect `window.__avrMetrics`
-- the metric buffer stores the most recent 20 measurements
+| Area | Tests | Statements | Branches | Functions | Lines |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Frontend Vitest | 42 | 90.80% | 76.53% | 91.76% | 90.80% |
+| Backend Jest | 89 | 93.26% | 81.52% | 94.80% | 93.31% |
 
-This implementation added the measurement hooks but did not fabricate browser timing numbers from a non-browser shell environment. Capture the final release timing values on the target device/browser mix before submission and record them in the sign-off checklist.
+Quality of testing beyond the number:
 
-## Security Notes
+- Story-style UI tests cover home navigation, guest/auth flows, map geolocation denial, timeline fallback content, photo hub filtering/upload/moderation states, quest scan-only behavior, and not-found routing.
+- Data tests exercise archive SQL parsing and broken-image filtering instead of only testing rendered components with mocks.
+- Security-focused tests verify local fallback passwords are not stored as plaintext and photo uploads enforce size/type protection.
+- Backend route tests cover successful responses, validation failures, authentication/authorization failures, database failures, and graceful JSON error responses.
 
-- Production auth is the backend session/cookie flow in `initialApp/auth.js` and `/api/auth/*`.
-- Browser-local auth fallback still exists so the frontend can run when the backend is unavailable, but that mode is for demo/offline resilience and is not a production security boundary.
-- Timeline and photo mutations remain behind `requireAuth`.
-- The old generic SQL execution endpoint in `initialApp/routes/contentTable.js` is disabled.
-- Uploaded files are stored under `initialApp/public/uploads`.
+Story acceptance tests increase the computed coverage by 0% when they are manual only. If the remaining manual acceptance scripts were automated, estimated frontend coverage would likely increase another 3-5 percentage points because they would exercise more `LoginGate`, photo moderation, and timeline edit branches.
 
-## Monetization
+## Quality Attributes
 
-Sprint 4 includes a minimal monetization preview rather than a live payment integration:
-- a "Support The Archive" call to action on the home screen
-- sponsor/support tiers on the about screen
+Performance: reduced the landing-page blocking JS payload and removed the large-chunk build warning by code-splitting screens and moving shared building data into a lightweight module.
 
-This satisfies the release-candidate requirement to show a monetization direction without introducing payment-processing scope late in the project.
+Reliability and graceful error handling: the app now has explicit loading states for lazy screens, better map fallback behavior, bundled timeline fallback content when the live archive is unavailable, and JSON API errors for API clients.
 
-## Known Issues
+Aesthetics and usability: the home page keeps the video-forward visual design while avoiding blank states; users who deny location or video autoplay receive a clear next action.
 
-- If the backend is offline, timeline reads fall back to bundled archive notes. This keeps the app usable, but backend data remains the source of truth in production.
-- Browser-local auth fallback can authenticate demo users without the backend. That is intentional for offline/demo mode only.
-- The production frontend bundle is large. Current build output includes an `854.95 kB` minified JS chunk, and Vite warns that code-splitting should be improved.
-- Cross-browser manual sign-off still needs to be completed on real browsers before final submission.
+Maintainability: heavy archive data is isolated from common building coordinates, so future feature screens can import the light data without accidentally pulling the full archive manifest.
 
-## Sprint 4 Docs
+## Security
 
-- Requirements map: `.plans/01-sprint4-requirements-map.md`
-- Retrospective: `.plans/02-sprint4-retrospective.md`
-- Release sign-off checklist: `.plans/03-sprint4-release-checklist.md`
+Security work completed this sprint:
+
+- Added Express security headers: `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, production/HTTPS `Strict-Transport-Security`, and disabled `X-Powered-By`.
+- Restricted photo uploads to JPEG, PNG, GIF, and WebP MIME types with a 5 MB server-side limit and JSON error responses for rejected uploads.
+- Kept uploaded filenames sanitized and timestamp-prefixed.
+- Changed frontend offline fallback auth from plaintext localStorage passwords to salted PBKDF2-SHA256 hashes. Backend auth already uses `scrypt` password hashes and `HttpOnly` cookies.
+- Confirmed `.env`, dev certificates, generated coverage, uploads, and SSL key files are ignored by `.gitignore`.
+
+Security references:
+
+- OWASP HTTP Security Response Headers Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html
+- OWASP Content Security Policy Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html
+- OWASP HTML5 Security Cheat Sheet, Local Storage guidance: https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html
+- OWASP Input Validation Cheat Sheet, Upload Verification: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+
+## Bug Fixes And Testing Follow-Through
+
+Peer/client testing follow-through completed in this codebase:
+
+- Fixed the main-page performance issue by reducing the initial bundle and documenting before/final timing.
+- Fixed geolocation denial dead-end by adding manual building selection.
+- Fixed video autoplay dead-end by adding a tap-to-play fallback.
+- Fixed photo upload risk by enforcing image type and size limits.
+- Fixed local fallback auth risk by removing plaintext password storage.
+- Fixed coverage failure on real archive data by adding direct data/parser coverage.
+- Fixed graceful error behavior for API routes by returning JSON for API errors.
+
+GitHub issue numbers are not available in this local checkout. Before final submission, close the matching GitHub issues and link those issue numbers here if the team has a separate issue list.
+
+## Sprint 5 Reflection
+
+What went well: the team had enough existing feature code to focus this sprint on release quality: tests, security, performance, and graceful fallbacks. The coverage pipeline now passes for both frontend and backend.
+
+What went wrong: the app still had heavy data coupling, so the home page was paying for archive/timeline assets before users needed them. Browser testing evidence is also not as complete as the code-level compatibility work.
+
+What to do differently: split heavy data/features earlier, keep README release evidence current during the sprint instead of at the end, and turn manual story acceptance tests into automated browser tests sooner.

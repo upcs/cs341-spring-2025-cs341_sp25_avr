@@ -17,10 +17,44 @@ var authRouter = require('./routes/auth');
 var app = express();
 const frontendDistPath = path.join(__dirname, '..', 'dist');
 const hasFrontendBuild = fs.existsSync(path.join(frontendDistPath, 'index.html'));
+const isProduction = process.env.NODE_ENV === 'production';
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+
+app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+  const isHttpsRequest = req.secure || req.headers['x-forwarded-proto'] === 'https';
+
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https://*.tile.openstreetmap.org",
+      "media-src 'self'",
+      "connect-src 'self'",
+    ].join('; ')
+  );
+
+  if (isProduction || isHttpsRequest) {
+    res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  }
+
+  next();
+});
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -132,13 +166,23 @@ app.use(function (req, res, next) {
 // error handler
 app.use(function (err, req, res, next) {
 
-  console.error(err.stack);
+  if (err.status !== 404) {
+    console.error(err.stack || err);
+  }
   // set locals, only providing error in development
   // res.locals.message = err.message;
   // res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
-  res.status(err.status || 500);
+  const status = err.status || 500;
+  res.status(status);
+  if (req.path.startsWith('/api/') || req.xhr || req.accepts('json') && !req.accepts('html')) {
+    res.json({
+      message: status === 404 ? 'Resource not found' : err.message || 'Unexpected server error',
+    });
+    return;
+  }
+
   res.render('error', {
 
     message: err.message || 'Error: Unexpected',

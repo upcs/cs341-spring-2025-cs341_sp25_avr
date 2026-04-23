@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, QrCode, X } from "lucide-react";
 import jsQR from "jsqr";
-import { buildings } from "@/data/geoTable";
+import { buildings } from "@/data/buildings";
 import { useAppStore } from "@/store/appStore";
 import type { Screen } from "@/pages/Index";
 import WallyStamp from "@/components/wally-stamp";

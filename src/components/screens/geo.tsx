@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Menu, Home, HelpCircle } from "lucide-react";
-import { buildings, CAMPUS_CENTER, DEFAULT_ZOOM } from "@/data/geoTable";
+import { buildings, CAMPUS_CENTER, DEFAULT_ZOOM } from "@/data/buildings";
 import type { Screen } from "@/pages/Index";
 
 interface MapScreenProps {

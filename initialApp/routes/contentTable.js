@@ -7,9 +7,12 @@ var mysql = require('mysql');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
-const { requireAuth } = require('../auth');
+const { requireAdmin, requireAuth } = require('../auth');
+const { createSubmission, getSubmissionById, readSubmissions, updateSubmission } = require('../photoSubmissions');
 
+const publicDir = path.join(__dirname, '..', 'public');
 const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+const placeholderImageUrl = '/placeholder.svg';
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -25,7 +28,129 @@ const storage = multer.diskStorage({
     },
 });
 
-const upload = multer({ storage });
+const allowedImageTypes = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/avif',
+    'image/bmp',
+    'image/x-ms-bmp',
+    'image/tiff',
+    'image/heic',
+    'image/heif',
+]);
+const allowedImageExtensions = new Set([
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.avif',
+    '.bmp',
+    '.tif',
+    '.tiff',
+    '.heic',
+    '.heif',
+]);
+
+function isAllowedPhotoFile(file) {
+    const mimetype = String(file.mimetype || '').trim().toLowerCase();
+    const extension = path.extname(file.originalname || '').toLowerCase();
+    const hasImageMime = allowedImageTypes.has(mimetype);
+    const hasGenericMime = !mimetype || mimetype === 'application/octet-stream' || mimetype === 'binary/octet-stream';
+
+    return hasImageMime || (hasGenericMime && allowedImageExtensions.has(extension));
+}
+
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024,
+    },
+    fileFilter: function (_req, file, cb) {
+        if (!isAllowedPhotoFile(file)) {
+            cb(new Error('Only image files can be uploaded'));
+            return;
+        }
+        cb(null, true);
+    },
+});
+const photoUpload = upload.single('photo');
+
+function handlePhotoUpload(req, res, next) {
+    photoUpload(req, res, function (error) {
+        if (error) {
+            const status = error.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+            res.status(status).json({
+                message: error.message || 'Invalid photo upload',
+            });
+            return;
+        }
+
+        next();
+    });
+}
+
+function normalizePublicAssetPath(assetPath) {
+    let normalized = assetPath || '';
+    normalized = normalized.replace(/\\/g, '/');
+    normalized = normalized.replace(/^\/?initialApp\/public\//, '');
+    normalized = normalized.replace(/^public\//, '');
+    if (normalized && !normalized.startsWith('/')) normalized = `/${normalized}`;
+    return normalized;
+}
+
+function resolveCaseInsensitivePath(filePath) {
+    const relativePath = path.relative(publicDir, filePath);
+    if (relativePath.startsWith('..')) {
+        return null;
+    }
+
+    const segments = relativePath.split(path.sep).filter(Boolean);
+    let currentPath = publicDir;
+    const resolvedSegments = [];
+
+    for (const segment of segments) {
+        if (!fs.existsSync(currentPath)) {
+            return null;
+        }
+
+        const entries = fs.readdirSync(currentPath);
+        const match = entries.find((entry) => entry.toLowerCase() === segment.toLowerCase());
+        if (!match) {
+            return null;
+        }
+
+        resolvedSegments.push(match);
+        currentPath = path.join(currentPath, match);
+    }
+
+    return fs.existsSync(currentPath) ? `/${resolvedSegments.join('/')}` : null;
+}
+
+function normalizeDisplayImagePath(assetPath) {
+    const normalized = normalizePublicAssetPath(assetPath);
+    if (!normalized) return placeholderImageUrl;
+    if (normalized === placeholderImageUrl || /^(data:image\/|blob:|https?:\/\/)/i.test(normalized)) {
+        return normalized;
+    }
+
+    if (!allowedImageExtensions.has(path.extname(normalized).toLowerCase())) {
+        return placeholderImageUrl;
+    }
+
+    if (!normalized.startsWith('/uploads/') && !normalized.startsWith('/archiveContent/') && !normalized.startsWith('/images/')) {
+        return normalized;
+    }
+
+    const publicPath = path.join(publicDir, normalized.slice(1));
+    if (fs.existsSync(publicPath)) {
+        return normalized;
+    }
+
+    return resolveCaseInsensitivePath(publicPath) || placeholderImageUrl;
+}
 
 function buildBuildingMatchClause(rawBuildingName, rawBuildingId) {
     const terms = Array.from(
@@ -89,16 +214,11 @@ router.get('/by-building', async function (req, res) {
     try {
         const results = await db.dbquery(query);
         const normalized = (results || []).map((row) => {
-            let imagePath = row.imagePath || '';
-            imagePath = imagePath.replace(/\\/g, '/');
-            imagePath = imagePath.replace(/^\/?initialApp\/public\//, '');
-            imagePath = imagePath.replace(/^public\//, '');
-            if (imagePath && !imagePath.startsWith('/')) imagePath = `/${imagePath}`;
             return {
                 buildingName: row.buildingName,
                 year: row.year,
                 description: row.description,
-                imagePath,
+                imagePath: normalizeDisplayImagePath(row.imagePath),
             };
         });
         res.json(normalized);
@@ -240,17 +360,12 @@ router.get('/photos', async function (req, res) {
     try {
         const results = await db.dbquery(query);
         const normalized = (results || []).map((row) => {
-            let imageUrl = row.imageUrl || '';
-            imageUrl = imageUrl.replace(/\\/g, '/');
-            imageUrl = imageUrl.replace(/^\/?initialApp\/public\//, '');
-            imageUrl = imageUrl.replace(/^public\//, '');
-            if (imageUrl && !imageUrl.startsWith('/')) imageUrl = `/${imageUrl}`;
             return {
                 id: row.id,
                 buildingName: row.buildingName,
                 year: row.year,
                 caption: row.caption,
-                imageUrl,
+                imageUrl: normalizeDisplayImagePath(row.imageUrl),
             };
         });
         res.json(normalized);
@@ -278,7 +393,7 @@ router.get('/photos/stats', async function (_req, res) {
 });
 
 // Add a photo record to the database
-router.post('/photos', requireAuth, async function (req, res) {
+router.post('/photos', requireAdmin, async function (req, res) {
     const { buildingName, year, imageUrl, caption } = req.body || {};
     if (!buildingName || !imageUrl) {
         res.status(400).json({ message: "buildingName and imageUrl are required" });
@@ -305,7 +420,7 @@ router.post('/photos', requireAuth, async function (req, res) {
 });
 
 // Update a photo record
-router.put('/photos/:id', requireAuth, async function (req, res) {
+router.put('/photos/:id', requireAdmin, async function (req, res) {
     const { id } = req.params;
     const { year, caption, imageUrl } = req.body || {};
 
@@ -353,7 +468,7 @@ router.put('/photos/:id', requireAuth, async function (req, res) {
 });
 
 // Delete a photo record
-router.delete('/photos/:id', requireAuth, async function (req, res) {
+router.delete('/photos/:id', requireAdmin, async function (req, res) {
     const { id } = req.params;
     const safeId = parseInt(id, 10);
     if (!Number.isFinite(safeId)) {
@@ -376,7 +491,76 @@ router.delete('/photos/:id', requireAuth, async function (req, res) {
 });
 
 // Upload a local photo file and create a DB record
-router.post('/photos/upload', requireAuth, upload.single('photo'), async function (req, res) {
+router.get('/photos/submissions', requireAdmin, async function (req, res) {
+    const status = req.query.status ? String(req.query.status).trim().toLowerCase() : '';
+    const submissions = readSubmissions()
+        .filter((submission) => !status || submission.status === status)
+        .sort((left, right) => new Date(right.submittedAt).getTime() - new Date(left.submittedAt).getTime())
+        .map((submission) => ({
+            ...submission,
+            imageUrl: normalizePublicAssetPath(submission.imageUrl),
+        }));
+
+    res.json(submissions);
+});
+
+router.post('/photos/submissions/:id/approve', requireAdmin, async function (req, res) {
+    const submission = getSubmissionById(req.params.id);
+    if (!submission) {
+        res.status(404).json({ message: 'Photo submission not found' });
+        return;
+    }
+
+    if (submission.status !== 'pending') {
+        res.status(400).json({ message: 'Photo submission has already been reviewed' });
+        return;
+    }
+
+    const query = `
+        INSERT INTO Photos (buildingName, year, imageUrl, caption)
+        VALUES (${mysql.escape(String(submission.buildingName))},
+                ${submission.year ? mysql.escape(submission.year) : 'NULL'},
+                ${mysql.escape(String(submission.imageUrl))},
+                ${submission.caption ? mysql.escape(String(submission.caption)) : 'NULL'});
+    `;
+
+    try {
+        await db.dbquery(query);
+        const updated = updateSubmission(submission.id, {
+            status: 'approved',
+            reviewedAt: new Date().toISOString(),
+            reviewedByEmail: req.authUser && req.authUser.email,
+            reviewedByName: req.authUser && req.authUser.name,
+        });
+        res.json({ ok: true, submission: updated });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to approve photo submission' });
+    }
+});
+
+router.post('/photos/submissions/:id/reject', requireAdmin, async function (req, res) {
+    const submission = getSubmissionById(req.params.id);
+    if (!submission) {
+        res.status(404).json({ message: 'Photo submission not found' });
+        return;
+    }
+
+    if (submission.status !== 'pending') {
+        res.status(400).json({ message: 'Photo submission has already been reviewed' });
+        return;
+    }
+
+    const updated = updateSubmission(submission.id, {
+        status: 'rejected',
+        reviewedAt: new Date().toISOString(),
+        reviewedByEmail: req.authUser && req.authUser.email,
+        reviewedByName: req.authUser && req.authUser.name,
+    });
+
+    res.json({ ok: true, submission: updated });
+});
+
+router.post('/photos/upload', requireAuth, handlePhotoUpload, async function (req, res) {
     const { buildingName, year, caption } = req.body || {};
     if (!buildingName || !req.file) {
         res.status(400).json({ message: "buildingName and photo file are required" });
@@ -384,21 +568,28 @@ router.post('/photos/upload', requireAuth, upload.single('photo'), async functio
     }
 
     const safeYear = year ? parseInt(year, 10) : null;
-    const imageUrl = `/uploads/${req.file.filename}`;
-
-    const query = `
-        INSERT INTO Photos (buildingName, year, imageUrl, caption)
-        VALUES (${mysql.escape(String(buildingName))},
-                ${safeYear ? mysql.escape(safeYear) : 'NULL'},
-                ${mysql.escape(imageUrl)},
-                ${caption ? mysql.escape(String(caption)) : 'NULL'});
-    `;
-
-    try {
-        await db.dbquery(query);
-        res.json({ ok: true, imageUrl });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to upload photo" });
+    if (year && !Number.isFinite(safeYear)) {
+        res.status(400).json({ message: "year must be a valid number" });
+        return;
     }
+
+    const imageUrl = `/uploads/${req.file.filename}`;
+    const submission = createSubmission({
+        buildingName: String(buildingName),
+        year: safeYear,
+        imageUrl,
+        caption: caption ? String(caption) : 'Uploaded photo',
+        submittedByEmail: req.authUser && req.authUser.email,
+        submittedByName: req.authUser && req.authUser.name,
+    });
+
+    res.status(201).json({
+        ok: true,
+        message: "Photo submitted for admin approval",
+        submission: {
+            ...submission,
+            imageUrl: normalizePublicAssetPath(submission.imageUrl),
+        },
+    });
 });
 module.exports = router;

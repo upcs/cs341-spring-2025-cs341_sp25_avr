@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "npm config set progress=false && cross-env CODECOV_TOKEN=REDACTED jest --env=jsdom --coverage --passWithNoTests",
-    "test:strict": "npm config set progress=false && cross-env CODECOV_TOKEN=REDACTED jest --env=jsdom --coverage --passWithNoTests",
+    "test": "cross-env CODECOV_TOKEN=REDACTED jest --coverage --passWithNoTests",
+    "test:strict": "cross-env CODECOV_TOKEN=REDACTED jest --coverage --passWithNoTests",
+    "test:coverage": "cross-env CODECOV_TOKEN=REDACTED jest --coverage --passWithNoTests",
     "upload-coverage": "npx codecov -f coverage/lcov.info"
   },
   "dependencies": {
@@ -47,7 +48,10 @@
   "jest": {
     "collectCoverage": true,
     "collectCoverageFrom": [
-      "public/javascripts/**/*.js",
+      "auth.js",
+      "routes/auth.js",
+      "routes/contentTable.js",
+      "routes/geoTable.js",
       "!**/node_modules/**",
       "!**/tests/**"
     ],
@@ -60,6 +64,14 @@
       "lcov"
     ],
     "coverageDirectory": "./coverage",
+    "coverageThreshold": {
+      "global": {
+        "branches": 75,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    },
     "testEnvironment": "jest-environment-jsdom"
   }
 }

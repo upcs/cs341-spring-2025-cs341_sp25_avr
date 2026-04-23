@@ -36,7 +36,7 @@ vi.mock("leaflet", () => {
   };
 });
 
-vi.mock("@/data/geoTable", () => ({
+vi.mock("@/data/buildings", () => ({
   CAMPUS_CENTER: { lat: 45.57, lng: -122.72 },
   DEFAULT_ZOOM: 16,
   buildings: [

@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, X } from "lucide-react";
-import { archivePhotos, buildings, buildingContent, isKnownBrokenArchiveImage } from "@/data/geoTable";
-import { useAppStore } from "@/store/appStore";
+import { archivePhotos, buildings, buildingContent, resolveDisplayImagePath } from "@/data/geoTable";
 import { useAuth } from "@/components/auth-context";
 import type { Screen } from "@/pages/Index";
-import WallyStamp from "@/components/wally-stamp";
 import { recordElapsedMetric } from "@/lib/performance";
 
 interface TimelineScreenProps {
@@ -33,6 +31,15 @@ type TimelineVisual = {
   caption: string;
   year: number;
   exactYear: boolean;
+  fallback?: boolean;
+};
+
+const FALLBACK_IMAGE_URL = "/placeholder.svg";
+const DEFAULT_TIMELINE_IMAGE_URL = "/images/up-campus.jpg";
+const BUILDING_TIMELINE_FALLBACK_IMAGES: Record<string, string> = {
+  chapel: "/images/chapel-doors.jpg",
+  franz: "/images/franz-hall.jpg",
+  waldschmidt: "/images/waldschmidt-hall.jpg",
 };
 
 function normalizeBuildingKey(value: string) {
@@ -76,9 +83,10 @@ function resolveTimelineVisual(
   }
 
   if (!buildingId) {
-    if (entry.imagePath && !isKnownBrokenArchiveImage(entry.imagePath)) {
+    const imageUrl = resolveDisplayImagePath(entry.imagePath);
+    if (imageUrl) {
       return {
-        imageUrl: entry.imagePath,
+        imageUrl,
         caption: `Archive image for ${entry.year}`,
         year: entry.year,
         exactYear: true,
@@ -100,9 +108,10 @@ function resolveTimelineVisual(
     };
   }
 
-  if (entry.imagePath && !isKnownBrokenArchiveImage(entry.imagePath)) {
+  const entryImageUrl = resolveDisplayImagePath(entry.imagePath);
+  if (entryImageUrl) {
     return {
-      imageUrl: entry.imagePath,
+      imageUrl: entryImageUrl,
       caption: `Archive image for ${entry.year}`,
       year: entry.year,
       exactYear: true,
@@ -156,9 +165,10 @@ function buildTimelineVisualCandidates(
         })
       );
 
-    if (entry.imagePath && !isKnownBrokenArchiveImage(entry.imagePath)) {
+    const entryImageUrl = resolveDisplayImagePath(entry.imagePath);
+    if (entryImageUrl) {
       pushCandidate({
-        imageUrl: entry.imagePath,
+        imageUrl: entryImageUrl,
         caption: `Archive image for ${entry.year}`,
         year: entry.year,
         exactYear: true,
@@ -179,6 +189,25 @@ function buildTimelineVisualCandidates(
   }
 
   return candidates;
+}
+
+function buildTimelineFallbackVisual(
+  building: (typeof buildings)[number] | undefined,
+  entry: TimelineEntry | undefined
+): TimelineVisual | null {
+  if (!entry) return null;
+
+  const imageUrl = resolveDisplayImagePath(
+    (building?.id && BUILDING_TIMELINE_FALLBACK_IMAGES[building.id]) || DEFAULT_TIMELINE_IMAGE_URL
+  );
+
+  return {
+    imageUrl: imageUrl ?? FALLBACK_IMAGE_URL,
+    caption: building ? `${building.name} campus view` : "University of Portland campus view",
+    year: entry.year,
+    exactYear: false,
+    fallback: true,
+  };
 }
 
 function buildFallbackTimelineEntries(
@@ -220,12 +249,14 @@ async function fetchTimelineEntries(buildingId: string | undefined, buildingName
   if (!Array.isArray(data)) return [];
 
   return data
-    .map((entry: { year?: number; description?: string; imagePath?: string }) => ({
-      year: Number(entry.year) || 0,
-      description: entry.description || "",
-      imagePath:
-        entry.imagePath && !isKnownBrokenArchiveImage(entry.imagePath) ? entry.imagePath : undefined,
-    }))
+    .map((entry: { year?: number; description?: string; imagePath?: string }) => {
+      const imagePath = resolveDisplayImagePath(entry.imagePath);
+      return {
+        year: Number(entry.year) || 0,
+        description: entry.description || "",
+        imagePath: imagePath ?? undefined,
+      };
+    })
     .sort((a, b) => a.year - b.year);
 }
 
@@ -249,9 +280,9 @@ async function fetchPhotoEntries(buildingId: string | undefined, buildingName: s
       buildingName: photo.buildingName,
       year: Number(photo.year) || new Date().getFullYear(),
       caption: photo.caption || "Uploaded photo",
-      imageUrl: photo.imageUrl,
+      imageUrl: resolveDisplayImagePath(photo.imageUrl) ?? "",
     }))
-    .filter((photo) => photo.imageUrl && !isKnownBrokenArchiveImage(photo.imageUrl));
+    .filter((photo) => photo.imageUrl);
 }
 
 const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: TimelineScreenProps) => {
@@ -265,7 +296,6 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
     [building, localContent]
   );
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { stamps } = useAppStore();
   const [dbPhotos, setDbPhotos] = useState<PhotoEntry[]>([]);
   const [photoLoadError, setPhotoLoadError] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<{ id?: string; imageUrl: string; caption: string; buildingName: string; year: number } | null>(null);
@@ -405,10 +435,18 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
     () => buildTimelineVisualCandidates(building?.id, currentEntry, photoEntries),
     [building?.id, currentEntry, photoEntries]
   );
-  const currentVisual = currentVisualCandidates[currentVisualIndex] ?? currentVisualCandidates[0] ?? null;
+  const fallbackVisual = useMemo(() => buildTimelineFallbackVisual(building, currentEntry), [building, currentEntry]);
+  const currentVisual = currentVisualCandidates[currentVisualIndex] ?? fallbackVisual;
+  const currentVisualTitle = currentVisual?.fallback
+    ? "Campus image"
+    : currentVisual?.exactYear
+      ? "Archive image from this year"
+      : `Archive image near ${currentEntry?.year}`;
+  const currentVisualBadge = currentVisual?.fallback
+    ? `Timeline year ${currentVisual.year}`
+    : `Photo year ${currentVisual?.year}`;
   const hasPast = currentIndex > 0;
   const hasFuture = currentIndex < effectiveContent.length - 1;
-  const isStamped = stamps.has(buildingId);
 
   const yearProgress = useMemo(() => {
     if (effectiveContent.length <= 1) return 100;
@@ -645,6 +683,11 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
     }
   };
 
+  const fallbackToPlaceholder = (event: SyntheticEvent<HTMLImageElement>) => {
+    if (event.currentTarget.src.endsWith(FALLBACK_IMAGE_URL)) return;
+    event.currentTarget.src = FALLBACK_IMAGE_URL;
+  };
+
   if (building && timelineLoading && timelineEntries.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
@@ -702,7 +745,7 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
                   onClick={() => setSelectedPhoto({ ...photo })}
                   className="rounded-lg overflow-hidden border border-border bg-card text-left"
                 >
-                  <img src={photo.imageUrl} alt={photo.caption || "Building photo"} className="w-full h-32 object-cover" />
+                  <img src={photo.imageUrl} alt={photo.caption || "Building photo"} onError={fallbackToPlaceholder} className="w-full h-32 object-cover" />
                   <div className="p-2">
                     <p className="text-xs text-muted-foreground">
                       {photo.buildingName} • {photo.year}
@@ -764,11 +807,6 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
             <h1 className="text-xl font-bold leading-tight">{building.name}</h1>
             <p className="text-sm opacity-80">University of Portland</p>
           </div>
-          {isStamped && (
-            <div title="Stamp collected!">
-              <WallyStamp collected size="sm" />
-            </div>
-          )}
         </div>
 
         {/* Timeline progress */}
@@ -782,16 +820,6 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
             />
           </div>
           <span className="text-xs opacity-70">{effectiveContent[effectiveContent.length - 1].year}</span>
-        </div>
-      </div>
-
-      {/* Stamp badge */}
-      <div className="px-5 pt-4 text-center">
-        <div className="inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2">
-          <WallyStamp collected={stamps.size > 0} size="sm" />
-          <span className="text-sm font-semibold text-foreground">
-            Wally stamps collected: {stamps.size}
-          </span>
         </div>
       </div>
 
@@ -838,7 +866,14 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
                     key={`${currentVisual.imageUrl}-${currentVisualIndex}`}
                     src={currentVisual.imageUrl}
                     alt={currentVisual.caption}
-                    onError={() => {
+                    onError={(event) => {
+                      if (
+                        currentVisualIndex >= currentVisualCandidates.length &&
+                        !event.currentTarget.src.endsWith(FALLBACK_IMAGE_URL)
+                      ) {
+                        event.currentTarget.src = FALLBACK_IMAGE_URL;
+                        return;
+                      }
                       setCurrentVisualIndex((index) =>
                         index < currentVisualCandidates.length - 1 ? index + 1 : currentVisualCandidates.length
                       );
@@ -848,25 +883,15 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
                   <div className="border-t border-border bg-background/95 px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-foreground">
-                        {currentVisual.exactYear
-                          ? "Archive image from this year"
-                          : `Archive image near ${currentEntry?.year}`}
+                        {currentVisualTitle}
                       </p>
                       <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-semibold text-foreground">
-                        {`Photo year ${currentVisual.year}`}
+                        {currentVisualBadge}
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">{currentVisual.caption}</p>
                   </div>
                 </>
-              )}
-              {!currentVisual && (
-                <div className="flex h-64 flex-col items-center justify-center bg-muted/35 px-6 text-center sm:h-80">
-                  <p className="text-sm font-semibold text-foreground">No building photo for this moment</p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    The timeline only shows real archive pictures of this building. This year does not have a usable building photo yet.
-                  </p>
-                </div>
               )}
             </div>
             <p className="text-foreground/90 text-lg leading-relaxed font-body">
@@ -1065,7 +1090,7 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
                     onClick={() => setSelectedPhoto({ ...photo })}
                     className="w-full"
                   >
-                    <img src={photo.imageUrl} alt={photo.caption || "Building photo"} className="w-full h-24 object-cover" />
+                    <img src={photo.imageUrl} alt={photo.caption || "Building photo"} onError={fallbackToPlaceholder} className="w-full h-24 object-cover" />
                   </button>
                   {photoManageMode && (
                     <div className="flex items-center justify-between px-2 py-1 text-xs">
@@ -1203,6 +1228,7 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
             <img
               src={selectedPhoto.imageUrl}
               alt={selectedPhoto.caption || "Building photo"}
+              onError={fallbackToPlaceholder}
               className="w-full max-h-[70vh] object-contain bg-black"
             />
             {selectedPhoto.caption && (

@@ -11,6 +11,12 @@ interface SessionResponse {
   authenticated?: boolean;
   email?: string | null;
   name?: string | null;
+  role?: "member" | "admin";
+}
+
+interface GuestIdentity {
+  displayName: string;
+  userKey: string;
 }
 
 interface LoginGateProps {
@@ -23,6 +29,21 @@ const emptyForm = {
   password: "",
 };
 
+const normalizeIdentityValue = (value: string) => value.trim().toLowerCase();
+
+const buildAuthenticatedUserKey = (email: string | null | undefined, fallbackName: string | null | undefined) =>
+  email?.trim()
+    ? `user:${normalizeIdentityValue(email)}`
+    : `user:${normalizeIdentityValue(fallbackName || "authenticated")}`;
+
+const createGuestIdentity = (fullName: string): GuestIdentity => {
+  const normalizedName = fullName.trim();
+  return {
+    displayName: normalizedName,
+    userKey: `guest:${normalizeIdentityValue(normalizedName)}`,
+  };
+};
+
 const LoginGate = ({ children }: LoginGateProps) => {
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [mode, setMode] = useState<AuthMode>("login");
@@ -33,9 +54,13 @@ const LoginGate = ({ children }: LoginGateProps) => {
   const [resetUrl, setResetUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [displayName, setDisplayName] = useState<string>("");
+  const [role, setRole] = useState<"member" | "admin">("member");
   const [resetToken, setResetToken] = useState<string | null>(null);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [offlineFallback, setOfflineFallback] = useState(false);
+  const [userKey, setUserKey] = useState<string>("");
+  const [guestIdentity, setGuestIdentity] = useState<GuestIdentity | null>(null);
+  const [guestName, setGuestName] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -66,6 +91,12 @@ const LoginGate = ({ children }: LoginGateProps) => {
       .then((data: SessionResponse) => {
         if (cancelled) return;
         setDisplayName(data.name || data.email || "");
+        setRole(data.role === "admin" ? "admin" : "member");
+        setUserKey(
+          data.authenticated
+            ? buildAuthenticatedUserKey(data.email || null, data.name || null)
+            : ""
+        );
         setAuthState(data.authenticated ? "authenticated" : "unauthenticated");
         setOfflineFallback(isBackendUnavailable());
       })
@@ -82,6 +113,21 @@ const LoginGate = ({ children }: LoginGateProps) => {
   }, []);
 
   const submitPath = mode === "signup" ? "/api/auth/signup" : "/api/auth/login";
+
+  const handleGuestContinue = () => {
+    const normalizedName = guestName.trim();
+    if (!normalizedName) {
+      setError("Enter your full name to continue in guest mode.");
+      setInfo(null);
+      return;
+    }
+
+    setGuestIdentity(createGuestIdentity(normalizedName));
+    setUserKey("");
+    setAuthState("guest");
+    setError(null);
+    setInfo(null);
+  };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -128,6 +174,9 @@ const LoginGate = ({ children }: LoginGateProps) => {
       }
 
       setDisplayName(data.name || data.email || "");
+      setRole(data.role === "admin" ? "admin" : "member");
+      setUserKey(buildAuthenticatedUserKey(data.email || null, data.name || null));
+      setGuestIdentity(null);
       setAuthState("authenticated");
       setOfflineFallback(isBackendUnavailable());
     } catch (err) {
@@ -152,10 +201,15 @@ const LoginGate = ({ children }: LoginGateProps) => {
 
   if (authState === "authenticated") {
     return (
-      <AuthProvider value={{ authenticated: true, readOnly: false, displayName }}>
+      <AuthProvider value={{ authenticated: true, readOnly: false, displayName, userKey, role, isAdmin: role === "admin" }}>
         <div className="relative">
           <div className="fixed right-4 top-4 z-50 flex items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-2 shadow-sm backdrop-blur">
             {displayName && <span className="text-xs font-medium text-foreground">{displayName}</span>}
+            {role === "admin" && (
+              <span className="rounded-full bg-primary px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
+                Admin
+              </span>
+            )}
             {offlineFallback && (
               <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Local Auth
@@ -166,6 +220,9 @@ const LoginGate = ({ children }: LoginGateProps) => {
               onClick={async () => {
                 await logout();
                 setDisplayName("");
+                setRole("member");
+                setUserKey("");
+                setGuestIdentity(null);
                 setForm(emptyForm);
                 setAuthState("unauthenticated");
                 setMode("login");
@@ -182,14 +239,35 @@ const LoginGate = ({ children }: LoginGateProps) => {
   }
 
   if (authState === "guest") {
+    const activeGuestIdentity = guestIdentity ?? {
+      displayName: "Guest",
+      userKey: "guest:anonymous",
+    };
+
     return (
-      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest" }}>
+      <AuthProvider
+        value={{
+          authenticated: false,
+          readOnly: true,
+          displayName: activeGuestIdentity.displayName,
+          userKey: activeGuestIdentity.userKey,
+          role: "member",
+          isAdmin: false,
+        }}
+      >
         <div className="relative">
           <div className="fixed right-4 top-4 z-50 flex items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-2 shadow-sm backdrop-blur">
-            <span className="text-xs font-medium text-foreground">Guest view</span>
+            <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Guest Mode
+            </span>
+            <span className="text-xs font-medium text-foreground">{activeGuestIdentity.displayName}</span>
             <button
               type="button"
-              onClick={() => setAuthState("unauthenticated")}
+              onClick={() => {
+                setGuestIdentity(null);
+                setGuestName("");
+                setAuthState("unauthenticated");
+              }}
               className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground"
             >
               Sign In
@@ -231,13 +309,31 @@ const LoginGate = ({ children }: LoginGateProps) => {
           )}
         </div>
 
+        <div className="mb-5 rounded-2xl border border-border bg-muted/30 p-4">
+          <label htmlFor="guest-name" className="mb-2 block text-sm font-semibold text-foreground">
+            Guest mode full name
+          </label>
+          <input
+            id="guest-name"
+            type="text"
+            placeholder="Enter your full name"
+            value={guestName}
+            onChange={(e) => {
+              setGuestName(e.target.value);
+              if (error === "Enter your full name to continue in guest mode.") {
+                setError(null);
+              }
+            }}
+            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground"
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Guest mode saves campus quest badges under your full name, and the app will keep showing that you are using guest mode.
+          </p>
+        </div>
+
         <button
           type="button"
-          onClick={() => {
-            setAuthState("guest");
-            setError(null);
-            setInfo(null);
-          }}
+          onClick={handleGuestContinue}
           className="mb-5 w-full rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground"
         >
           Continue as Guest

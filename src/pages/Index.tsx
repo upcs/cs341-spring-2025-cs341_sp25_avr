@@ -1,46 +1,63 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HomeScreen from "@/components/screens/home";
-import MapScreen from "@/components/screens/geo";
-import TimelineScreen from "@/components/screens/timeline";
-import AboutScreen from "@/components/screens/about";
-import QuestScreen from "@/components/screens/quest";
-import PhotoHubScreen from "@/components/screens/photohub";
+import { useAuth } from "@/components/auth-context";
 import { useAppStore } from "@/store/appStore";
 
 export type Screen = "home" | "map" | "timeline" | "about" | "quest" | "photohub";
 
-const APP_STORE_STORAGE_KEY = "avr-app-store";
+const screenImporters = {
+  map: () => import("@/components/screens/geo"),
+  timeline: () => import("@/components/screens/timeline"),
+  about: () => import("@/components/screens/about"),
+  quest: () => import("@/components/screens/quest"),
+  photohub: () => import("@/components/screens/photohub"),
+};
+
+const MapScreen = lazy(screenImporters.map);
+const TimelineScreen = lazy(screenImporters.timeline);
+const AboutScreen = lazy(screenImporters.about);
+const QuestScreen = lazy(screenImporters.quest);
+const PhotoHubScreen = lazy(screenImporters.photohub);
+
+const ScreenFallback = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background px-6 text-center">
+    <div className="rounded-2xl border border-border bg-card px-6 py-5 text-sm text-muted-foreground shadow-sm">
+      Loading campus experience...
+    </div>
+  </div>
+);
 
 const Index = () => {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const timelineRenderStart = useRef<number | null>(null);
-  const resetStamps = useAppStore((state) => state.resetStamps);
+  const { userKey } = useAuth();
+  const setActiveUser = useAppStore((state) => state.setActiveUser);
 
   useLayoutEffect(() => {
-    if (typeof window !== "undefined") {
-      const rawStore = window.localStorage.getItem(APP_STORE_STORAGE_KEY);
-      if (rawStore) {
-        try {
-          const parsed = JSON.parse(rawStore) as {
-            state?: { stamps?: string[]; __stampResetVersion?: string; photos?: unknown };
-            version?: number;
-          };
+    setActiveUser(userKey);
+  }, [setActiveUser, userKey]);
 
-          if (parsed.state && ("stamps" in parsed.state || "__stampResetVersion" in parsed.state)) {
-            delete parsed.state.stamps;
-            delete parsed.state.__stampResetVersion;
-            window.localStorage.setItem(APP_STORE_STORAGE_KEY, JSON.stringify(parsed));
-          }
-        } catch {
-          window.localStorage.removeItem(APP_STORE_STORAGE_KEY);
-        }
-      }
+  useEffect(() => {
+    if (screen !== "home") return;
+
+    const preloadNonHomeScreens = () => {
+      void screenImporters.map();
+      void screenImporters.timeline();
+      void screenImporters.about();
+      void screenImporters.quest();
+      void screenImporters.photohub();
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(preloadNonHomeScreens, { timeout: 3000 });
+      return () => window.cancelIdleCallback(idleId);
     }
 
-    resetStamps();
-  }, [resetStamps]);
+    const timeoutId = window.setTimeout(preloadNonHomeScreens, 1500);
+    return () => window.clearTimeout(timeoutId);
+  }, [screen]);
 
   const handleBuildingSelect = (buildingId: string) => {
     timelineRenderStart.current = typeof performance !== "undefined" ? performance.now() : null;
@@ -58,27 +75,37 @@ const Index = () => {
         )}
         {screen === "map" && (
           <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-            <MapScreen onNavigate={setScreen} onBuildingSelect={handleBuildingSelect} />
+            <Suspense fallback={<ScreenFallback />}>
+              <MapScreen onNavigate={setScreen} onBuildingSelect={handleBuildingSelect} />
+            </Suspense>
           </motion.div>
         )}
         {screen === "timeline" && selectedBuilding && (
           <motion.div key="timeline" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.4 }}>
-            <TimelineScreen buildingId={selectedBuilding} onNavigate={setScreen} renderStartMs={timelineRenderStart.current} />
+            <Suspense fallback={<ScreenFallback />}>
+              <TimelineScreen buildingId={selectedBuilding} onNavigate={setScreen} renderStartMs={timelineRenderStart.current} />
+            </Suspense>
           </motion.div>
         )}
         {screen === "about" && (
           <motion.div key="about" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-            <AboutScreen onNavigate={setScreen} />
+            <Suspense fallback={<ScreenFallback />}>
+              <AboutScreen onNavigate={setScreen} />
+            </Suspense>
           </motion.div>
         )}
         {screen === "quest" && (
           <motion.div key="quest" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-            <QuestScreen onNavigate={setScreen} />
+            <Suspense fallback={<ScreenFallback />}>
+              <QuestScreen onNavigate={setScreen} />
+            </Suspense>
           </motion.div>
         )}
         {screen === "photohub" && (
           <motion.div key="photohub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-            <PhotoHubScreen onNavigate={setScreen} />
+            <Suspense fallback={<ScreenFallback />}>
+              <PhotoHubScreen onNavigate={setScreen} />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>
