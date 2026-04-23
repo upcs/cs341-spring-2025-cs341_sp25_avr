@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ "sprint3-checklist", "main" ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Run frontend tests
+        run: npm test
+
+      - name: Install backend dependencies
+        run: npm --prefix initialApp install
+
+      - name: Run backend tests
+        run: npm --prefix initialApp test

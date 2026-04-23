@@ -1,13 +1,19 @@
+import { clearBackendUnavailable, markBackendUnavailable } from "./backend-status";
+
+type UserRole = "member" | "admin";
+
 type SessionResponse = {
   authenticated: boolean;
   email?: string | null;
   name?: string | null;
+  role?: UserRole;
 };
 
 type AuthResponse = {
   ok: boolean;
   email?: string;
   name?: string;
+  role?: UserRole;
   message?: string;
   verificationUrl?: string | null;
   resetUrl?: string | null;
@@ -17,30 +23,139 @@ type LocalUser = {
   id: string;
   name: string;
   email: string;
-  password: string;
+  passwordHash: string;
   verified: boolean;
   verificationToken: string | null;
   resetToken: string | null;
+  role?: UserRole;
 };
 
-const USERS_KEY = "avr_local_users";
-const SESSION_KEY = "avr_local_session";
+const AUTH_STORAGE_VERSION = "2026-04-22-local-password-hash";
+const VERSION_KEY = "avr_local_auth_version";
+const USERS_KEY = `avr_local_users:${AUTH_STORAGE_VERSION}`;
+const SESSION_KEY = `avr_local_session:${AUTH_STORAGE_VERSION}`;
+const DEFAULT_ADMIN_EMAILS = new Set(["admin@up.edu"]);
+const LEGACY_AUTH_KEYS = [
+  "avr_local_users",
+  "avr_local_session",
+];
 
 class BackendUnavailableError extends Error {}
 
+function clearLegacyLocalAuthStorage() {
+  try {
+    const currentVersion = window.localStorage.getItem(VERSION_KEY);
+    if (currentVersion === AUTH_STORAGE_VERSION) {
+      return;
+    }
+
+    for (const key of LEGACY_AUTH_KEYS) {
+      window.localStorage.removeItem(key);
+    }
+
+    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+      const key = window.localStorage.key(index);
+      if (key?.startsWith("avr_local_users:") || key?.startsWith("avr_local_session:")) {
+        window.localStorage.removeItem(key);
+      }
+    }
+
+    window.localStorage.setItem(VERSION_KEY, AUTH_STORAGE_VERSION);
+  } catch {
+    // Ignore storage access errors and fall back to empty in-memory behavior.
+  }
+}
+
+clearLegacyLocalAuthStorage();
+
+function normalizeFrontendUrl(urlValue: string | null | undefined) {
+  if (!urlValue) return null;
+
+  try {
+    const parsed = new URL(urlValue, window.location.origin);
+    parsed.protocol = window.location.protocol;
+    parsed.host = window.location.host;
+    return parsed.toString();
+  } catch {
+    return urlValue;
+  }
+}
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
+}
+
+function resolveLocalUserRole(email: string, role?: string | null): UserRole {
+  return role === "admin" || DEFAULT_ADMIN_EMAILS.has(normalizeEmail(email)) ? "admin" : "member";
 }
 
 function validUpEmail(email: string) {
   return /^[a-z0-9._%+-]+@up\.edu$/i.test(normalizeEmail(email));
 }
 
+function toHex(bytes: Uint8Array) {
+  return Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function getRandomSalt() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+async function hashLocalPassword(password: string, salt = getRandomSalt()) {
+  const subtleCrypto = typeof crypto !== "undefined" ? crypto.subtle : undefined;
+
+  if (!subtleCrypto) {
+    throw new Error("Secure password storage is not available in this browser.");
+  }
+
+  const encoder = new TextEncoder();
+  const key = await subtleCrypto.importKey(
+    "raw",
+    encoder.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const derivedBits = await subtleCrypto.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: encoder.encode(salt),
+      iterations: 120000,
+      hash: "SHA-256",
+    },
+    key,
+    256
+  );
+
+  return `pbkdf2-sha256:120000:${salt}:${toHex(new Uint8Array(derivedBits))}`;
+}
+
+async function verifyLocalPassword(password: string, storedHash: string) {
+  const [algorithm, iterations, salt, expectedHash] = storedHash.split(":");
+  if (algorithm !== "pbkdf2-sha256" || iterations !== "120000" || !salt || !expectedHash) {
+    return false;
+  }
+
+  return (await hashLocalPassword(password, salt)) === storedHash;
+}
+
 function readUsers(): LocalUser[] {
   try {
     const raw = window.localStorage.getItem(USERS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed
+          .filter((entry): entry is LocalUser => typeof entry === "object" && entry !== null)
+          .map((user) => ({
+            ...user,
+            role: resolveLocalUserRole(user.email, user.role),
+          }))
+      : [];
   } catch {
     return [];
   }
@@ -90,7 +205,11 @@ async function requestJson(path: string, init?: RequestInit) {
   if (!response.ok) {
     throw new Error(data.message || "Authentication failed");
   }
-  return data;
+  return {
+    ...data,
+    verificationUrl: normalizeFrontendUrl(data.verificationUrl),
+    resetUrl: normalizeFrontendUrl(data.resetUrl),
+  };
 }
 
 function buildLocalVerificationUrl(token: string) {
@@ -105,6 +224,7 @@ async function fallbackGetSession(): Promise<SessionResponse> {
     authenticated: Boolean(user),
     email: user?.email || null,
     name: user?.name || null,
+    role: user ? resolveLocalUserRole(user.email, user.role) : "member",
   };
 }
 
@@ -130,10 +250,11 @@ async function fallbackSignup(payload: { name: string; email: string; password: 
     id: crypto.randomUUID(),
     name: payload.name.trim(),
     email,
-    password: payload.password,
+    passwordHash: await hashLocalPassword(payload.password),
     verified: false,
     verificationToken,
     resetToken: null,
+    role: resolveLocalUserRole(email),
   });
   writeUsers(users);
 
@@ -141,6 +262,7 @@ async function fallbackSignup(payload: { name: string; email: string; password: 
     ok: true,
     email,
     name: payload.name.trim(),
+    role: resolveLocalUserRole(email),
     message: "Check your @up.edu email for the verification link before signing in.",
     verificationUrl: buildLocalVerificationUrl(verificationToken),
   };
@@ -159,6 +281,7 @@ async function fallbackVerify(token: string): Promise<AuthResponse> {
     ok: true,
     email: user.email,
     name: user.name,
+    role: resolveLocalUserRole(user.email, user.role),
     message: "Email verified. You can now sign in.",
   };
 }
@@ -197,7 +320,7 @@ async function fallbackResetPassword(token: string, password: string): Promise<A
     throw new Error("Invalid password reset link");
   }
 
-  user.password = password;
+  user.passwordHash = await hashLocalPassword(password);
   user.resetToken = null;
   writeUsers(users);
 
@@ -215,7 +338,7 @@ async function fallbackLogin(payload: { email: string; password: string }): Prom
   if (!user) {
     throw new Error("No account exists for that @up.edu email. Sign up first or check the address.");
   }
-  if (user.password !== payload.password) {
+  if (!(await verifyLocalPassword(payload.password, user.passwordHash))) {
     throw new Error("Incorrect password. Try again or use the same password you created during sign up.");
   }
   if (!user.verified) {
@@ -226,6 +349,7 @@ async function fallbackLogin(payload: { email: string; password: string }): Prom
     ok: true,
     email: user.email,
     name: user.name,
+    role: resolveLocalUserRole(user.email, user.role),
   };
 }
 
@@ -301,6 +425,36 @@ export async function forgotPassword(email: string): Promise<AuthResponse> {
   }
 }
 
+export async function resendVerification(email: string): Promise<AuthResponse> {
+  try {
+    return await requestJson("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+  } catch (error) {
+    if (error instanceof TypeError || error instanceof BackendUnavailableError) {
+      const user = readUsers().find((entry) => entry.email === normalizeEmail(email));
+      if (!user) {
+        throw new Error("No account exists for that @up.edu email. Sign up first or check the address.");
+      }
+
+      user.verificationToken = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      writeUsers(readUsers().map((entry) => (entry.email === user.email ? user : entry)));
+
+      return {
+        ok: true,
+        email: user.email,
+        name: user.name,
+        role: resolveLocalUserRole(user.email, user.role),
+        message: "A fresh verification link is ready for this account.",
+        verificationUrl: buildLocalVerificationUrl(user.verificationToken),
+      };
+    }
+    throw error;
+  }
+}
+
 export async function resetPassword(token: string, password: string): Promise<AuthResponse> {
   try {
     return await requestJson("/api/auth/reset-password", {
@@ -329,4 +483,3 @@ export async function logout(): Promise<void> {
     throw error;
   }
 }
-import { clearBackendUnavailable, markBackendUnavailable } from "./backend-status";

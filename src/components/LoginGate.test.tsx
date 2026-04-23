@@ -25,6 +25,44 @@ describe("LoginGate", () => {
     });
   });
 
+  it("lets a user continue in guest mode", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ authenticated: false }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    render(<LoginGate><div>Secret app</div></LoginGate>);
+
+    await waitFor(() => screen.getByText(/Campus History Login/i));
+    fireEvent.change(screen.getByPlaceholderText(/Enter your full name/i), {
+      target: { value: "Makengo Lokombo" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Continue as Guest/i }));
+
+    expect(screen.getByText(/Guest Mode/i)).toBeInTheDocument();
+    expect(screen.getByText("Makengo Lokombo")).toBeInTheDocument();
+    expect(screen.getByText("Secret app")).toBeInTheDocument();
+  });
+
+  it("requires a full name before guest mode continues", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ authenticated: false }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    render(<LoginGate><div>Secret app</div></LoginGate>);
+
+    await waitFor(() => screen.getByText(/Campus History Login/i));
+    fireEvent.click(screen.getByRole("button", { name: /Continue as Guest/i }));
+
+    expect(screen.getByText(/Enter your full name to continue in guest mode./i)).toBeInTheDocument();
+    expect(screen.queryByText("Secret app")).not.toBeInTheDocument();
+  });
+
   it("renders children after a successful login", async () => {
     mockFetch
       .mockResolvedValueOnce(
@@ -71,7 +109,7 @@ describe("LoginGate", () => {
 
     await waitFor(() => screen.getByText(/Campus History Login/i));
     fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
-    fireEvent.change(screen.getByPlaceholderText(/Full name/i), { target: { value: "New User" } });
+    fireEvent.change(screen.getByPlaceholderText(/^Full name$/i), { target: { value: "New User" } });
     fireEvent.change(screen.getByPlaceholderText(/name@up.edu/i), { target: { value: "newuser@up.edu" } });
     fireEvent.change(screen.getByPlaceholderText(/^Password$/i), { target: { value: "campuspass" } });
     fireEvent.click(screen.getByRole("button", { name: /Create Account/i }));
