@@ -4,6 +4,10 @@
 
 The **Campus History Web Application** is an interactive, web-based tool designed to showcase the rich history of the University of Portland. Developed as part of the university's 125th-anniversary celebration, this application offers users access to historical images, facts, and stories about key campus locations. By leveraging geolocation, users receive contextual pop-ups as they explore the campus, creating an immersive journey through time.
 
+# Review your requirement document
+
+From our requirement document, we mainly focused on specifying performance output and general speed of our website. Some things in particular that were highlighted is that the response times of buttons when clicked should direct you to another page in no more than 2-3 seconds. Upload for photos also shouldn't take more than 5 seconds to process into the website. Our efforts to improve these metrics was to firstly, sort of rewirte our entire code base from html to typescript. We found that typescript offers more reliable performance and higher output speeds than html for large end websites. This helped improve our response time overall. For the photo uploads, we implemented some type of authentication where a user can only upload images if it's within a certain size, this is mainly due to preventing large uploads from happening which might slow down the website performance.
+
 ### Website Link:
 [Campus History Web Application](http://cs341avr.campus.up.edu/)
 
