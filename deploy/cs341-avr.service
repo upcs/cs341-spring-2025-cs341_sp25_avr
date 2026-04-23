@@ -1,0 +1,19 @@
+[Unit]
+Description=CS341 Campus History app
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/cs341-spring-2025-cs341_sp25_avr
+Environment=VOLTA_HOME=%h/.volta
+Environment=PATH=%h/.volta/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=%h/.volta/bin/npm start
+Restart=always
+RestartSec=5
+Environment=PORT=4000
+Environment=NODE_ENV=development
+StandardOutput=append:/opt/cs341-spring-2025-cs341_sp25_avr/logs/systemd.out.log
+StandardError=append:/opt/cs341-spring-2025-cs341_sp25_avr/logs/systemd.err.log
+
+[Install]
+WantedBy=multi-user.target

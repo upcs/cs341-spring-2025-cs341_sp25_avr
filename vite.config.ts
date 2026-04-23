@@ -1,0 +1,59 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import { componentTagger } from "lovable-tagger";
+
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
+  assetsInclude: [
+    "**/*.JPG",
+    "**/*.jpg",
+    "**/*.JPEG",
+    "**/*.jpeg",
+    "**/*.PNG",
+    "**/*.png",
+    "**/*.GIF",
+    "**/*.gif",
+    "**/*.WEBP",
+    "**/*.webp",
+    "**/*.AVIF",
+    "**/*.avif",
+    "**/*.BMP",
+    "**/*.bmp",
+    "**/*.TIF",
+    "**/*.tif",
+    "**/*.TIFF",
+    "**/*.tiff",
+    "**/*.HEIC",
+    "**/*.heic",
+    "**/*.HEIF",
+    "**/*.heif",
+  ],
+  server: {
+    host: "0.0.0.0",
+    port: 3000,
+    proxy: {
+      "/api": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/archiveContent": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/uploads": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+    },
+    hmr: {
+      overlay: false,
+    },
+  },
+  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+}));

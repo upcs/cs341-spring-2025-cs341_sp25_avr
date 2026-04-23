@@ -1,0 +1,29 @@
+[
+  {
+    "id": "seed-admin-admin-up-edu",
+    "name": "Admin",
+    "email": "admin@up.edu",
+    "role": "admin",
+    "passwordHash": "2ebd437dce67c5d104fd4cf69fc18d98:a48a347b0eb06498488d952d2a86eb2ca2c622d0b473b035918414165166499199ea7ece8fd5c1b05f3d788bb7b1e02698536e067c4ba11deb2c1fa035a3bec4",
+    "verified": true,
+    "verificationToken": null,
+    "verificationExpiresAt": null,
+    "createdAt": "2026-04-23T00:00:00.000Z",
+    "verifiedAt": "2026-04-23T00:00:00.000Z",
+    "resetToken": null,
+    "resetExpiresAt": null,
+    "resetAt": "2026-04-23T07:46:00.312Z"
+  },
+  {
+    "id": "0e5ab08b-3a18-4e0b-80aa-9b541b4139f3",
+    "name": "Makengo Lokombo",
+    "email": "lokombo27@up.edu",
+    "role": "member",
+    "passwordHash": "3e6fb381ee1ea45d3425b7c450c06df8:2ed76efea2df3e41688ff4b7dbe32a8173b10608df8988cdb1898f9cb1d71aebcb1e4f6fa4801f8197c5a0a19c2a8c5a98899dc79d70aa6ec27b41c4c4ec4713",
+    "verified": true,
+    "verificationToken": null,
+    "verificationExpiresAt": null,
+    "createdAt": "2026-04-21T20:57:05.605Z",
+    "verifiedAt": "2026-04-21T20:57:22.177Z"
+  }
+]
