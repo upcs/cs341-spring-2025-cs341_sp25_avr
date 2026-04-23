@@ -10,6 +10,7 @@ const {
   createUser,
   getAuthenticatedUser,
   getTokenForUser,
+  refreshVerificationToken,
   resetPasswordByToken,
   verifyUserByToken,
 } = require('../auth');
@@ -29,6 +30,7 @@ router.get('/session', function(req, res) {
     authenticated: Boolean(user),
     email: user ? user.email : null,
     name: user ? user.name : null,
+    role: user ? user.role : 'member',
   });
 });
 
@@ -45,6 +47,7 @@ router.post('/signup', function(req, res) {
     ok: true,
     email: result.user.email,
     name: result.user.name,
+    role: result.user.role,
     verificationSent: true,
     verificationUrl: buildVerificationUrl(req, result.user.verificationToken),
     message: 'Check your @up.edu email for the verification link before signing in.',
@@ -61,7 +64,7 @@ router.post('/login', function(req, res) {
   }
 
   setAuthCookie(res, result.user);
-  res.json({ ok: true, email: result.user.email, name: result.user.name });
+  res.json({ ok: true, email: result.user.email, name: result.user.name, role: result.user.role });
 });
 
 router.post('/verify', function(req, res) {
@@ -77,6 +80,7 @@ router.post('/verify', function(req, res) {
     ok: true,
     email: result.user.email,
     name: result.user.name,
+    role: result.user.role,
     message: 'Email verified. You can now sign in.',
   });
 });
@@ -89,6 +93,27 @@ router.post('/forgot-password', function(req, res) {
     ok: true,
     message: result.message,
     resetUrl: result.user ? buildResetUrl(req, result.user.resetToken) : null,
+  });
+});
+
+router.post('/resend-verification', function(req, res) {
+  const { email } = req.body || {};
+  const result = refreshVerificationToken(email);
+
+  if (!result.ok) {
+    res.status(400).json({ message: result.message });
+    return;
+  }
+
+  res.json({
+    ok: true,
+    email: result.user.email,
+    name: result.user.name,
+    role: result.user.role,
+    message: result.message,
+    verificationUrl: result.user.verificationToken
+      ? buildVerificationUrl(req, result.user.verificationToken)
+      : null,
   });
 });
 
@@ -105,6 +130,7 @@ router.post('/reset-password', function(req, res) {
     ok: true,
     email: result.user.email,
     name: result.user.name,
+    role: result.user.role,
     message: 'Password reset. You can now sign in.',
   });
 });

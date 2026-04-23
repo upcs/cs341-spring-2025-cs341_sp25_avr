@@ -1,19 +1,29 @@
 [
   {
-    "id": "8d87ea65-f1b8-459c-bfc5-18600dd885e5",
-    "name": "Makengo",
-    "email": "lokombo@up.edu",
-    "passwordHash": "ffbe6c0c0d48431d76847f0a84a82d29:b85fd9b731f33a795395b93e6fe0434426b1b80aca3e5e22cf7e09f1b43f4b4135b403a7a0fbb920a74284717b3a62db9a5f1a9fb0200d91887279789f232ea7",
-    "createdAt": "2026-03-17T23:29:37.166Z"
+    "id": "seed-admin-admin-up-edu",
+    "name": "Admin",
+    "email": "admin@up.edu",
+    "role": "admin",
+    "passwordHash": "2ebd437dce67c5d104fd4cf69fc18d98:a48a347b0eb06498488d952d2a86eb2ca2c622d0b473b035918414165166499199ea7ece8fd5c1b05f3d788bb7b1e02698536e067c4ba11deb2c1fa035a3bec4",
+    "verified": true,
+    "verificationToken": null,
+    "verificationExpiresAt": null,
+    "createdAt": "2026-04-23T00:00:00.000Z",
+    "verifiedAt": "2026-04-23T00:00:00.000Z",
+    "resetToken": null,
+    "resetExpiresAt": null,
+    "resetAt": "2026-04-23T07:46:00.312Z"
   },
   {
-    "id": "2ba7b872-ca71-49e6-9bf6-3148052f0b89",
-    "name": "makengo",
+    "id": "0e5ab08b-3a18-4e0b-80aa-9b541b4139f3",
+    "name": "Makengo Lokombo",
     "email": "lokombo27@up.edu",
-    "passwordHash": "c4e58a37c62cde44a67c973e900f1ceb:fc9f1a78887f38a76542ab2f322f5c0e588c94134bce50735401d6fda044ddb229db2ac7fb9c10eba76a7f20ec1cebe3b6832b5a2c92e11db2f91cbad82b9daf",
-    "verified": false,
-    "verificationToken": "67002497c9fecba925ec97dc78747e9d792ac25e0385d078",
-    "verificationExpiresAt": "2026-03-18T23:50:04.977Z",
-    "createdAt": "2026-03-17T23:50:04.977Z"
+    "role": "member",
+    "passwordHash": "3e6fb381ee1ea45d3425b7c450c06df8:2ed76efea2df3e41688ff4b7dbe32a8173b10608df8988cdb1898f9cb1d71aebcb1e4f6fa4801f8197c5a0a19c2a8c5a98899dc79d70aa6ec27b41c4c4ec4713",
+    "verified": true,
+    "verificationToken": null,
+    "verificationExpiresAt": null,
+    "createdAt": "2026-04-21T20:57:05.605Z",
+    "verifiedAt": "2026-04-21T20:57:22.177Z"
   }
 ]

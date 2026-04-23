@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { archivePhotos } from "@/data/geoTable";
+import { buildings } from "@/data/buildings";
 
 export interface Photo {
   id: string;
@@ -24,9 +24,12 @@ export interface Comment {
 
 interface AppState {
   // Stamps
+  activeUserKey: string;
   stamps: Set<string>;
-  toggleStamp: (id: string) => void;
+  stampCollections: Record<string, string[]>;
+  setActiveUser: (userKey: string) => void;
   addStamp: (id: string) => void;
+  resetStamps: () => void;
 
   // Photos
   photos: Photo[];
@@ -38,36 +41,63 @@ interface AppState {
   addComment: (photoId: string, text: string) => void;
 }
 
-const samplePhotos: Photo[] = archivePhotos.map((photo) => ({
-  id: photo.id,
-  buildingId: photo.buildingId,
-  buildingName: photo.buildingName,
-  year: photo.year,
-  imageUrl: photo.imageUrl,
-  caption: photo.caption,
-  uploadedAt: `${photo.year}-01-01T00:00:00.000Z`,
-  likes: 0,
-  liked: false,
-  comments: [],
-}));
+const samplePhotos: Photo[] = [];
+
+const questStampIdSet = new Set(buildings.slice(0, 12).map((building) => building.id));
+
+function sanitizeStampIds(ids: Iterable<string> | undefined) {
+  if (!ids) {
+    return [];
+  }
+
+  return Array.from(new Set(ids)).filter((id) => questStampIdSet.has(id));
+}
+
+function sanitizeStampCollections(collections: Record<string, string[]> | undefined) {
+  if (!collections) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(collections).map(([userKey, ids]) => [userKey, sanitizeStampIds(ids)])
+  );
+}
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
+      activeUserKey: "guest:anonymous",
       stamps: new Set<string>(),
-      toggleStamp: (id) =>
-        set((state) => {
-          const next = new Set(state.stamps);
-          if (next.has(id)) next.delete(id);
-          else next.add(id);
-          return { stamps: next };
-        }),
+      stampCollections: {},
+      setActiveUser: (userKey) =>
+        set((state) => ({
+          activeUserKey: userKey,
+          stamps: new Set(sanitizeStampIds(state.stampCollections[userKey])),
+        })),
       addStamp: (id) =>
         set((state) => {
+          if (!questStampIdSet.has(id)) {
+            return state;
+          }
+
           const next = new Set(state.stamps);
           next.add(id);
-          return { stamps: next };
+          return {
+            stamps: next,
+            stampCollections: {
+              ...state.stampCollections,
+              [state.activeUserKey]: sanitizeStampIds(next),
+            },
+          };
         }),
+      resetStamps: () =>
+        set((state) => ({
+          stamps: new Set<string>(),
+          stampCollections: {
+            ...state.stampCollections,
+            [state.activeUserKey]: [],
+          },
+        })),
 
       photos: samplePhotos,
       addPhoto: (photo) =>
@@ -133,16 +163,29 @@ export const useAppStore = create<AppState>()(
       name: "avr-app-store",
       storage: createJSONStorage(() => window.localStorage),
       partialize: (state) => ({
-        stamps: Array.from(state.stamps),
+        stampCollections: sanitizeStampCollections(state.stampCollections),
         photos: state.photos,
       }),
       merge: (persistedState, currentState) => {
-        const persisted = persistedState as { stamps?: string[]; photos?: Photo[] } | undefined;
+        const persisted = persistedState as { photos?: Photo[]; stampCollections?: Record<string, string[]> } | undefined;
+        const activeUserKey = currentState.activeUserKey;
+        const stampCollections = sanitizeStampCollections(persisted?.stampCollections);
         return {
           ...currentState,
           ...persisted,
-          stamps: new Set(persisted?.stamps ?? []),
+          activeUserKey,
+          stampCollections,
+          stamps: new Set<string>(sanitizeStampIds(stampCollections[activeUserKey])),
           photos: persisted?.photos?.length ? persisted.photos : currentState.photos,
+        };
+      },
+      version: 5,
+      migrate: (persistedState) => {
+        const persisted = (persistedState ?? {}) as { photos?: Photo[]; stampCollections?: Record<string, string[]> };
+        return {
+          ...persisted,
+          stampCollections: sanitizeStampCollections(persisted.stampCollections),
+          stamps: [],
         };
       },
     }

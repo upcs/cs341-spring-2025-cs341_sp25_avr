@@ -6,6 +6,7 @@ const AUTH_COOKIE_NAME = 'avr_auth';
 const USERS_FILE = path.join(__dirname, 'data', 'users.json');
 const VERIFY_TOKEN_TTL_MS = 1000 * 60 * 60 * 24;
 const RESET_TOKEN_TTL_MS = 1000 * 60 * 30;
+const DEFAULT_ADMIN_EMAILS = ['admin@up.edu'];
 
 function ensureUserStore() {
   const dir = path.dirname(USERS_FILE);
@@ -22,7 +23,43 @@ function readUsers() {
   try {
     const raw = fs.readFileSync(USERS_FILE, 'utf8');
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    let changed = false;
+    const normalizedUsers = parsed.map((user) => {
+      if (typeof user !== 'object' || user === null) {
+        return user;
+      }
+
+      const normalizedUser = { ...user };
+
+      // Accounts created before email verification existed should remain usable.
+      if (typeof normalizedUser.verified !== 'boolean') {
+        normalizedUser.verified = true;
+        normalizedUser.verificationToken = null;
+        normalizedUser.verificationExpiresAt = null;
+        if (!normalizedUser.verifiedAt) {
+          normalizedUser.verifiedAt = normalizedUser.createdAt || new Date().toISOString();
+        }
+        changed = true;
+      }
+
+      const normalizedRole = resolveUserRole(normalizedUser.email, normalizedUser.role);
+      if (normalizedUser.role !== normalizedRole) {
+        normalizedUser.role = normalizedRole;
+        changed = true;
+      }
+
+      return normalizedUser;
+    });
+
+    if (changed) {
+      writeUsers(normalizedUsers);
+    }
+
+    return normalizedUsers;
   } catch (_error) {
     return [];
   }
@@ -40,6 +77,28 @@ function saveUser(updatedUser) {
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
+}
+
+function getConfiguredAdminEmails() {
+  const configured = String(process.env.AVR_ADMIN_EMAILS || '')
+    .split(',')
+    .map((entry) => normalizeEmail(entry))
+    .filter(Boolean);
+
+  return new Set([...DEFAULT_ADMIN_EMAILS, ...configured].map((entry) => normalizeEmail(entry)));
+}
+
+function resolveUserRole(email, role) {
+  const normalizedRole = String(role || '').trim().toLowerCase();
+  if (normalizedRole === 'admin') {
+    return 'admin';
+  }
+
+  return getConfiguredAdminEmails().has(normalizeEmail(email)) ? 'admin' : 'member';
+}
+
+function isAdminUser(user) {
+  return resolveUserRole(user && user.email, user && user.role) === 'admin';
 }
 
 function isValidUpEmail(email) {
@@ -101,6 +160,7 @@ function createUser({ name, email, password }) {
     id: crypto.randomUUID(),
     name: trimmedName,
     email: normalizedEmail,
+    role: resolveUserRole(normalizedEmail),
     passwordHash: hashPassword(rawPassword),
     verified: false,
     verificationToken: crypto.randomBytes(24).toString('hex'),
@@ -152,6 +212,27 @@ function verifyUserByToken(token) {
   user.verifiedAt = new Date().toISOString();
   saveUser(user);
   return { ok: true, user };
+}
+
+function refreshVerificationToken(email) {
+  const user = findUserByEmail(email);
+  if (!user) {
+    return { ok: false, message: 'No account exists for that @up.edu email. Sign up first or check the address.' };
+  }
+
+  if (user.verified) {
+    return { ok: true, user, message: 'That account is already verified.' };
+  }
+
+  user.verificationToken = crypto.randomBytes(24).toString('hex');
+  user.verificationExpiresAt = new Date(Date.now() + VERIFY_TOKEN_TTL_MS).toISOString();
+  saveUser(user);
+
+  return {
+    ok: true,
+    user,
+    message: 'A fresh verification link is ready for this account.',
+  };
 }
 
 function createPasswordReset(email) {
@@ -235,6 +316,22 @@ function requireAuth(req, res, next) {
   res.status(401).json({ message: 'Authentication required' });
 }
 
+function requireAdmin(req, res, next) {
+  const user = getAuthenticatedUser(req);
+  if (!user) {
+    res.status(401).json({ message: 'Authentication required' });
+    return;
+  }
+
+  if (!isAdminUser(user)) {
+    res.status(403).json({ message: 'Admin access required' });
+    return;
+  }
+
+  req.authUser = user;
+  next();
+}
+
 module.exports = {
   AUTH_COOKIE_NAME,
   authenticateUser,
@@ -244,11 +341,15 @@ module.exports = {
   createPasswordReset,
   getAuthenticatedUser,
   getTokenForUser,
+  isAdminUser,
   isAuthenticated,
   isValidUpEmail,
   normalizeEmail,
   readUsers,
+  requireAdmin,
+  refreshVerificationToken,
   requireAuth,
+  resolveUserRole,
   resetPasswordByToken,
   verifyUserByToken,
 };
