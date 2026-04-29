@@ -258,7 +258,7 @@ describe('initialApp content routes', () => {
       .mockResolvedValueOnce([]);
 
     const photosResponse = await invokeRoute(router, 'get', '/photos', {
-      query: { buildingName: 'Shiley', limit: '999' },
+      query: { buildingName: 'Shiley', limit: '9999' },
     });
     expect(photosResponse.status).toBe(200);
     expect(photosResponse.json).toEqual([
@@ -284,7 +284,7 @@ describe('initialApp content routes', () => {
         imageUrl: '/placeholder.svg',
       },
     ]);
-    expect(dbMock.dbquery.mock.calls[0][0]).toContain('LIMIT 200');
+    expect(dbMock.dbquery.mock.calls[0][0]).toContain('LIMIT 5000');
 
     expect(await invokeRoute(router, 'get', '/photos')).toMatchObject({
       status: 500,
@@ -490,10 +490,20 @@ describe('initialApp content routes', () => {
         id: 'submission-1',
         buildingName: 'Shiley',
         year: 2005,
-        imageUrl: '/uploads/test-photo.png',
+        imageUrl: 'initialApp\\public\\images\\wally.png',
         caption: 'Upload caption',
         status: 'pending',
         submittedAt: '2026-04-16T12:00:00.000Z',
+        submittedByName: 'Campus User',
+      },
+      {
+        id: 'submission-missing',
+        buildingName: 'Franz Hall',
+        year: 2006,
+        imageUrl: 'initialApp\\public\\uploads\\missing-photo.png',
+        caption: 'Missing upload',
+        status: 'pending',
+        submittedAt: '2026-04-15T12:00:00.000Z',
         submittedByName: 'Campus User',
       },
     ]);
@@ -533,6 +543,12 @@ describe('initialApp content routes', () => {
         expect.objectContaining({
           id: 'submission-1',
           status: 'pending',
+          imageUrl: '/images/wally.png',
+        }),
+        expect.objectContaining({
+          id: 'submission-missing',
+          status: 'pending',
+          imageUrl: '/placeholder.svg',
         }),
       ],
     });

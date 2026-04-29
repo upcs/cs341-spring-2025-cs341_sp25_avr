@@ -266,6 +266,131 @@ describe("TimelineScreen", () => {
     expect(screen.queryByText(/does not have a usable building photo yet/i)).not.toBeInTheDocument();
   });
 
+  it("prefers the exact timeline image over a nearby uploaded photo", async () => {
+    mockFetch.mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/api/content/by-building")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify([
+              {
+                buildingName: "Chapel of Christ the Teacher",
+                year: 1986,
+                description: "Backend chapel history",
+                imagePath: "/archiveContent/chapel/1986-timeline.jpg",
+              },
+            ]),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
+
+      if (url.includes("/api/content/photos?")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify([
+              {
+                id: "uploaded-1",
+                buildingName: "chapel",
+                year: 1985,
+                caption: "Nearby uploaded photo",
+                imageUrl: "/uploads/chapel-1985.jpg",
+              },
+            ]),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
+
+      return Promise.resolve(new Response("Not found", { status: 404 }));
+    });
+
+    render(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
+        <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByAltText(/Archive image for 1986/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("img", { name: /Archive image for 1986/i })).toHaveAttribute(
+      "src",
+      "/archiveContent/chapel/1986-timeline.jpg"
+    );
+    expect(screen.getByText(/Photo year 1986/i)).toBeInTheDocument();
+  });
+
+  it("resets to the oldest timeline entry when switching buildings", async () => {
+    mockFetch.mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/api/content/by-building")) {
+        if (url.includes("buildingName=Chapel+of+Christ+the+Teacher")) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify([
+                { buildingName: "Chapel of Christ the Teacher", year: 1986, description: "Chapel oldest entry" },
+                { buildingName: "Chapel of Christ the Teacher", year: 1992, description: "Chapel newer entry" },
+              ]),
+              { status: 200, headers: { "Content-Type": "application/json" } }
+            )
+          );
+        }
+
+        if (url.includes("buildingName=Athletic+Fields")) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify([
+                { buildingName: "Athletic Fields", year: 1901, description: "Fields oldest entry" },
+                { buildingName: "Athletic Fields", year: 2009, description: "Fields newer entry" },
+              ]),
+              { status: 200, headers: { "Content-Type": "application/json" } }
+            )
+          );
+        }
+      }
+
+      if (url.includes("/api/content/photos?")) {
+        return Promise.resolve(
+          new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } })
+        );
+      }
+
+      return Promise.resolve(new Response("Not found", { status: 404 }));
+    });
+
+    const { rerender } = render(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
+        <TimelineScreen buildingId="chapel" onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Chapel oldest entry/i).length).toBe(2);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Future/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Chapel newer entry/i)).toBeInTheDocument();
+    });
+
+    rerender(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
+        <TimelineScreen buildingId="fields" onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Fields oldest entry/i).length).toBe(2);
+    });
+
+    expect(screen.getAllByText(/Fields newer entry/i).length).toBe(1);
+  });
+
   it("resolves a building when the timeline screen receives the building name instead of the id", async () => {
     mockFetch.mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);

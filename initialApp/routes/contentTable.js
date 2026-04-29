@@ -343,7 +343,7 @@ router.delete('/timeline', requireAuth, async function (req, res) {
 // Photos from database (optionally filtered by buildingName)
 router.get('/photos', async function (req, res) {
     const rawLimit = parseInt(req.query.limit, 10);
-    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 200) : 100;
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 5000) : 1000;
     const buildingName = req.query.buildingName ? String(req.query.buildingName) : null;
     const buildingId = req.query.buildingId ? String(req.query.buildingId) : null;
 
@@ -498,7 +498,7 @@ router.get('/photos/submissions', requireAdmin, async function (req, res) {
         .sort((left, right) => new Date(right.submittedAt).getTime() - new Date(left.submittedAt).getTime())
         .map((submission) => ({
             ...submission,
-            imageUrl: normalizePublicAssetPath(submission.imageUrl),
+            imageUrl: normalizeDisplayImagePath(submission.imageUrl),
         }));
 
     res.json(submissions);

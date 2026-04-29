@@ -95,6 +95,28 @@ describe("PhotoHubScreen", () => {
     expect(screen.getByRole("heading", { name: /Upload Photo/i })).toBeInTheDocument();
   });
 
+  it("keeps distinct approved photos with the same caption visible", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify([
+          { id: 1, buildingName: "Chapel of Christ the Teacher", year: 2026, caption: "Uploaded photo", imageUrl: "/chapel-a.jpg" },
+          { id: 2, buildingName: "Chapel of Christ the Teacher", year: 2026, caption: "Uploaded photo", imageUrl: "/chapel-b.jpg" },
+        ]),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+
+    render(
+      <AuthProvider value={{ authenticated: false, readOnly: true, displayName: "Guest", userKey: "guest:test" }}>
+        <PhotoHubScreen onNavigate={() => {}} />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /Open photo Uploaded photo/i })).toHaveLength(2);
+    });
+  });
+
   it("opens a larger photo view when a photo tile is clicked", async () => {
     mockFetch.mockResolvedValueOnce(
       new Response(

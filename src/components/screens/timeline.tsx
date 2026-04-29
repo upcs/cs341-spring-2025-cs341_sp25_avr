@@ -95,6 +95,26 @@ function resolveTimelineVisual(
     return null;
   }
 
+  const entryImageUrl = resolveDisplayImagePath(entry.imagePath);
+  if (entryImageUrl) {
+    return {
+      imageUrl: entryImageUrl,
+      caption: `Archive image for ${entry.year}`,
+      year: entry.year,
+      exactYear: true,
+    };
+  }
+
+  const curatedExactMatch = archivePhotos.find((photo) => photo.buildingId === buildingId && photo.year === entry.year);
+  if (curatedExactMatch) {
+    return {
+      imageUrl: curatedExactMatch.imageUrl,
+      caption: curatedExactMatch.caption,
+      year: curatedExactMatch.year,
+      exactYear: true,
+    };
+  }
+
   const uploadedMatch = photos
     .filter((photo) => photo.buildingName && resolveBuildingFromInput(photo.buildingName)?.id === buildingId)
     .sort((a, b) => Math.abs(a.year - entry.year) - Math.abs(b.year - entry.year))[0];
@@ -105,16 +125,6 @@ function resolveTimelineVisual(
       caption: uploadedMatch.caption,
       year: uploadedMatch.year,
       exactYear: uploadedMatch.year === entry.year,
-    };
-  }
-
-  const entryImageUrl = resolveDisplayImagePath(entry.imagePath);
-  if (entryImageUrl) {
-    return {
-      imageUrl: entryImageUrl,
-      caption: `Archive image for ${entry.year}`,
-      year: entry.year,
-      exactYear: true,
     };
   }
 
@@ -289,6 +299,7 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
   const { readOnly } = useAuth();
   const building = resolveBuildingFromInput(buildingId);
   const resolvedBuildingId = building?.id ?? buildingId;
+  const timelineBuildingKey = building?.id ?? buildingId;
   const apiBuildingName = building?.name ?? (buildingId ? buildingId.replace(/-/g, " ") : "");
   const localContent = buildingContent[resolvedBuildingId] || [];
   const fallbackTimelineEntries = useMemo(
@@ -340,6 +351,10 @@ const TimelineScreen = ({ buildingId, onNavigate, renderStartMs = null }: Timeli
   useEffect(() => {
     timelineMetricReported.current = false;
   }, [buildingId]);
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [timelineBuildingKey]);
 
   useEffect(() => {
     if (!apiBuildingName) {

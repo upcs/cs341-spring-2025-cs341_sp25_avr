@@ -37,6 +37,7 @@ const archiveAssetMap = Object.fromEntries(
     value,
   ])
 );
+const archiveAssetPaths = Object.keys(archiveAssetMap).sort();
 
 export const resolveStaticImage = (path: string) => archiveAssetMap[path] || path;
 
@@ -60,7 +61,6 @@ const invalidArchiveImagePaths = new Set([
   "/archiveContent/db/2017.jpg",
   "/archiveContent/db/2019.jpg",
   "/archiveContent/fields/2009.jpg",
-  "/archiveContent/beauchamp/2015.jpg",
   "/archiveContent/baseball/2004.jpg",
   "/archiveContent/buckley/2019.jpg",
   "/archiveContent/chiles/1997.jpg",
@@ -72,13 +72,32 @@ const invalidArchiveImagePaths = new Set([
   "/archiveContent/franz/1996.jpg",
 ].map(normalizeArchiveImagePathKey));
 
+const GENERIC_ARCHIVE_FALLBACK = "/images/up-campus.jpg";
+
 export function isKnownBrokenArchiveImage(path: string | null | undefined) {
   if (!path) return false;
   return invalidArchiveImagePaths.has(normalizeArchiveImagePathKey(path));
 }
 
 function resolveArchiveImage(path: string) {
-  return isKnownBrokenArchiveImage(path) ? null : path;
+  const normalizedPath = normalizeArchiveImagePathKey(path);
+  if (!invalidArchiveImagePaths.has(normalizedPath)) {
+    return path;
+  }
+
+  const lastSlashIndex = normalizedPath.lastIndexOf("/");
+  if (lastSlashIndex !== -1) {
+    const folderPrefix = normalizedPath.slice(0, lastSlashIndex + 1);
+    const siblingFallback = archiveAssetPaths.find((assetPath) => {
+      const normalizedAssetPath = normalizeArchiveImagePathKey(assetPath);
+      return normalizedAssetPath.startsWith(folderPrefix) && !invalidArchiveImagePaths.has(normalizedAssetPath);
+    });
+    if (siblingFallback) {
+      return siblingFallback;
+    }
+  }
+
+  return GENERIC_ARCHIVE_FALLBACK;
 }
 
 const normalizeBuildingKey = (value: string) =>

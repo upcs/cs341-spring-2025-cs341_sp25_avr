@@ -20,6 +20,7 @@ type HubPhoto = {
   imageUrl: string;
   caption: string;
   uploadedAt: string;
+  uploadedTimestamp: number;
   likes: number;
   liked: boolean;
   comments: Array<{ id: string; author: string; text: string }>;
@@ -36,7 +37,7 @@ type PendingSubmission = {
   submittedByName?: string | null;
 };
 
-const FALLBACK_IMAGE_URL = "/placeholder.svg";
+const FALLBACK_IMAGE_URL = "/images/up-campus.jpg";
 const MAX_PHOTO_UPLOAD_BYTES = 5 * 1024 * 1024;
 const PHOTO_FILE_ACCEPT = "image/*,.heic,.heif,.tif,.tiff,.bmp,.avif,.webp";
 const PHOTO_EXTENSION_PATTERN = /\.(jpe?g|png|gif|webp|avif|bmp|tiff?|heic|heif)$/i;
@@ -44,13 +45,46 @@ const PHOTO_EXTENSION_PATTERN = /\.(jpe?g|png|gif|webp|avif|bmp|tiff?|heic|heif)
 const isPhotoFile = (file: File) =>
   (file.type.startsWith("image/") && file.type !== "image/svg+xml") || PHOTO_EXTENSION_PATTERN.test(file.name);
 
+const getTimestamp = (dateLike: string | null | undefined, fallbackYear: number) => {
+  const parsed = Date.parse(dateLike || "");
+  return Number.isFinite(parsed) ? parsed : Date.UTC(fallbackYear, 0, 1);
+};
+
 const getDisplayImageUrl = (imageUrl: string | null | undefined) => {
   if (!imageUrl) return FALLBACK_IMAGE_URL;
   if (imageUrl === FALLBACK_IMAGE_URL || /^(data:image\/|blob:|https?:\/\/)/i.test(imageUrl)) {
     return imageUrl;
   }
-  return PHOTO_EXTENSION_PATTERN.test(imageUrl) ? (resolveDisplayImagePath(imageUrl) ?? imageUrl) : FALLBACK_IMAGE_URL;
+  if (!PHOTO_EXTENSION_PATTERN.test(imageUrl)) {
+    return FALLBACK_IMAGE_URL;
+  }
+  return resolveDisplayImagePath(imageUrl) ?? FALLBACK_IMAGE_URL;
 };
+
+const getPhotoMergeKey = (photo: Pick<HubPhoto, "id" | "buildingId" | "year" | "imageUrl">) => {
+  if (!photo.imageUrl || photo.imageUrl === FALLBACK_IMAGE_URL) {
+    return `id:${photo.id}`;
+  }
+  return `asset:${photo.buildingId}:${photo.year}:${photo.imageUrl.toLowerCase()}`;
+};
+
+const buildBundledHubPhotos = (): HubPhoto[] =>
+  archivePhotos.map((photo) => {
+    const buildingName = buildings.find((building) => building.id === photo.buildingId)?.name ?? photo.buildingName;
+    return {
+      id: `bundled-${photo.id}`,
+      buildingId: photo.buildingId,
+      buildingName,
+      year: photo.year,
+      imageUrl: getDisplayImageUrl(photo.imageUrl),
+      caption: photo.caption || "Archive photo",
+      uploadedAt: `${photo.year}-01-01T00:00:00.000Z`,
+      uploadedTimestamp: Date.UTC(photo.year, 0, 1),
+      likes: 0,
+      liked: false,
+      comments: [],
+    };
+  });
 
 const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
   const { readOnly, displayName, isAdmin = false } = useAuth();
@@ -81,26 +115,10 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
     if (event.currentTarget.src.endsWith(FALLBACK_IMAGE_URL)) return;
     event.currentTarget.src = FALLBACK_IMAGE_URL;
   };
-  const buildBundledHubPhotos = (): HubPhoto[] =>
-    archivePhotos.map((photo) => {
-      const buildingName = buildings.find((building) => building.id === photo.buildingId)?.name ?? photo.buildingName;
-      return {
-        id: `bundled-${photo.id}`,
-        buildingId: photo.buildingId,
-        buildingName,
-        year: photo.year,
-        imageUrl: resolveDisplayImagePath(photo.imageUrl) ?? photo.imageUrl,
-        caption: photo.caption || "Archive photo",
-        uploadedAt: `${photo.year}-01-01T00:00:00.000Z`,
-        likes: 0,
-        liked: false,
-        comments: [],
-      };
-    });
   const mergePhotoLists = (livePhotos: HubPhoto[], bundledPhotos: HubPhoto[]) => {
     const merged = new Map<string, HubPhoto>();
     const addPhoto = (photo: HubPhoto) => {
-      const key = `${photo.buildingId}:${photo.year}:${normalizeBuildingId(photo.caption)}`;
+      const key = getPhotoMergeKey(photo);
       if (!merged.has(key)) {
         merged.set(key, photo);
       }
@@ -110,12 +128,14 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
     return Array.from(merged.values());
   };
 
+  const bundledHubPhotos = useMemo(() => buildBundledHubPhotos(), []);
+
   const loadPhotos = async () => {
     setLoading(true);
     setLoadError(null);
     try {
       const [photosResponse, submissionsResponse] = await Promise.all([
-        fetch("/api/content/photos?limit=100"),
+        fetch("/api/content/photos?limit=1000"),
         isAdmin ? fetch("/api/content/photos/submissions?status=pending") : Promise.resolve(null),
       ]);
 
@@ -124,20 +144,25 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
       }
       const data = await photosResponse.json();
       const nextPhotos: HubPhoto[] = Array.isArray(data)
-        ? data.map((photo: { id: number | string; buildingName: string; year?: number; imageUrl: string; caption?: string }) => ({
-            id: String(photo.id),
-            buildingId: resolveBuildingId(photo.buildingName),
-            buildingName: photo.buildingName,
-            year: Number(photo.year) || new Date().getFullYear(),
-            imageUrl: getDisplayImageUrl(photo.imageUrl),
-            caption: photo.caption || "Uploaded photo",
-            uploadedAt: new Date().toISOString(),
-            likes: 0,
-            liked: false,
-            comments: [],
-          }))
+        ? data.map((photo: { id: number | string; buildingName: string; year?: number; imageUrl: string; caption?: string; uploadedAt?: string }) => {
+            const year = Number(photo.year) || new Date().getFullYear();
+            const uploadedAt = photo.uploadedAt || `${year}-01-01T00:00:00.000Z`;
+            return {
+              id: String(photo.id),
+              buildingId: resolveBuildingId(photo.buildingName),
+              buildingName: photo.buildingName,
+              year,
+              imageUrl: getDisplayImageUrl(photo.imageUrl),
+              caption: photo.caption || "Uploaded photo",
+              uploadedAt,
+              uploadedTimestamp: getTimestamp(uploadedAt, year),
+              likes: 0,
+              liked: false,
+              comments: [],
+            };
+          })
         : [];
-      setPhotos(mergePhotoLists(nextPhotos, buildBundledHubPhotos()));
+      setPhotos(mergePhotoLists(nextPhotos, bundledHubPhotos));
 
       if (submissionsResponse) {
         if (!submissionsResponse.ok) {
@@ -163,7 +188,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
         setPendingSubmissions([]);
       }
     } catch (error) {
-      setPhotos(buildBundledHubPhotos());
+      setPhotos(bundledHubPhotos);
       setLoadError(
         error instanceof Error
           ? `${error.message}. Showing bundled archive photos.`
@@ -176,7 +201,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
 
   useEffect(() => {
     void loadPhotos();
-  }, [isAdmin]);
+  }, [bundledHubPhotos, isAdmin]);
 
   // Buildings that have photos
   const buildingsWithPhotos = useMemo(() => {
@@ -192,10 +217,10 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
 
     switch (sortBy) {
       case "newest":
-        result.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+        result.sort((a, b) => b.uploadedTimestamp - a.uploadedTimestamp);
         break;
       case "oldest":
-        result.sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
+        result.sort((a, b) => a.uploadedTimestamp - b.uploadedTimestamp);
         break;
       case "most-liked":
         result.sort((a, b) => b.likes - a.likes);
@@ -356,15 +381,18 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-purple text-primary-foreground px-5 py-5">
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-gradient-purple px-5 py-5 text-primary-foreground">
+        <div className="mb-3 flex items-center justify-between">
           <button
             onClick={() => onNavigate("home")}
             className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity"
           >
             <ArrowLeft className="w-4 h-4" /> Home
           </button>
-          <div className="flex items-center gap-2">
+        </div>
+        <div className="space-y-3 text-center sm:text-left">
+          <h1 className="text-3xl font-bold">Photo Hub</h1>
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             {isAdmin && (
               <span className="rounded-lg bg-amber-300 px-3 py-1.5 text-xs font-bold text-amber-950">
                 Admin Review: {pendingSubmissions.length}
@@ -380,7 +408,6 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
             </button>
           </div>
         </div>
-        <h1 className="text-3xl font-bold">Photo Hub</h1>
       </div>
 
       {/* Building filter navigation */}
@@ -454,6 +481,8 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
                       src={submission.imageUrl}
                       alt={submission.caption}
                       onError={fallbackToPlaceholder}
+                      loading="lazy"
+                      decoding="async"
                       className="h-24 w-24 rounded-lg object-cover"
                     />
                     <div className="min-w-0 flex-1">
@@ -526,7 +555,7 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
                 key={photo.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: Math.min(i, 6) * 0.02 }}
                 className="bg-card rounded-xl overflow-hidden border border-border shadow-sm"
               >
                 <div className="aspect-square overflow-hidden relative group">
@@ -536,7 +565,14 @@ const PhotoHubScreen = ({ onNavigate }: PhotoHubScreenProps) => {
                     className="block h-full w-full"
                     aria-label={`Open photo ${photo.caption}`}
                   >
-                    <img src={photo.imageUrl} alt={photo.caption} onError={fallbackToPlaceholder} className="w-full h-full object-cover" />
+                    <img
+                      src={photo.imageUrl}
+                      alt={photo.caption}
+                      onError={fallbackToPlaceholder}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                   {isAdmin && <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                     <label className="p-2 rounded-full bg-card/80 cursor-pointer hover:bg-card transition-colors">

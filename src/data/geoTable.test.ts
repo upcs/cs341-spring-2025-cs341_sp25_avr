@@ -6,6 +6,7 @@ import {
   CAMPUS_CENTER,
   DEFAULT_ZOOM,
   isKnownBrokenArchiveImage,
+  resolveDisplayImagePath,
 } from "@/data/geoTable";
 
 describe("geoTable archive data", () => {
@@ -30,5 +31,20 @@ describe("geoTable archive data", () => {
     expect(isKnownBrokenArchiveImage("\\archiveContent\\SHILEY\\1969.jpg")).toBe(true);
     expect(isKnownBrokenArchiveImage("/archiveContent/shiley/1948.jpg")).toBe(false);
     expect(isKnownBrokenArchiveImage(null)).toBe(false);
+  });
+
+  it("falls back broken archive paths to a valid image from the same building when possible", () => {
+    expect(resolveDisplayImagePath("/archiveContent/buckley/2019.jpg")).toMatch(/buckley/i);
+    expect(resolveDisplayImagePath("/archiveContent/buckley/2019.jpg")).not.toContain("2019.jpg");
+  });
+
+  it("falls back to a generic campus image when a building has no valid archive image left", () => {
+    expect(resolveDisplayImagePath("/archiveContent/library/2013.jpg")).toBe("/images/up-campus.jpg");
+  });
+
+  it("uses the real Beauchamp image when the asset exists", () => {
+    expect(isKnownBrokenArchiveImage("/archiveContent/beauchamp/2015.jpg")).toBe(false);
+    expect(resolveDisplayImagePath("/archiveContent/beauchamp/2015.jpg")).toMatch(/beauchamp|2015/i);
+    expect(resolveDisplayImagePath("/archiveContent/beauchamp/2015.jpg")).not.toBe("/images/up-campus.jpg");
   });
 });
